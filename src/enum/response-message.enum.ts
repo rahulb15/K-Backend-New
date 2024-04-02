@@ -1,0 +1,92 @@
+
+export enum ResponseMessage {
+  SUCCESS = 'Success',
+  FAILED = 'Failed',
+  NOT_FOUND = 'Not Found',
+  UNAUTHORIZED = 'Unauthorized',
+  FORBIDDEN = 'Forbidden',
+  BAD_REQUEST = 'Bad Request',
+  INTERNAL_SERVER_ERROR = 'Internal Server Error',
+  CREATED = 'Created',
+  UPDATED = 'Updated',
+  DELETED = 'Deleted',
+  DUPLICATE = 'Duplicate',
+  INVALID = 'Invalid',
+  EXPIRED = 'Expired',
+  CONFLICT = 'Conflict',
+  UserLoggedIn = 'User logged in',
+  EMAIL_INVALID = 'Email is invalid',
+  PASSWORD_INVALID = 'Password is invalid',
+  NAME_INVALID = 'Name is invalid',
+  USER_NOT_FOUND = 'User not found',
+  EMAIL_NOT_MATCH = 'Email not match',
+  PASSWORD_MATCH = 'Password not match',
+  NEW_PASSWORD_REQUIRED = 'New password required',
+  EMAIL_NOT_SENT = 'Email not sent',
+}
+
+export enum ResponseDescription {
+  SUCCESS = 'The request has succeeded.',
+  FAILED = 'The request has failed.',
+  NOT_FOUND = 'The requested resource could not be found but may be available in the future.',
+  UNAUTHORIZED = 'The request requires user authentication.',
+  FORBIDDEN = 'The server understood the request but refuses to authorize it.',
+  BAD_REQUEST = 'The server cannot or will not process the request due to an apparent client error.',
+  INTERNAL_SERVER_ERROR = 'The server encountered an unexpected condition that prevented it from fulfilling the request.',
+  CREATED = 'The request has succeeded and a new resource has been created as a result.',
+  UPDATED = 'The request has succeeded and the resource has been updated.',
+  DELETED = 'The request has succeeded and the resource has been deleted.',
+  DUPLICATE = 'The request has failed due to a duplicate resource.',
+  INVALID = 'The request has failed due to an invalid resource.',
+  EXPIRED = 'The request has failed due to an expired resource.',
+  CONFLICT = 'The request has failed due to a conflict resource.',
+  UserNotFound = 'User not found',
+  UserLoggedIn = 'User logged in',
+  EMAIL_INVALID = 'Email is invalid',
+  PASSWORD_INVALID = 'Minimum eight characters, at least one uppercase letter, one lowercase letter and one number',
+  NAME_INVALID = 'Minimum eight characters, at least one uppercase letter, one lowercase letter and one number',
+  USER_NOT_FOUND = 'User not found',
+  EMAIL_NOT_MATCH = 'Please enter valid email',
+  PASSWORD_MATCH = 'Please enter valid password',
+  NEW_PASSWORD_REQUIRED = 'Please enter new password',
+  EMAIL_NOT_SENT = 'Email not sent',
+}
+
+export enum ResponseCode {
+  SUCCESS = 200,
+  FAILED = 400,
+  NOT_FOUND = 404,
+  UNAUTHORIZED = 401,
+  FORBIDDEN = 403,
+  BAD_REQUEST = 400,
+  INTERNAL_SERVER_ERROR = 500,
+  CREATED = 201,
+  UPDATED = 200,
+  DELETED = 200,
+  DUPLICATE = 400,
+  INVALID = 400,
+  EXPIRED = 400,
+  CONFLICT = 409,
+
+}
+
+export enum ResponseStatus {
+  SUCCESS = 'success',
+  FAILED = 'failed',
+  NOT_FOUND = 'not_found',
+  UNAUTHORIZED = 'unauthorized',
+  FORBIDDEN = 'forbidden',
+  BAD_REQUEST = 'bad_request',
+  INTERNAL_SERVER_ERROR = 'internal_server_error',
+  CREATED = 'created',
+  UPDATED = 'updated',
+  DELETED = 'deleted',
+  DUPLICATE = 'duplicate',
+  INVALID = 'invalid',
+  EXPIRED = 'expired',
+  CONFLICT = 'conflict',
+
+}
+
+
+
