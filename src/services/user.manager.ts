@@ -1,6 +1,6 @@
-import User from '../models/user.model';
-import { IUserManager } from '../interfaces/user/user.manager.interface';
-import { IUser } from '../interfaces/user/user.interface';
+import User from "../models/user.model";
+import { IUserManager } from "../interfaces/user/user.manager.interface";
+import { IUser } from "../interfaces/user/user.interface";
 
 export class UserManager implements IUserManager {
   private static instance: UserManager;
@@ -43,6 +43,14 @@ export class UserManager implements IUserManager {
 
   public async deleteById(id: string): Promise<IUser> {
     const user: IUser = (await User.findByIdAndDelete(id)) as IUser;
+    return user;
+  }
+
+  public async getByWalletAddress(walletAddress: string): Promise<IUser> {
+    const user: IUser = (await User.findOne({
+      walletAddress: walletAddress,
+    })) as IUser;
+    console.log(user);
     return user;
   }
 }

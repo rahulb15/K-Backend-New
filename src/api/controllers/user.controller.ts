@@ -1,22 +1,26 @@
-import userManager from '../../services/user.manager';
-import { IUser } from '../../interfaces/user/user.interface';
-import { Request, Response } from 'express';
+import userManager from "../../services/user.manager";
+import { IUser } from "../../interfaces/user/user.interface";
+import { Request, Response } from "express";
 import {
   ResponseCode,
   ResponseDescription,
   ResponseMessage,
   ResponseStatus,
-} from '../../enum/response-message.enum';
-import { userResponseData } from '../../utils/userResponse/user-response.utils';
-import { jwtSign, jwtVerify } from '../../utils/jwt.sign';
-import { hashPassword, comparePassword } from '../../utils/hash.password';
-import { IResponseHandler } from '../../interfaces/response-handler.interface';
+} from "../../enum/response-message.enum";
+import { userResponseData } from "../../utils/userResponse/user-response.utils";
+import { jwtSign, jwtVerify } from "../../utils/jwt.sign";
+import { hashPassword, comparePassword } from "../../utils/hash.password";
+import { IResponseHandler } from "../../interfaces/response-handler.interface";
 import {
   emailValidator,
   passwordValidator,
   nameValidator,
-} from '../../utils/validator.util';
-import { sendForgetPasswordMail } from '../../mail/forgetPassword.mail';
+} from "../../utils/validator.util";
+import { sendForgetPasswordMail } from "../../mail/forgetPassword.mail";
+
+import speakeasy from "speakeasy";
+import qrcode from "qrcode";
+import mongoose from "mongoose";
 
 export class UserController {
   /*
@@ -36,18 +40,6 @@ export class UserController {
           status: ResponseStatus.FAILED,
           message: ResponseMessage.EMAIL_INVALID,
           description: ResponseDescription.EMAIL_INVALID,
-          data: null,
-        };
-
-        return res.status(ResponseCode.BAD_REQUEST).json(response);
-      }
-      //validate password
-      const isPasswordValid = passwordValidator(user.password);
-      if (!isPasswordValid) {
-        const response: IResponseHandler = {
-          status: ResponseStatus.FAILED,
-          message: ResponseMessage.PASSWORD_INVALID,
-          description: ResponseDescription.PASSWORD_INVALID,
           data: null,
         };
 
@@ -76,11 +68,11 @@ export class UserController {
           data: null,
         };
 
-        return res.status(ResponseCode.CONFLICT).json(response);
+        return res.status(ResponseCode.SUCCESS).json(response);
       }
 
-      const salt = await hashPassword(user.password);
-      user.password = salt;
+      console.log(user, "user");
+
       const newUser = await userManager.create(user);
       const token = jwtSign(newUser);
       const data = userResponseData(newUser);
@@ -120,8 +112,8 @@ export class UserController {
         return res.status(ResponseCode.BAD_REQUEST).json(response);
       }
       //validate password
-      const isPasswordValid = passwordValidator(user.password);
-      if (!isPasswordValid) {
+
+      if (!user.walletAddress) {
         const response: IResponseHandler = {
           status: ResponseStatus.FAILED,
           message: ResponseMessage.PASSWORD_INVALID,
@@ -143,20 +135,7 @@ export class UserController {
 
         return res.status(ResponseCode.NOT_FOUND).json(response);
       }
-      const isMatch = await comparePassword(
-        user.password,
-        existingUser.password,
-      );
-      if (!isMatch) {
-        const response: IResponseHandler = {
-          status: ResponseStatus.FAILED,
-          message: ResponseMessage.UNAUTHORIZED,
-          description: ResponseDescription.UNAUTHORIZED,
-          data: null,
-        };
 
-        return res.status(ResponseCode.UNAUTHORIZED).json(response);
-      }
       const token = jwtSign(existingUser);
       const data = userResponseData(existingUser);
       const response: IResponseHandler = {
@@ -299,48 +278,6 @@ export class UserController {
         }
       }
 
-      if (user.password) {
-        const isPasswordValid = passwordValidator(user.password);
-        if (!isPasswordValid) {
-          const response: IResponseHandler = {
-            status: ResponseStatus.FAILED,
-            message: ResponseMessage.PASSWORD_INVALID,
-            description: ResponseDescription.PASSWORD_INVALID,
-            data: null,
-          };
-
-          return res.status(ResponseCode.BAD_REQUEST).json(response);
-        }
-
-        const isMatch = await comparePassword(
-          user.password,
-          existingUser.password,
-        );
-        if (!isMatch) {
-          const response: IResponseHandler = {
-            status: ResponseStatus.FAILED,
-            message: ResponseMessage.PASSWORD_MATCH,
-            description: ResponseDescription.PASSWORD_MATCH,
-            data: null,
-          };
-
-          return res.status(ResponseCode.BAD_REQUEST).json(response);
-        }
-        if (req.body.newPassword) {
-          const hashedPassword = await hashPassword(req.body.newPassword);
-          user.password = hashedPassword;
-        } else {
-          const response: IResponseHandler = {
-            status: ResponseStatus.FAILED,
-            message: ResponseMessage.NEW_PASSWORD_REQUIRED,
-            description: ResponseDescription.NEW_PASSWORD_REQUIRED,
-            data: null,
-          };
-
-          return res.status(ResponseCode.BAD_REQUEST).json(response);
-        }
-      }
-
       const updatedUser = await userManager.updateById(req.params.id, user);
       const data = userResponseData(updatedUser);
       const response: IResponseHandler = {
@@ -458,9 +395,128 @@ export class UserController {
 
         return res.status(ResponseCode.BAD_REQUEST).json(response);
       }
-      const hashedPassword = await hashPassword(password);
-      user.password = hashedPassword;
+
       await userManager.updateById(decoded.id, user);
+      const response: IResponseHandler = {
+        status: ResponseStatus.SUCCESS,
+        message: ResponseMessage.SUCCESS,
+        description: ResponseDescription.SUCCESS,
+        data: null,
+      };
+      res.status(ResponseCode.SUCCESS).json(response);
+    } catch (error) {
+      res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(error);
+    }
+  }
+
+  /*
+   * @creator: rahul baghel
+   * @desc Get user by wallet address
+   * @route GET /api/v1/user/wallet/:walletAddress
+   * @access Private
+   * */
+  public async getByWalletAddress(req: Request, res: Response) {
+    try {
+      console.log(req.params.walletAddress, "req.params.walletAddress");
+      const user = await userManager.getByWalletAddress(
+        req.params.walletAddress
+      );
+
+      if (!user) {
+        const response: IResponseHandler = {
+          status: ResponseStatus.FAILED,
+          message: ResponseMessage.USER_NOT_FOUND,
+          description: ResponseDescription.USER_NOT_FOUND,
+          data: null,
+        };
+
+        return res.status(ResponseCode.NOT_FOUND).json(response);
+      }
+      const token = jwtSign(user);
+      const data = userResponseData(user);
+      const response: IResponseHandler = {
+        status: ResponseStatus.SUCCESS,
+        message: ResponseMessage.SUCCESS,
+        description: ResponseDescription.SUCCESS,
+        data: data,
+        token: token,
+      };
+      res.status(ResponseCode.SUCCESS).json(response);
+    } catch (error) {
+      res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(error);
+    }
+  }
+
+  public async enableTwoFactorAuth(req: any, res: Response) {
+    try {
+      const userId = req.user._id;
+
+      const secret: any = speakeasy.generateSecret({
+        length: 20,
+        name: "Rahul Baghel",
+        issuer: "Rahul Baghel",
+      });
+      const qrCodeUrl = await qrcode.toDataURL(secret.otpauth_url);
+
+      //update user
+      const user = await userManager.getById(userId);
+      user.secret2FA = secret.base32;
+      user.is2FAEnabled = true;
+      await userManager.updateById(userId, user);
+
+      const response: IResponseHandler = {
+        status: ResponseStatus.SUCCESS,
+        message: ResponseMessage.SUCCESS,
+        description: ResponseDescription.SUCCESS,
+        data: {
+          secret: secret.base32,
+          qrCodeUrl: qrCodeUrl,
+        },
+      };
+      res.status(ResponseCode.SUCCESS).json(response);
+    } catch (error) {
+      res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(error);
+    }
+  }
+
+  public async verifyTwoFactorAuth(req: Request, res: Response) {
+    try {
+      const { token, secret } = req.body;
+      console.log(token, "token", secret, "secret");
+      const verified = speakeasy.totp.verify({
+        secret: secret,
+        encoding: "base32",
+        token: token,
+      });
+
+      console.log(verified, "verified");
+
+      if (!verified) {
+        const response: IResponseHandler = {
+          status: ResponseStatus.FAILED,
+          message: ResponseMessage.FAILED,
+          description: ResponseDescription.FAILED,
+          data: null,
+        };
+
+        return res.status(ResponseCode.BAD_REQUEST).json(response);
+      }
+
+      const response: IResponseHandler = {
+        status: ResponseStatus.SUCCESS,
+        message: ResponseMessage.SUCCESS,
+        description: ResponseDescription.SUCCESS,
+        data: null,
+      };
+
+      res.status(ResponseCode.SUCCESS).json(response);
+    } catch (error) {
+      res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(error);
+    }
+  }
+
+  public async disableTwoFactorAuth(req: Request, res: Response) {
+    try {
       const response: IResponseHandler = {
         status: ResponseStatus.SUCCESS,
         message: ResponseMessage.SUCCESS,

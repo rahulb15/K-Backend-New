@@ -7,7 +7,10 @@ import api from "./api";
 import swaggerUI from "swagger-ui-express";
 import swaggerJsDoc from "swagger-jsdoc";
 import { options } from "./swagger";
-
+const GoogleStrategy = require("passport-google-oauth20").Strategy;
+const passport = require("passport");
+const session = require("express-session");
+const cookieParser = require("cookie-parser");
 require("dotenv").config();
 
 const app = express();
@@ -32,14 +35,63 @@ const corsOptions: CorsOptions = {
   },
 };
 
+// Enable CORS
 app.use(morgan("dev"));
 app.use(helmet());
-app.use(cors(corsOptions));
+app.use(cors());
+app.use(cookieParser());
 app.use(express.json());
+app.use(session({ secret: "cats" }));
+app.use(
+  session({
+    secret: "test123",
+    resave: false,
+    saveUninitialized: true,
+  })
+);
+app.use(passport.initialize());
+app.use(passport.session());
+
+//passport configuration
+require("./config/passport");
 
 // Swagger Configuration
 const specs = swaggerJsDoc(options);
 app.use("/docs", swaggerUI.serve, swaggerUI.setup(specs));
+
+app.get(
+  "/auth/google",
+  passport.authenticate("google", { scope: ["email", "profile"] })
+);
+
+app.get(
+  "/auth/google/callback",
+  passport.authenticate("google", {
+    successRedirect: process.env.CLIENT_URL,
+    failureRedirect: "/auth/failure",
+  })
+);
+
+app.get("/check-session", (req, res) => {
+  console.log("Session--------------------------------------:");
+  console.log("Session:", req.user);
+  if (req.user) {
+    res.status(200).send({ message: "User is logged in" });
+  } else {
+  }
+});
+
+app.get("/logout", (req, res) => {
+  // res.status(200).send({ message: "Logout Successfully" });
+  req.logout((err) => {
+    if (err) {
+      console.error("Error during logout:", err);
+    }
+    res.clearCookie("connect.sid", { path: "/", httpOnly: true });
+  });
+});
+
+
 
 // Routes
 app.use("/api/v1", api);
