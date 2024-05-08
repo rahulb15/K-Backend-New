@@ -12,6 +12,26 @@ const passport = require("passport");
 const session = require("express-session");
 const cookieParser = require("cookie-parser");
 require("dotenv").config();
+require("./mail/transporter.mail");
+import { userResponseData } from "./utils/userResponse/user-response.utils";
+import { IResponseHandler } from "./interfaces/response-handler.interface";
+import {
+  ResponseCode,
+  ResponseDescription,
+  ResponseMessage,
+  ResponseStatus,
+} from "./enum/response-message.enum";
+import { jwtSign } from "./utils/jwt.sign";
+import { IUser } from "./interfaces/user/user.interface";
+
+// const data = userResponseData(user);
+//       const response: IResponseHandler = {
+//         status: ResponseStatus.SUCCESS,
+//         message: ResponseMessage.SUCCESS,
+//         description: ResponseDescription.SUCCESS,
+//         data: data,
+//       };
+//       res.status(ResponseCode.SUCCESS).json(response);
 
 const app = express();
 
@@ -38,7 +58,13 @@ const corsOptions: CorsOptions = {
 // Enable CORS
 app.use(morgan("dev"));
 app.use(helmet());
-app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:3000",
+    methods: "GET,POST,PUT,DELETE",
+    credentials: true,
+  })
+);
 app.use(cookieParser());
 app.use(express.json());
 app.use(session({ secret: "cats" }));
@@ -81,17 +107,35 @@ app.get("/check-session", (req, res) => {
   }
 });
 
-app.get("/logout", (req, res) => {
+app.get("/api/v1/auth/login/success", (req: any, res: any) => {
+  console.log("Login Success");
+  console.log(req.user);
+  if (req.user) {
+    const user: IUser = req.user.data;
+    const data = userResponseData(user);
+    const token = jwtSign(user);
+    const response: IResponseHandler = {
+      status: ResponseStatus.SUCCESS,
+      message: ResponseMessage.SUCCESS,
+      description: ResponseDescription.SUCCESS,
+      data: data,
+      token: token,
+    };
+    res.status(ResponseCode.SUCCESS).json(response);
+  }
+});
+
+app.get("/api/v1/logout", (req, res) => {
   // res.status(200).send({ message: "Logout Successfully" });
   req.logout((err) => {
+    console.log("Logout");
     if (err) {
       console.error("Error during logout:", err);
     }
     res.clearCookie("connect.sid", { path: "/", httpOnly: true });
+    res.status(200).send({ message: "Logout Successfully" });
   });
 });
-
-
 
 // Routes
 app.use("/api/v1", api);

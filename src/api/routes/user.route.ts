@@ -191,6 +191,8 @@ router.delete("/:id", authMiddleware, userController.deleteById);
 router.post("/forget-password", userController.forgotPassword);
 router.post("/reset-password", userController.resetPassword);
 router.get("/check-user/:walletAddress", userController.getByWalletAddress);
+router.post("/check-email", userController.checkEmail);
+router.post("/create", userController.createWithWalletAddress);
 
 //2FA
 router.post("/enableTwoFactorAuth", authMiddleware, userController.enableTwoFactorAuth);

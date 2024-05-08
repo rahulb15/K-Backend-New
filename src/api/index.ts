@@ -6,6 +6,7 @@ import collectionRouter from "./routes/collection.route";
 import nftRouter from "./routes/nft.route";
 import configRouter from "./routes/config.route";
 import userPointsRouter from "./routes/userpoints.route";
+import claudeRouter from "./routes/claude.route";
 
 const router = express.Router();
 
@@ -16,5 +17,6 @@ router.use("/collection", collectionRouter);
 router.use("/nft", nftRouter);
 router.use("/config", configRouter);
 router.use("/userpoints", userPointsRouter);
+router.use("/claude", claudeRouter);
 
 export default router;

@@ -21,7 +21,10 @@ export class UserManager implements IUserManager {
   }
 
   public async create(user: IUser): Promise<IUser> {
+    console.log("🚀 ~ UserManager ~ create ~ user:", user);
+
     const newUser = new User(user);
+    console.log("🚀 ~ UserManager ~ create ~ newUser:", newUser);
     return newUser.save();
   }
 
@@ -52,6 +55,13 @@ export class UserManager implements IUserManager {
     })) as IUser;
     console.log(user);
     return user;
+  }
+
+  public async update(id: string, user: IUser): Promise<IUser> {
+    const newUser: IUser = (await User.findByIdAndUpdate(id, user, {
+      new: true,
+    })) as IUser;
+    return newUser;
   }
 }
 

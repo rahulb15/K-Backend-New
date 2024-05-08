@@ -1,4 +1,3 @@
-
 // export enum ResponseMessage {
 //     SUCCESS = 'Success',
 //     FAILED = 'Failed',
@@ -24,7 +23,7 @@
 //     NEW_PASSWORD_REQUIRED = 'New password required',
 //     EMAIL_NOT_SENT = 'Email not sent',
 //   }
-  
+
 //   export enum ResponseDescription {
 //     SUCCESS = 'The request has succeeded.',
 //     FAILED = 'The request has failed.',
@@ -51,7 +50,7 @@
 //     NEW_PASSWORD_REQUIRED = 'Please enter new password',
 //     EMAIL_NOT_SENT = 'Email not sent',
 //   }
-  
+
 //   export enum ResponseCode {
 //     SUCCESS = 200,
 //     FAILED = 400,
@@ -67,9 +66,9 @@
 //     INVALID = 400,
 //     EXPIRED = 400,
 //     CONFLICT = 409,
-  
+
 //   }
-  
+
 //   export enum ResponseStatus {
 //     SUCCESS = 'success',
 //     FAILED = 'failed',
@@ -85,14 +84,8 @@
 //     INVALID = 'invalid',
 //     EXPIRED = 'expired',
 //     CONFLICT = 'conflict',
-  
+
 //   }
-  
-  
-  
-  
-
-
 
 import { UserPointsManager } from "../../services/userpoints.manager";
 import { IUserPoints } from "../../interfaces/userpoints/userpoints.interface";
@@ -120,80 +113,82 @@ export class UserPointsController {
     return UserPointsController.instance;
   }
 
-    public async create(req: any, res: Response) {
-        try {
-        const { userId, activityLog } = req.body;
-        console.log(userId);
-        const userPoints: IUserPoints = await UserPointsManager.getInstance().create({
-            userId,
-            activityLog,
-            totalPoints: 0,
-            ranking: 0,
-            priorityPass: false,
+  public async create(req: any, res: Response) {
+    try {
+      const { userId, activityLog } = req.body;
+      console.log(userId);
+      const userPoints: IUserPoints =
+        await UserPointsManager.getInstance().create({
+          userId,
+          activityLog,
+          totalPoints: 0,
+          ranking: 0,
+          priorityPass: false,
         });
 
-        console.log(userPoints);
-        const responseData: IResponseHandler = {
-            status: ResponseStatus.SUCCESS,
-            message: ResponseMessage.CREATED,
-            description: ResponseDescription.CREATED,
-            data: userPointsResponseData(userPoints),
-        };
-        return res.status(ResponseCode.CREATED).json(responseData);
-        } catch (error) {
-        const responseData: IResponseHandler = {
-            status: ResponseStatus.FAILED,
-            message: ResponseMessage.FAILED,
-            description: ResponseDescription.FAILED,
-            data: null,
-        };
-        return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(responseData);
-        }
+      console.log(userPoints);
+      const responseData: IResponseHandler = {
+        status: ResponseStatus.SUCCESS,
+        message: ResponseMessage.CREATED,
+        description: ResponseDescription.CREATED,
+        data: userPointsResponseData(userPoints),
+      };
+      return res.status(ResponseCode.CREATED).json(responseData);
+    } catch (error) {
+      const responseData: IResponseHandler = {
+        status: ResponseStatus.FAILED,
+        message: ResponseMessage.FAILED,
+        description: ResponseDescription.FAILED,
+        data: null,
+      };
+      return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(responseData);
     }
+  }
 
-    public async getAll(req: Request, res: Response) {
-        try {
-        const userPoints: IUserPoints[] = await UserPointsManager.getInstance().getAll();
-        const responseData: IResponseHandler = {
-            status: ResponseStatus.SUCCESS,
-            message: ResponseMessage.SUCCESS,
-            description: ResponseDescription.SUCCESS,
-            data: userPoints.map((userPoint) => userPointsResponseData(userPoint)),
-        };
-        return res.status(ResponseCode.SUCCESS).json(responseData);
-        } catch (error) {
-        const responseData: IResponseHandler = {
-            status: ResponseStatus.FAILED,
-            message: ResponseMessage.FAILED,
-            description: ResponseDescription.FAILED,
-            data: null,
-        };
-        return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(responseData);
-        }
+  public async getAll(req: Request, res: Response) {
+    try {
+      const userPoints: IUserPoints[] =
+        await UserPointsManager.getInstance().getAll();
+      const responseData: IResponseHandler = {
+        status: ResponseStatus.SUCCESS,
+        message: ResponseMessage.SUCCESS,
+        description: ResponseDescription.SUCCESS,
+        data: userPoints.map((userPoint) => userPointsResponseData(userPoint)),
+      };
+      return res.status(ResponseCode.SUCCESS).json(responseData);
+    } catch (error) {
+      const responseData: IResponseHandler = {
+        status: ResponseStatus.FAILED,
+        message: ResponseMessage.FAILED,
+        description: ResponseDescription.FAILED,
+        data: null,
+      };
+      return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(responseData);
     }
+  }
 
-    public async getByUserId(req: Request, res: Response) {
-        try {
-        const { userId } = req.params;
-        const userPoints: IUserPoints = await UserPointsManager.getInstance().getByUserId(userId);
-        const responseData: IResponseHandler = {
-            status: ResponseStatus.SUCCESS,
-            message: ResponseMessage.SUCCESS,
-            description: ResponseDescription.SUCCESS,
-            data: userPointsResponseData(userPoints),
-        };
-        return res.status(ResponseCode.SUCCESS).json(responseData);
-        } catch (error) {
-        const responseData: IResponseHandler = {
-            status: ResponseStatus.FAILED,
-            message: ResponseMessage.FAILED,
-            description: ResponseDescription.FAILED,
-            data: null,
-        };
-        return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(responseData);
-        }
+  public async getByUserId(req: Request, res: Response) {
+    try {
+      const { userId } = req.params;
+      const userPoints: IUserPoints =
+        await UserPointsManager.getInstance().getByUserId(userId);
+      const responseData: IResponseHandler = {
+        status: ResponseStatus.SUCCESS,
+        message: ResponseMessage.SUCCESS,
+        description: ResponseDescription.SUCCESS,
+        data: userPointsResponseData(userPoints),
+      };
+      return res.status(ResponseCode.SUCCESS).json(responseData);
+    } catch (error) {
+      const responseData: IResponseHandler = {
+        status: ResponseStatus.FAILED,
+        message: ResponseMessage.FAILED,
+        description: ResponseDescription.FAILED,
+        data: null,
+      };
+      return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(responseData);
     }
-
+  }
 }
 
 export default UserPointsController.getInstance();

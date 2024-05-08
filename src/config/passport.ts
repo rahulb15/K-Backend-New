@@ -1,5 +1,6 @@
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const passport = require("passport");
+import crypto from "crypto";
 import { jwtSign, jwtVerify } from "../utils/jwt.sign";
 import userManager from "../services/user.manager";
 import { userResponseData } from "../utils/userResponse/user-response.utils";
@@ -35,11 +36,15 @@ passport.use(
       done: any
     ) {
       console.log("Profile:", profile);
- 
 
       const user: IUser = {
         email: profile.emails[0].value,
         name: profile.displayName,
+        isEmailVerified: true,
+        isSocialLogin: true,
+        socialLogin: {
+          google: profile.id,
+        },
       };
       console.log("User:", user);
 
@@ -47,26 +52,44 @@ passport.use(
         //check if user already exists in our db with the same email if not, create a new user
         const existingUser: IUser = await userManager.getByEmail(user.email);
         if (!existingUser) {
-          const newUser: IUser = await userManager.create(user);
-          const token = jwtSign(newUser);
-          const data = userResponseData(newUser);
+          // Generate walletaddress
+          const generateWalletAddress = (userData: any) => {
+            const userDataString = JSON.stringify(userData);
+            const hash = crypto
+              .createHash("sha256")
+              .update(userDataString)
+              .digest("hex");
+            return `u:${hash}`;
+          };
+
+          const newUser: IUser = {
+            ...user,
+            walletAddress: generateWalletAddress(user),
+            profileImage: profile.photos[0].value,
+          };
+
+          const createUser: IUser = await userManager.create(newUser);
+          const data = userResponseData(createUser);
           const response = {
             status: ResponseStatus.SUCCESS,
             message: ResponseMessage.CREATED,
             description: ResponseDescription.CREATED,
             data: data,
-            token: token,
           };
           return done(null, response);
         } else {
-          const token = jwtSign(existingUser);
-          const data = userResponseData(existingUser);
+          //update user
+          const updatedUser: IUser = await userManager.update(
+            existingUser._id as string,
+            user
+          );
+
+          const data = userResponseData(updatedUser);
           const response = {
             status: ResponseStatus.SUCCESS,
             message: ResponseMessage.SUCCESS,
             description: ResponseDescription.SUCCESS,
             data: data,
-            token: token,
           };
           return done(null, response);
         }

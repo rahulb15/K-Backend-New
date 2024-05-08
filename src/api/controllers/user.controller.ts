@@ -1,5 +1,7 @@
 import userManager from "../../services/user.manager";
 import { IUser } from "../../interfaces/user/user.interface";
+import { UserPointsManager } from "../../services/userpoints.manager";
+import { IUserPoints } from "../../interfaces/userpoints/userpoints.interface";
 import { Request, Response } from "express";
 import {
   ResponseCode,
@@ -21,6 +23,9 @@ import { sendForgetPasswordMail } from "../../mail/forgetPassword.mail";
 import speakeasy from "speakeasy";
 import qrcode from "qrcode";
 import mongoose from "mongoose";
+import moment from "moment";
+import { newUserEmail } from "../../mail/newUserEmail";
+import crypto from "crypto";
 
 export class UserController {
   /*
@@ -30,6 +35,84 @@ export class UserController {
    * @access Public
    * */
   public async create(req: Request, res: Response) {
+    try {
+      const user: IUser = req.body;
+
+      //validate email
+      const isEmailValid = emailValidator(user.email);
+      if (!isEmailValid) {
+        const response: IResponseHandler = {
+          status: ResponseStatus.FAILED,
+          message: ResponseMessage.EMAIL_INVALID,
+          description: ResponseDescription.EMAIL_INVALID,
+          data: null,
+        };
+
+        return res.status(ResponseCode.BAD_REQUEST).json(response);
+      }
+
+      //validate name
+      // const isNameValid = nameValidator(user.name);
+      if (user.name.length < 3) {
+        const response: IResponseHandler = {
+          status: ResponseStatus.FAILED,
+          message: ResponseMessage.NAME_INVALID,
+          description: ResponseDescription.NAME_INVALID,
+          data: null,
+        };
+
+        return res.status(ResponseCode.BAD_REQUEST).json(response);
+      }
+
+      const existingUser = await userManager.getByEmail(user.email);
+      if (existingUser) {
+        const response: IResponseHandler = {
+          status: ResponseStatus.FAILED,
+          message: ResponseMessage.CONFLICT,
+          description: ResponseDescription.CONFLICT,
+          data: null,
+        };
+
+        return res.status(ResponseCode.SUCCESS).json(response);
+      }
+
+      // console.log(user, "user");
+      // Generate walletaddress
+      const generateWalletAddress = (userData: any) => {
+        const userDataString = JSON.stringify(userData);
+        const hash = crypto
+          .createHash("sha256")
+          .update(userDataString)
+          .digest("hex");
+        return `u:${hash}`;
+      };
+
+      const newUser: IUser = {
+        ...user,
+        walletAddress: generateWalletAddress(user),
+      };
+
+      console.log(newUser, "user");
+
+      const createdUser = await userManager.create(newUser);
+      const token = jwtSign(createdUser);
+      const data = userResponseData(createdUser);
+
+      const response: IResponseHandler = {
+        status: ResponseStatus.SUCCESS,
+        message: ResponseMessage.CREATED,
+        description: ResponseDescription.CREATED,
+        data: data,
+        token: token,
+      };
+      res.status(ResponseCode.SUCCESS).json(response);
+    } catch (error) {
+      res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(error);
+    }
+  }
+
+  //create with waletaddress
+  public async createWithWalletAddress(req: Request, res: Response) {
     try {
       const user: IUser = req.body;
 
@@ -73,9 +156,56 @@ export class UserController {
 
       console.log(user, "user");
 
+      if (!user.password) {
+        const response: IResponseHandler = {
+          status: ResponseStatus.FAILED,
+          message: ResponseMessage.PASSWORD_INVALID,
+          description: ResponseDescription.PASSWORD_INVALID,
+          data: null,
+        };
+
+        return res.status(ResponseCode.BAD_REQUEST).json(response);
+      }
+
+      if (!user.walletAddress) {
+        const response: IResponseHandler = {
+          status: ResponseStatus.FAILED,
+          message: ResponseMessage.FAILED,
+          description: ResponseDescription.FAILED,
+          data: null,
+        };
+
+        return res.status(ResponseCode.BAD_REQUEST).json(response);
+      }
+
+      //password
+      const hashedPassword = await hashPassword(user.password as string);
+      user.password = hashedPassword;
+      const walletAddress = user.walletAddress as string;
+      const existingUserByWalletAddress = await userManager.getByWalletAddress(
+        walletAddress
+      );
+      if (existingUserByWalletAddress) {
+        const response: IResponseHandler = {
+          status: ResponseStatus.FAILED,
+          message: ResponseMessage.CONFLICT,
+          description: ResponseDescription.CONFLICT,
+          data: null,
+        };
+
+        return res.status(ResponseCode.SUCCESS).json(response);
+      }
+
+      user.isWalletConnected = true;
+
+      console.log(user, "user");
+
       const newUser = await userManager.create(user);
       const token = jwtSign(newUser);
       const data = userResponseData(newUser);
+
+      //mail
+      await newUserEmail(newUser, token);
 
       const response: IResponseHandler = {
         status: ResponseStatus.SUCCESS,
@@ -99,6 +229,8 @@ export class UserController {
   public async login(req: Request, res: Response) {
     try {
       const user: IUser = req.body;
+      console.log("🚀 ~ UserController ~ login ~ user:", user);
+
       //validate email
       const isEmailValid = emailValidator(user.email);
       if (!isEmailValid) {
@@ -109,20 +241,20 @@ export class UserController {
           data: null,
         };
 
-        return res.status(ResponseCode.BAD_REQUEST).json(response);
+        return res.status(ResponseCode.SUCCESS).json(response);
       }
       //validate password
+      // const isPasswordValid = passwordValidator(user.password as string);
+      // if (!isPasswordValid) {
+      //   const response: IResponseHandler = {
+      //     status: ResponseStatus.FAILED,
+      //     message: ResponseMessage.PASSWORD_INVALID,
+      //     description: ResponseDescription.PASSWORD_INVALID,
+      //     data: null,
+      //   };
 
-      if (!user.walletAddress) {
-        const response: IResponseHandler = {
-          status: ResponseStatus.FAILED,
-          message: ResponseMessage.PASSWORD_INVALID,
-          description: ResponseDescription.PASSWORD_INVALID,
-          data: null,
-        };
-
-        return res.status(ResponseCode.BAD_REQUEST).json(response);
-      }
+      //   return res.status(ResponseCode.SUCCESS).json(response);
+      // }
 
       const existingUser = await userManager.getByEmail(user.email);
       if (!existingUser) {
@@ -133,7 +265,23 @@ export class UserController {
           data: null,
         };
 
-        return res.status(ResponseCode.NOT_FOUND).json(response);
+        return res.status(ResponseCode.SUCCESS).json(response);
+      }
+
+      //check password
+      const isPasswordMatch = await comparePassword(
+        user.password as string,
+        existingUser.password as string
+      );
+      if (!isPasswordMatch) {
+        const response: IResponseHandler = {
+          status: ResponseStatus.FAILED,
+          message: ResponseMessage.PASSWORD_NOT_MATCH,
+          description: ResponseDescription.PASSWORD_NOT_MATCH,
+          data: null,
+        };
+
+        return res.status(ResponseCode.SUCCESS).json(response);
       }
 
       const token = jwtSign(existingUser);
@@ -418,22 +566,70 @@ export class UserController {
   public async getByWalletAddress(req: Request, res: Response) {
     try {
       console.log(req.params.walletAddress, "req.params.walletAddress");
-      const user = await userManager.getByWalletAddress(
+      const user: any = await userManager.getByWalletAddress(
         req.params.walletAddress
       );
 
       if (!user) {
         const response: IResponseHandler = {
-          status: ResponseStatus.FAILED,
+          status: ResponseStatus.SUCCESS,
           message: ResponseMessage.USER_NOT_FOUND,
           description: ResponseDescription.USER_NOT_FOUND,
           data: null,
         };
 
-        return res.status(ResponseCode.NOT_FOUND).json(response);
+        return res.status(ResponseCode.SUCCESS).json(response);
       }
       const token = jwtSign(user);
       const data = userResponseData(user);
+      console.log(data, "data");
+
+      const userPoints: any = await UserPointsManager.getInstance().getByUserId(
+        user._id
+      );
+      console.log(userPoints, "userPoints===============");
+      // activityLog: [
+      //   {
+      //     type: 'Login',
+      //     pointsEarned: 1,
+      //     _id: new ObjectId('661fbc0d0b7da3b58a91337c'),
+      //     createdAt: 2024-04-18T12:09:49.594Z
+      //   }
+      // ],
+
+      //find type Login in activityLog and if found then update the pointsEarned and totalPoints
+
+      //find
+      userPoints.activityLog.forEach((element: any) => {
+        if (element.type === "Login") {
+          //check date if today then do not update
+          const today = new Date();
+          const lastActivityLogDate = new Date(element.createdAt);
+          // if (today.getDate() !== lastActivityLogDate.getDate()) {
+          //   element.pointsEarned += 1;
+          //   userPoints.totalPoints += 1;
+          //   element.createdAt = new Date();
+          // }
+
+          console.log(
+            moment(today).diff(lastActivityLogDate, "days"),
+            "moment(today).diff(lastActivityLogDate, 'days')"
+          );
+
+          //check if user skip a day login then reset the pointsEarned to 1 and if user login again then increment the pointsEarned but increment only one for same day as compare to yesterday day not day before yesterday
+          if (moment(today).diff(lastActivityLogDate, "days") === 1) {
+            element.pointsEarned += 1;
+            element.createdAt = new Date();
+          } else if (moment(today).diff(lastActivityLogDate, "days") > 1) {
+            element.pointsEarned = 1;
+            element.createdAt = new Date();
+          }
+        }
+      });
+
+      console.log(userPoints, "userPoints===============463");
+      await UserPointsManager.getInstance().updateById(user._id, userPoints);
+
       const response: IResponseHandler = {
         status: ResponseStatus.SUCCESS,
         message: ResponseMessage.SUCCESS,
@@ -447,33 +643,109 @@ export class UserController {
     }
   }
 
+  // check email exist or not
+  public async checkEmail(req: Request, res: Response) {
+    try {
+      console.log(req.body, "req.body");
+      const { email } = req.body;
+      console.log(email, "email");
+      const user = await userManager.getByEmail(email);
+      console.log(user, "user");
+      if (!user) {
+        const response: IResponseHandler = {
+          status: ResponseStatus.FAILED,
+          message: ResponseMessage.USER_NOT_FOUND,
+          description: ResponseDescription.USER_NOT_FOUND,
+          data: null,
+        };
+
+        return res.status(ResponseCode.SUCCESS).json(response);
+      }
+
+      //check user have password or not
+      if (!user.password) {
+        console.log("Hello");
+        const response: IResponseHandler = {
+          status: ResponseStatus.SUCCESS,
+          message: ResponseMessage.SUCCESS,
+          description: ResponseDescription.SUCCESS,
+          data: {
+            isSocialLogin: true,
+          },
+        };
+
+        console.log(response, "response");
+
+        res.status(ResponseCode.SUCCESS).json(response);
+      } else {
+        const response: IResponseHandler = {
+          status: ResponseStatus.SUCCESS,
+          message: ResponseMessage.SUCCESS,
+          description: ResponseDescription.SUCCESS,
+          data: null,
+        };
+        res.status(ResponseCode.SUCCESS).json(response);
+      }
+    } catch (error) {
+      res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(error);
+    }
+  }
+
   public async enableTwoFactorAuth(req: any, res: Response) {
     try {
       const userId = req.user._id;
 
-      const secret: any = speakeasy.generateSecret({
-        length: 20,
-        name: "Rahul Baghel",
-        issuer: "Rahul Baghel",
-      });
-      const qrCodeUrl = await qrcode.toDataURL(secret.otpauth_url);
-
       //update user
       const user = await userManager.getById(userId);
-      user.secret2FA = secret.base32;
-      user.is2FAEnabled = true;
-      await userManager.updateById(userId, user);
+      if (!user) {
+        const response: IResponseHandler = {
+          status: ResponseStatus.FAILED,
+          message: ResponseMessage.USER_NOT_FOUND,
+          description: ResponseDescription.USER_NOT_FOUND,
+          data: null,
+        };
 
-      const response: IResponseHandler = {
-        status: ResponseStatus.SUCCESS,
-        message: ResponseMessage.SUCCESS,
-        description: ResponseDescription.SUCCESS,
-        data: {
-          secret: secret.base32,
-          qrCodeUrl: qrCodeUrl,
-        },
-      };
-      res.status(ResponseCode.SUCCESS).json(response);
+        return res.status(ResponseCode.NOT_FOUND).json(response);
+      }
+
+      let qrCodeUrl = "";
+
+      if (user.is2FAEnabled && user.secret2FA) {
+        qrCodeUrl = await qrcode.toDataURL(user.secret2FA as string);
+        //success
+        const response: IResponseHandler = {
+          status: ResponseStatus.SUCCESS,
+          message: ResponseMessage.SUCCESS,
+          description: ResponseDescription.SUCCESS,
+          data: {
+            secret: user.secret2FA,
+            qrCodeUrl: "",
+          },
+        };
+        return res.status(ResponseCode.SUCCESS).json(response);
+      } else {
+        const secret: any = speakeasy.generateSecret({
+          length: 20,
+          name: "Kryptomerch",
+          issuer: "Kryptomerch",
+        });
+        qrCodeUrl = await qrcode.toDataURL(secret.otpauth_url);
+
+        user.secret2FA = secret.base32;
+        user.is2FAEnabled = true;
+        await userManager.updateById(userId, user);
+
+        const response: IResponseHandler = {
+          status: ResponseStatus.SUCCESS,
+          message: ResponseMessage.SUCCESS,
+          description: ResponseDescription.SUCCESS,
+          data: {
+            secret: secret.base32,
+            qrCodeUrl: qrCodeUrl,
+          },
+        };
+        res.status(ResponseCode.SUCCESS).json(response);
+      }
     } catch (error) {
       res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(error);
     }
