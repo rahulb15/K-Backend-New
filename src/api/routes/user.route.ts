@@ -2,6 +2,45 @@ import userController from "../controllers/user.controller";
 import { Router } from "express";
 import { authMiddleware } from "../../middlewares/auth.middleware";
 const router = Router();
+const multer = require("multer");
+
+const storage = multer.diskStorage({
+  filename: (req: any, file: any, cb: any) => {
+    console.log(file, "file");
+
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, file.fieldname + "-" + uniqueSuffix + file.originalname);
+  },
+});
+
+const fileFilter = (req: any, file: any, cb: any) => {
+  // Filtering based on file extension
+  if (
+    file.mimetype === "image/jpeg" ||
+    file.mimetype === "image/png" ||
+    file.mimetype === "image/gif"
+  ) {
+    cb(null, true);
+  } else {
+    cb(
+      new Error(
+        "Invalid file type, only JPEG, PNG, and GIF files are allowed!"
+      ),
+      false
+    );
+  }
+};
+
+const upload = multer({
+  storage: storage,
+  fileFilter: fileFilter,
+  limits: {
+    fileSize: 1024 * 1024 * 50, // 5 MB file size limit
+  },
+}).fields([
+  { name: "profileImage", maxCount: 1 },
+  { name: "coverImage", maxCount: 1 },
+]);
 
 /**
  * @swagger
@@ -183,10 +222,11 @@ const router = Router();
 
 router.post("/register", userController.create);
 router.post("/login", userController.login);
-router.get("/", authMiddleware, userController.getAll);
+router.get("/getUsers", authMiddleware, userController.getAll);
+router.get("/", authMiddleware, userController.getUserDetail);
 router.get("/:id", authMiddleware, userController.getById);
-router.post('/logout', authMiddleware, userController.logout);
-router.put("/:id", authMiddleware, userController.updateById);
+router.post("/logout", authMiddleware, userController.logout);
+router.put("/", authMiddleware, userController.updateById);
 router.delete("/:id", authMiddleware, userController.deleteById);
 router.post("/forget-password", userController.forgotPassword);
 router.post("/reset-password", userController.resetPassword);
@@ -195,10 +235,20 @@ router.post("/check-email", userController.checkEmail);
 router.post("/create", userController.createWithWalletAddress);
 
 //2FA
-router.post("/enableTwoFactorAuth", authMiddleware, userController.enableTwoFactorAuth);
+router.post(
+  "/enableTwoFactorAuth",
+  authMiddleware,
+  userController.enableTwoFactorAuth
+);
 router.post("/verifyTwoFactorAuth", userController.verifyTwoFactorAuth);
 router.post("/disableTwoFactorAuth", userController.disableTwoFactorAuth);
 
-
+// upload-image
+router.post(
+  "/upload-image",
+  authMiddleware,
+  upload,
+  userController.uploadImage
+);
 
 export default router;

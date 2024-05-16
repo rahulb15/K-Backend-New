@@ -38,11 +38,12 @@ const userSchema = new mongoose.Schema(
     comments: [{ type: mongoose.Schema.Types.ObjectId, ref: "Comment" }],
     likes: [{ type: mongoose.Schema.Types.ObjectId, ref: "Post" }],
     address: {
-      house: { type: String, required: false, trim: true },
-      country: { type: String, required: false, trim: true },
-      city: { type: String, required: false, trim: true },
-      street: { type: String, required: false, trim: true },
-      zip: { type: String, required: false, trim: true },
+      address1: { type: String, required: false, trim: true },
+      address2: { type: String, required: false, trim: true },
+      country: { type: mongoose.SchemaTypes.Mixed, required: false },
+      city: { type: mongoose.SchemaTypes.Mixed, required: false },
+      state: { type: mongoose.SchemaTypes.Mixed, required: false },
+      zip: { type: Number, required: false },
     },
     phone: { type: String, required: false, trim: true },
     socialLogin: {

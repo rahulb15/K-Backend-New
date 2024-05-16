@@ -9,7 +9,10 @@ import {
   ResponseMessage,
   ResponseStatus,
 } from "../../enum/response-message.enum";
-import { userResponseData } from "../../utils/userResponse/user-response.utils";
+import {
+  userResponseData,
+  userResponseDataForProfile,
+} from "../../utils/userResponse/user-response.utils";
 import { jwtSign, jwtVerify } from "../../utils/jwt.sign";
 import { hashPassword, comparePassword } from "../../utils/hash.password";
 import { IResponseHandler } from "../../interfaces/response-handler.interface";
@@ -26,6 +29,7 @@ import mongoose from "mongoose";
 import moment from "moment";
 import { newUserEmail } from "../../mail/newUserEmail";
 import crypto from "crypto";
+import cloudinary from "../../config/cloudinary.config";
 
 export class UserController {
   /*
@@ -365,7 +369,29 @@ export class UserController {
   public async getById(req: Request, res: Response) {
     try {
       const user = await userManager.getById(req.params.id);
-      const data = userResponseData(user);
+      const data = userResponseDataForProfile(user);
+      const response: IResponseHandler = {
+        status: ResponseStatus.SUCCESS,
+        message: ResponseMessage.SUCCESS,
+        description: ResponseDescription.SUCCESS,
+        data: data,
+      };
+      res.status(ResponseCode.SUCCESS).json(response);
+    } catch (error) {
+      res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(error);
+    }
+  }
+
+  /*
+   * @creator: rahul baghel
+   * @desc Get user by id
+   * @route GET /api/v1/user/:id
+   * @access Private
+   * */
+  public async getUserDetail(req: any, res: Response) {
+    try {
+      const user = await userManager.getById(req.user._id);
+      const data = userResponseDataForProfile(user);
       const response: IResponseHandler = {
         status: ResponseStatus.SUCCESS,
         message: ResponseMessage.SUCCESS,
@@ -384,10 +410,12 @@ export class UserController {
    * @route PUT /api/v1/user/:id
    * @access Private
    * */
-  public async updateById(req: Request, res: Response) {
+  public async updateById(req: any, res: Response) {
     try {
       const user: IUser = req.body;
-      const existingUser = await userManager.getById(req.params.id);
+      const userId = req.user._id;
+
+      const existingUser = await userManager.getById(userId);
       if (!existingUser) {
         const response: IResponseHandler = {
           status: ResponseStatus.FAILED,
@@ -426,7 +454,7 @@ export class UserController {
         }
       }
 
-      const updatedUser = await userManager.updateById(req.params.id, user);
+      const updatedUser = await userManager.updateById(userId, user);
       const data = userResponseData(updatedUser);
       const response: IResponseHandler = {
         status: ResponseStatus.SUCCESS,
@@ -796,6 +824,104 @@ export class UserController {
         data: null,
       };
       res.status(ResponseCode.SUCCESS).json(response);
+    } catch (error) {
+      res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(error);
+    }
+  }
+
+  // uploadImage and update profile and cover in user db by using cloudniary
+
+  // const formData = new FormData();
+  // if (selectedImage.profile) {
+  //     formData.append("profile", selectedImage.profile);
+  // }
+  // if (selectedImage.cover) {
+  //     formData.append("cover", selectedImage.cover);
+  // }
+
+  public async uploadImage(req: any, res: Response) {
+    try {
+      console.log("Hello", req.files);
+      console.log(req.files.profile, "req.file");
+      if (!req.files) {
+        const response: IResponseHandler = {
+          status: ResponseStatus.FAILED,
+          message: ResponseMessage.FAILED,
+          description: ResponseDescription.FAILED,
+          data: null,
+        };
+
+        return res.status(ResponseCode.BAD_REQUEST).json(response);
+      }
+
+      const userId = req.user._id;
+      console.log("🚀 ~ UserController ~ uploadImage ~ userId:", userId);
+      const user: IUser = await userManager.getById(userId);
+      console.log("🚀 ~ UserController ~ uploadImage ~ user:", user);
+      if (!user) {
+        const response: IResponseHandler = {
+          status: ResponseStatus.FAILED,
+          message: ResponseMessage.USER_NOT_FOUND,
+          description: ResponseDescription.USER_NOT_FOUND,
+          data: null,
+        };
+
+        return res.status(ResponseCode.NOT_FOUND).json(response);
+      }
+
+      const profile = req.files.profileImage;
+      const cover = req.files.coverImage;
+
+      if (profile) {
+        console.log("🚀 ~ UserController ~ uploadImage ~ profile:", profile);
+        cloudinary.uploader.upload(
+          profile[0].path,
+          {
+            folder: "profile",
+            use_filename: true,
+            unique_filename: false,
+          },
+          async (error: any, result: any) => {
+            if (error) {
+              console.log(error, "error");
+            }
+            console.log(result, "result");
+            user.profileImage = result.secure_url;
+            const updated = await userManager.updateById(userId, user);
+            const response: IResponseHandler = {
+              status: ResponseStatus.SUCCESS,
+              message: ResponseMessage.SUCCESS,
+              description: ResponseDescription.SUCCESS,
+              data: updated,
+            };
+            res.status(ResponseCode.SUCCESS).json(response);
+          }
+        );
+      } else {
+        cloudinary.uploader.upload(
+          cover[0].path,
+          {
+            folder: "cover",
+            use_filename: true,
+            unique_filename: false,
+          },
+          async (error: any, result: any) => {
+            if (error) {
+              console.log(error, "error");
+            }
+            console.log(result, "result");
+            user.coverImage = result.secure_url;
+            const updated = await userManager.updateById(userId, user);
+            const response: IResponseHandler = {
+              status: ResponseStatus.SUCCESS,
+              message: ResponseMessage.SUCCESS,
+              description: ResponseDescription.SUCCESS,
+              data: updated,
+            };
+            res.status(ResponseCode.SUCCESS).json(response);
+          }
+        );
+      }
     } catch (error) {
       res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(error);
     }

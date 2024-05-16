@@ -29,11 +29,12 @@ export interface IUser {
   comments?: string[];
   likes?: string[];
   address?: {
-    house?: string;
-    country?: string;
-    city?: string;
-    street?: string;
-    zip?: string;
+    house1?: string;
+    house2?: string;
+    country?: any;
+    city?: any;
+    state?: any;
+    zip?: number;
   };
   phone?: string;
   socialLogin?: {
