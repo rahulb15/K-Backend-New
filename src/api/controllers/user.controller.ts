@@ -12,6 +12,7 @@ import {
 import {
   userResponseData,
   userResponseDataForProfile,
+  userResponseDataForAdmin,
 } from "../../utils/userResponse/user-response.utils";
 import { jwtSign, jwtVerify } from "../../utils/jwt.sign";
 import { hashPassword, comparePassword } from "../../utils/hash.password";
@@ -922,6 +923,44 @@ export class UserController {
           }
         );
       }
+    } catch (error) {
+      res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(error);
+    }
+  }
+
+  // get all users with pagination and search using aggregation
+  public async getAllUsersWithPagination(req: Request, res: Response) {
+    try {
+      const {
+        page,
+        limit,
+        search,
+      }: { page: number; limit: number; search: string } = req.body;
+      console.log(
+        "🚀 ~ UserController ~ getAllUsersWithPagination ~ page:",
+        page
+      );
+      console.log(
+        "🚀 ~ UserController ~ getAllUsersWithPagination ~ limit:",
+        limit
+      );
+      console.log(
+        "🚀 ~ UserController ~ getAllUsersWithPagination ~ search:",
+        search
+      );
+      const users = await userManager.getAllUsersWithPagination(
+        page,
+        limit,
+        search ? search : ""
+      );
+      const data = users.map((user) => userResponseDataForAdmin(user));
+      const response: IResponseHandler = {
+        status: ResponseStatus.SUCCESS,
+        message: ResponseMessage.SUCCESS,
+        description: ResponseDescription.SUCCESS,
+        data: data,
+      };
+      res.status(ResponseCode.SUCCESS).json(response);
     } catch (error) {
       res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(error);
     }

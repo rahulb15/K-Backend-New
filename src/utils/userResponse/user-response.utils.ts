@@ -167,3 +167,39 @@ export const userResponseDataForProfileWithToken = (
     token,
   };
 };
+
+export const userResponseDataForAdmin = (user: IUser) => {
+  return {
+    _id: user._id,
+    name: user.name,
+    email: user.email,
+    bio: user.bio,
+    gender: user.gender,
+    walletAddress: user.walletAddress,
+    walletBalance: user.walletBalance,
+    walletName: user.walletName,
+    isWalletConnected: user.isWalletConnected,
+    coverImage: user.coverImage,
+    profileImage: user.profileImage,
+    role: user.role,
+    status: user.status,
+    verified: user.verified,
+    social: user.social,
+    followers: user.followers,
+    following: user.following,
+    posts: user.posts,
+    comments: user.comments,
+    likes: user.likes,
+    address: user.address,
+    phone: user.phone,
+    socialLogin: user.socialLogin,
+    isEmailVerified: user.isEmailVerified,
+    isPhoneVerified: user.isPhoneVerified,
+    isSocialLogin: user.isSocialLogin,
+    isActive: user.isActive,
+    isDeleted: user.isDeleted,
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
+  };
+}
+

@@ -243,6 +243,12 @@ router.post(
 router.post("/verifyTwoFactorAuth", userController.verifyTwoFactorAuth);
 router.post("/disableTwoFactorAuth", userController.disableTwoFactorAuth);
 
+// getAllUsersWithPagination
+router.post(
+  "/getAllUsers",
+  userController.getAllUsersWithPagination
+);
+
 // upload-image
 router.post(
   "/upload-image",

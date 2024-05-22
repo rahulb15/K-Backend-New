@@ -63,6 +63,32 @@ export class UserManager implements IUserManager {
     })) as IUser;
     return newUser;
   }
+
+  public async getAllUsersWithPagination(
+    page: number,
+    limit: number,
+    search: string
+  ): Promise<IUser[]> {
+    const users: IUser[] = await User.aggregate([
+      {
+        $match: {
+          $or: [
+            { name: { $regex: search, $options: "i" } },
+            { email: { $regex: search, $options: "i" } },
+          ],
+        },
+      },
+      {
+        $skip: (page - 1) * limit,
+      },
+      {
+        $limit: limit,
+      },
+    ]);
+    return users;
+  }
+
+
 }
 
 export default UserManager.getInstance();

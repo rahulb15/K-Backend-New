@@ -1,10 +1,10 @@
 import { ConfigController } from "../controllers/config.controller";
 import { Router } from "express";
-import { authMiddleware } from "../../middlewares/auth.middleware";
+import { authMiddleware } from "../../middlewares/admin.auth.middleware";
 
 const router = Router();
 
-router.post("/", authMiddleware, ConfigController.getInstance().create);
+router.post("/", ConfigController.getInstance().create);
 router.get("/", authMiddleware, ConfigController.getInstance().getAll);
 router.get("/:id", authMiddleware, ConfigController.getInstance().getById);
 router.get(

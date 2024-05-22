@@ -133,6 +133,32 @@ export class ConfigController {
       }
       console.log("key found");
       const config: IConfig = await configManager.getByKey("ticker");
+      console.log("🚀 ~ ConfigController ~ getByKey ~ config:", config);
+
+      if (!config) {
+        console.log("config not found");
+        if (req.params.key === "ticker") {
+          console.log("ticker ============");
+          const body = {
+            key: "ticker",
+            value: {
+              html: "<p><br></p>",
+              color: "#fff",
+              scroller: false,
+            },
+          };
+
+          const newConfig: IConfig = await configManager.create(body);
+          const responseData: IResponseHandler = {
+            status: ResponseStatus.SUCCESS,
+            message: ResponseMessage.CREATED,
+            description: ResponseDescription.CREATED,
+            data: configResponseData(newConfig),
+          };
+          return res.status(ResponseCode.CREATED).json(responseData);
+        }
+      }
+
       console.log(config ? "config found" : "config not found");
       const responseData: IResponseHandler = {
         status: ResponseStatus.SUCCESS,
