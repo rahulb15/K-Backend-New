@@ -257,4 +257,7 @@ router.post(
   userController.uploadImage
 );
 
+// checkToken
+router.post("/check-auth", userController.checkToken);
+
 export default router;

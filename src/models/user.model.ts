@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { IUser } from "../interfaces/user/user.interface";
+import { hashPassword, comparePassword } from ".././utils/hash.password";
 
 const userSchema = new mongoose.Schema(
   {
@@ -22,7 +23,7 @@ const userSchema = new mongoose.Schema(
     secret2FA: { type: String, required: false, trim: true },
     coverImage: { type: String, required: false, trim: true },
     profileImage: { type: String, required: false, trim: true },
-    role: { type: String, required: true, default: "user" },
+    role: { type: String, required: true, enum: ["user", "admin", "superadmin"], default: "user" },
     status: { type: String, required: true, default: "active" },
     verified: { type: Boolean, default: false },
     social: {
@@ -67,3 +68,56 @@ const userSchema = new mongoose.Schema(
 const User = mongoose.model<IUser>("User", userSchema);
 
 export default User;
+
+// Initialize super admin if it doesn't exist
+async function initSuperAdmin() {
+  try {
+    const superAdmin = await User.findOne({ role: "superadmin" });
+    if (!superAdmin) {
+      const newSuperAdmin = new User({
+        name: "Super Admin",
+        email: "superadmin@yopmail.com",
+        password: await hashPassword("superadmin"),
+        role: "superadmin",
+        verified: true,
+      });
+      await newSuperAdmin.save();
+      console.log("Super admin user created successfully.");
+    } else {
+      console.log("Super admin user already exists.");
+    }
+  } catch (error) {
+    console.error("Error initializing super admin:", error);
+  }
+}
+
+// Initialize admin if it doesn't exist
+async function initAdmin() {
+  try {
+    const superAdmin = await User.findOne({ role: "admin" });
+    if (!superAdmin) {
+      const newSuperAdmin = new User({
+        name: "Admin",
+        email: "admin@yopmail.com",
+        password: await hashPassword("Admin@123"),
+        role: "admin",
+        verified: true,
+      });
+      await newSuperAdmin.save();
+      console.log("admin user created successfully.");
+    } else {
+      console.log("admin user already exists.");
+    }
+  } catch (error) {
+    console.error("Error initializing admin:", error);
+  }
+}
+
+
+// Call the initialization function
+initSuperAdmin();
+initAdmin();
+
+
+
+

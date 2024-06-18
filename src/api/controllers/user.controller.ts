@@ -31,6 +31,7 @@ import moment from "moment";
 import { newUserEmail } from "../../mail/newUserEmail";
 import crypto from "crypto";
 import cloudinary from "../../config/cloudinary.config";
+import jwt from "jsonwebtoken";
 
 export class UserController {
   /*
@@ -289,8 +290,8 @@ export class UserController {
         return res.status(ResponseCode.SUCCESS).json(response);
       }
 
-      const token = jwtSign(existingUser);
-      const data = userResponseData(existingUser);
+      const token = jwtSign(existingUser, true);
+      const data = userResponseDataForAdmin(existingUser);
       const response: IResponseHandler = {
         status: ResponseStatus.SUCCESS,
         message: ResponseMessage.SUCCESS,
@@ -961,6 +962,47 @@ export class UserController {
         data: data,
       };
       res.status(ResponseCode.SUCCESS).json(response);
+    } catch (error) {
+      res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(error);
+    }
+  }
+
+  // check token is valid or not if valid then return user data else return null
+  public async checkToken(req: Request, res: Response) {
+    try {
+      console.log(req.headers.authorization, "req.headers.authorization");
+      const token = req.headers.authorization?.split(" ")[1];
+      console.log(token, "token");
+      jwt.verify(
+        token as string,
+        process.env.JWT_USER_SECRET as string,
+        async (err: any, decoded: any) => {
+          if (err) {
+            console.log(err, "err");
+            const response: IResponseHandler = {
+              status: ResponseStatus.FAILED,
+              message: ResponseMessage.FAILED,
+              description: ResponseDescription.FAILED,
+              data: {
+                isTokenValid: false,
+              },
+            };
+            return res.status(ResponseCode.SUCCESS).json(response);
+          }
+
+          console.log(decoded, "decoded");
+          const user = await userManager.getById(decoded.id);
+          console.log(user, "user");
+          
+          const response: IResponseHandler = {
+            status: ResponseStatus.SUCCESS,
+            message: ResponseMessage.SUCCESS,
+            description: ResponseDescription.SUCCESS,
+            data: user,
+          };
+          return res.status(ResponseCode.SUCCESS).json(response);
+        }
+      );
     } catch (error) {
       res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(error);
     }

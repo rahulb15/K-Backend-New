@@ -3,7 +3,6 @@ export const transactionResponseData = (transaction: ITransaction) => {
   return {
     _id: transaction._id,
     user: transaction.user,
-    cart: transaction.cart,
     paymentId: transaction.paymentId,
     paymentStatus: transaction.paymentStatus,
     paymentAmount: transaction.paymentAmount,
