@@ -234,13 +234,14 @@ router.get("/check-user/:walletAddress", userController.getByWalletAddress);
 router.post("/check-email", userController.checkEmail);
 router.post("/create", userController.createWithWalletAddress);
 
+
 //2FA
 router.post(
   "/enableTwoFactorAuth",
   authMiddleware,
   userController.enableTwoFactorAuth
 );
-router.post("/verifyTwoFactorAuth", userController.verifyTwoFactorAuth);
+router.post("/verifyTwoFactorAuth",authMiddleware, userController.verifyTwoFactorAuth);
 router.post("/disableTwoFactorAuth", userController.disableTwoFactorAuth);
 
 // getAllUsersWithPagination
@@ -259,5 +260,7 @@ router.post(
 
 // checkToken
 router.post("/check-auth", userController.checkToken);
+//verify-email
+router.get("/verify/:token", userController.verifyEmail);
 
 export default router;

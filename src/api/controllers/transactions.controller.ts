@@ -12,6 +12,7 @@ import { IResponseHandler } from "../../interfaces/response-handler.interface";
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 import LaunchCollection from "../../models/launch-collection.model";
 import { ILaunchCollection } from "../../interfaces/launch-collection/launch-collection.interface";
+import { LaunchCollectionManager } from "../../services/launch-collection.manager";
 
 export class TransactionsController {
   private static instance: TransactionsController;
@@ -159,7 +160,7 @@ export class TransactionsController {
                 product_data: {
                   name: req.body.collectionName,
                 },
-                unit_amount: 1 * 100,
+                unit_amount: 100,
               },
               quantity: 1,
             },
@@ -369,9 +370,7 @@ export class TransactionsController {
             description: ResponseDescription.FAILED,
             data: null,
           };
-          return res
-            .status(ResponseCode.SUCCESS)
-            .json(responseData);
+          return res.status(ResponseCode.SUCCESS).json(responseData);
         }
 
         return res.status(ResponseCode.SUCCESS).json({
@@ -381,36 +380,82 @@ export class TransactionsController {
           data: updatedTransaction,
         });
       } else if (session.payment_status === "unpaid") {
-        const updatedTransaction: ITransaction =
-        await transactionsManager.updateByPaymentId(session.id, {
-          user: userId,
-          paymentStatus: session.payment_status,
-          paymentAmount: session.amount_total,
-          paymentCurrency: session.currency,
-          paymentDate: new Date(session.created * 1000),
-          paymentMethod: session.payment_method_types[0],
-          paymentDescription: session.description,
+        console.log("Unpaid transaction");
+        const updatedTransaction: any =
+          await transactionsManager.updateByPaymentId(session.id, {
+            user: userId,
+            paymentStatus: session.payment_status,
+            paymentAmount: session.amount_total,
+            paymentCurrency: session.currency,
+            paymentDate: new Date(session.created * 1000),
+            paymentMethod: session.payment_method_types[0],
+            paymentDescription: session.description,
+          });
+
+        console.log(
+          "🚀 ~ TransactionsController ~ checkTransaction ~ updatedTransaction",
+          updatedTransaction
+        );
+
+        if (!updatedTransaction) {
+          const responseData: IResponseHandler = {
+            status: ResponseStatus.FAILED,
+            message: ResponseMessage.FAILED,
+            description: ResponseDescription.FAILED,
+            data: null,
+          };
+          return res.status(ResponseCode.SUCCESS).json(responseData);
+        }
+
+        console.log(updatedTransaction["order_id"], "updatedTransaction");
+
+        //      // update by id
+        // public async updateById(
+        //   id: string,
+        //   collection: ILaunchCollection
+        // ): Promise<ILaunchCollection> {
+        //   const updatedCollection = await LaunchCollection.findOneAndUpdate(
+        //     { _id: id },
+        //     collection,
+        //     { new: true }
+        //   );
+        //   console.log(
+        //     "🚀 ~ LaunchCollectionManager ~ updatedCollection:",
+        //     updatedCollection
+        //   );
+        //   if (!updatedCollection) {
+        //     throw new Error("Collection not found");
+        //   }
+        //   return updatedCollection;
+        // }
+
+     
+        console.log(updatedTransaction[0]["order_id"], "updatedTransaction");
+        const updatedCollection: ILaunchCollection =
+          await LaunchCollectionManager.getInstance().updateById(
+            updatedTransaction[0]["order_id"],
+            {
+              isPaid: false,
+            }
+          );
+        console.log(updatedCollection, "updatedCollection");
+
+        if (!updatedCollection) {
+          const responseData: IResponseHandler = {
+            status: ResponseStatus.FAILED,
+            message: ResponseMessage.FAILED,
+            description: ResponseDescription.FAILED,
+            data: null,
+          };
+          return res.status(ResponseCode.SUCCESS).json(responseData);
+        }
+
+        return res.status(ResponseCode.SUCCESS).json({
+          status: ResponseStatus.SUCCESS,
+          message: ResponseMessage.SUCCESS,
+          description: ResponseDescription.SUCCESS,
+          data: updatedTransaction,
         });
-
-      if (!updatedTransaction) {
-        const responseData: IResponseHandler = {
-          status: ResponseStatus.FAILED,
-          message: ResponseMessage.FAILED,
-          description: ResponseDescription.FAILED,
-          data: null,
-        };
-        return res
-          .status(ResponseCode.SUCCESS)
-          .json(responseData);
-      }
-
-      return res.status(ResponseCode.SUCCESS).json({
-        status: ResponseStatus.SUCCESS,
-        message: ResponseMessage.SUCCESS,
-        description: ResponseDescription.SUCCESS,
-        data: updatedTransaction,
-      });
-       
       }
       // } else {
       //   return res.status(ResponseCode.SUCCESS).json({
@@ -534,8 +579,5 @@ export class TransactionsController {
       return res.status(ResponseCode.NOT_FOUND).json(responseData);
     }
   }
-
-
-
 }
 export default TransactionsController.getInstance();

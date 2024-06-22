@@ -16,7 +16,7 @@ import { IUser } from '../interfaces/user/user.interface';
 
 export const jwtSign = (user: IUser, admin?: boolean) => {
   const token = jwt.sign({ id: user._id }, admin ? JWT_ADMIN_SECRET as string : JWT_USER_SECRET as string, {
-    expiresIn: 86400,
+    expiresIn: '1y',
   });
   return token;
 };

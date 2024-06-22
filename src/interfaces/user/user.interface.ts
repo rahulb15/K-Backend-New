@@ -10,6 +10,7 @@ export interface IUser {
   isWalletConnected?: boolean;
   password?: string;
   is2FAEnabled?: boolean;
+  is2FAVerified?: boolean;
   secret2FA?: string;
   coverImage?: string;
   profileImage?: string;

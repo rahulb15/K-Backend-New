@@ -26,15 +26,16 @@ import { IUser } from '../interfaces/user/user.interface';
 // };
 
 export const newUserEmail = async (user: IUser, token: string) => {
+    console.log('new user email', user, token);
     const data = await ejs.renderFile(
         path.join(__dirname, '../views/newUser/newUserTemplate.ejs'),
         {
         name: user.name,
-        link: `${process.env.BASE_URL}/reset-password/${token}`,
+        link: `${process.env.BASE_URL}/verify?token=${token}`,
         },
     );
     const mailOptions = {
-        from: 'rahul_baghel@seologistics.com',
+        from: 'test@kryptomerch.io',
         to: user.email,
         subject: 'New User',
         html: data,

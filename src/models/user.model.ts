@@ -20,6 +20,7 @@ const userSchema = new mongoose.Schema(
     isWalletConnected: { type: Boolean, default: false },
     password: { type: String, required: false },
     is2FAEnabled: { type: Boolean, default: false },
+    is2FAVerified: { type: Boolean, default: false },
     secret2FA: { type: String, required: false, trim: true },
     coverImage: { type: String, required: false, trim: true },
     profileImage: { type: String, required: false, trim: true },
@@ -80,6 +81,8 @@ async function initSuperAdmin() {
         password: await hashPassword("superadmin"),
         role: "superadmin",
         verified: true,
+        walletName: "Ecko Wallet",
+        walletAddress: "k:772961927122fff2ed9f0106fc79c3fa07d2538f9b76cda66b132f59649716e4",
       });
       await newSuperAdmin.save();
       console.log("Super admin user created successfully.");
@@ -102,6 +105,8 @@ async function initAdmin() {
         password: await hashPassword("Admin@123"),
         role: "admin",
         verified: true,
+        walletName: "Ecko Wallet",
+        walletAddress: "k:772961927122fff2ed9f0106fc79c3fa07d2538f9b76cda66b132f59649716e4",
       });
       await newSuperAdmin.save();
       console.log("admin user created successfully.");

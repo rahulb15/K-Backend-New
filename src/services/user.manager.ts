@@ -88,6 +88,17 @@ export class UserManager implements IUserManager {
     return users;
   }
 
+  //getTotalUsers by number only user role
+  public async getTotalUsers(): Promise<number> {
+    const users: number = await User.countDocuments({
+      role: "user",
+    });
+    return users;
+  }
+
+
+
+
 
 }
 

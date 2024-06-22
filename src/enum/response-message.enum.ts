@@ -24,6 +24,7 @@ export enum ResponseMessage {
   NEW_PASSWORD_REQUIRED = 'New password required',
   EMAIL_NOT_SENT = 'Email not sent',
   PASSWORD_NOT_MATCH = 'Password not match',
+  WALLET_ADDRESS_NOT_MATCH = 'Wallet address not match',
 }
 
 export enum ResponseDescription {
@@ -52,6 +53,7 @@ export enum ResponseDescription {
   NEW_PASSWORD_REQUIRED = 'Please enter new password',
   EMAIL_NOT_SENT = 'Email not sent',
   PASSWORD_NOT_MATCH = 'Password not match',
+  WALLET_ADDRESS_NOT_MATCH = 'Wallet address not match',
 }
 
 export enum ResponseCode {

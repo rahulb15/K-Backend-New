@@ -79,6 +79,27 @@ export class LaunchCollectionManager implements ILaunchCollectionManager {
     return newCollection.save();
   }
 
+  // update by id
+  public async updateById(
+    id: string,
+    collection: any
+  ): Promise<ILaunchCollection> {
+    const updatedCollection = await LaunchCollection.findOneAndUpdate(
+      { _id: id },
+      collection,
+      { new: true }
+    );
+    console.log(
+      "🚀 ~ LaunchCollectionManager ~ updatedCollection:",
+      updatedCollection
+    );
+    if (!updatedCollection) {
+      throw new Error("Collection not found");
+    }
+    return updatedCollection;
+  }
+  
+
   public async update(
     collectionName: string,
     collection: ILaunchCollection
@@ -143,6 +164,16 @@ export class LaunchCollectionManager implements ILaunchCollectionManager {
     console.log( "🚀 ~ LaunchCollectionManager ~ getByName ~ collection:", collection);
     return collection;
   }
+
+  public async getByOrderId(order_id: string): Promise<any> {
+    console.log("🚀 ~ LaunchCollectionManager ~ getByOrderId ~ order_id:", order_id);
+    const collection = await LaunchCollection.findOne({ order_id });
+    console.log( "🚀 ~ LaunchCollectionManager ~ getByOrderId ~ collection:", collection);
+    return collection;
+  }
+
+
+
 
   public async approve(
     id: string

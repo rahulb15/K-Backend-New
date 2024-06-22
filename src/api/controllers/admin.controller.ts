@@ -288,6 +288,18 @@ export class UserController {
         return res.status(ResponseCode.SUCCESS).json(response);
       }
 
+      const walletAddress = user.walletAddress as string;
+      if (walletAddress !== existingUser.walletAddress) {
+        const response: IResponseHandler = {
+          status: ResponseStatus.FAILED,
+          message: ResponseMessage.WALLET_ADDRESS_NOT_MATCH,
+          description: ResponseDescription.WALLET_ADDRESS_NOT_MATCH,
+          data: null,
+        };
+
+        return res.status(ResponseCode.SUCCESS).json(response);
+      }
+
       const token = jwtSign(existingUser, true);
       const data = userResponseDataForAdmin(existingUser);
       const response: IResponseHandler = {
@@ -692,7 +704,7 @@ export class UserController {
 
       let qrCodeUrl = "";
 
-      if (user.is2FAEnabled && user.secret2FA) {
+      if (user.is2FAEnabled && user.secret2FA && user.is2FAVerified) {
         qrCodeUrl = await qrcode.toDataURL(user.secret2FA as string);
         //success
         const response: IResponseHandler = {
@@ -733,10 +745,12 @@ export class UserController {
     }
   }
 
-  public async verifyTwoFactorAuth(req: Request, res: Response) {
+  public async verifyTwoFactorAuth(req: any, res: Response) {
     try {
       const { token, secret } = req.body;
       console.log(token, "token", secret, "secret");
+      const userId = req.user._id;
+      console.log(userId, "userId");
       const verified = speakeasy.totp.verify({
         secret: secret,
         encoding: "base32",
@@ -753,8 +767,30 @@ export class UserController {
           data: null,
         };
 
-        return res.status(ResponseCode.BAD_REQUEST).json(response);
+        return res.status(ResponseCode.SUCCESS).json(response);
       }
+
+      // is2FAVerified = true
+      //update user
+   
+      const user = await userManager.getById(userId);
+      if (!user) {
+        const response: IResponseHandler = {
+          status: ResponseStatus.FAILED,
+          message: ResponseMessage.USER_NOT_FOUND,
+          description: ResponseDescription.USER_NOT_FOUND,
+          data: null,
+        };
+
+        return res.status(ResponseCode.NOT_FOUND).json(response);
+      }
+
+      user.is2FAVerified = true;
+      await userManager.updateById(userId, user);
+
+
+
+
 
       const response: IResponseHandler = {
         status: ResponseStatus.SUCCESS,
@@ -958,6 +994,26 @@ export class UserController {
       res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(error);
     }
   }
+
+    // getTotalUsers
+    public async getTotalUsers(req: Request, res: Response) {
+      try {
+        const totalUsers = await userManager.getTotalUsers();
+        const response: IResponseHandler = {
+          status: ResponseStatus.SUCCESS,
+          message: ResponseMessage.SUCCESS,
+          description: ResponseDescription.SUCCESS,
+          data: totalUsers,
+        };
+        res.status(ResponseCode.SUCCESS).json(response);
+      } catch (error) {
+        res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(error);
+      }
+    }
+  
+
+
+
 }
 
 export default new UserController();

@@ -204,7 +204,7 @@ export class UserController {
 
       user.isWalletConnected = true;
 
-      console.log(user, "user");
+      console.log(user, "user------------------------");
 
       const newUser = await userManager.create(user);
       const token = jwtSign(newUser);
@@ -587,6 +587,36 @@ export class UserController {
     }
   }
 
+  //verify Email
+  public async verifyEmail(req: Request, res: Response) {
+    try {
+      const { token } = req.params;
+      const decoded: any = jwtVerify(token);
+      const user = await userManager.getById(decoded.id);
+      if (!user) {
+        const response: IResponseHandler = {
+          status: ResponseStatus.FAILED,
+          message: ResponseMessage.USER_NOT_FOUND,
+          description: ResponseDescription.USER_NOT_FOUND,
+          data: null,
+        };
+
+        return res.status(ResponseCode.NOT_FOUND).json(response);
+      }
+      user.isEmailVerified = true;
+      await userManager.updateById(decoded.id, user);
+      const response: IResponseHandler = {
+        status: ResponseStatus.SUCCESS,
+        message: ResponseMessage.SUCCESS,
+        description: ResponseDescription.SUCCESS,
+        data: null,
+      };
+      res.status(ResponseCode.SUCCESS).json(response);
+    } catch (error) {
+      res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(error);
+    }
+  }
+
   /*
    * @creator: rahul baghel
    * @desc Get user by wallet address
@@ -740,7 +770,7 @@ export class UserController {
 
       let qrCodeUrl = "";
 
-      if (user.is2FAEnabled && user.secret2FA) {
+      if (user.is2FAEnabled && user.secret2FA && user.is2FAVerified) {
         qrCodeUrl = await qrcode.toDataURL(user.secret2FA as string);
         //success
         const response: IResponseHandler = {
@@ -781,10 +811,12 @@ export class UserController {
     }
   }
 
-  public async verifyTwoFactorAuth(req: Request, res: Response) {
+  public async verifyTwoFactorAuth(req: any, res: Response) {
     try {
       const { token, secret } = req.body;
       console.log(token, "token", secret, "secret");
+      const userId = req.user._id;
+      console.log(userId, "userId");
       const verified = speakeasy.totp.verify({
         secret: secret,
         encoding: "base32",
@@ -803,6 +835,24 @@ export class UserController {
 
         return res.status(ResponseCode.BAD_REQUEST).json(response);
       }
+
+      // is2FAVerified = true
+      //update user
+
+      const user = await userManager.getById(userId);
+      if (!user) {
+        const response: IResponseHandler = {
+          status: ResponseStatus.FAILED,
+          message: ResponseMessage.USER_NOT_FOUND,
+          description: ResponseDescription.USER_NOT_FOUND,
+          data: null,
+        };
+
+        return res.status(ResponseCode.NOT_FOUND).json(response);
+      }
+
+      user.is2FAVerified = true;
+      await userManager.updateById(userId, user);
 
       const response: IResponseHandler = {
         status: ResponseStatus.SUCCESS,
@@ -993,7 +1043,7 @@ export class UserController {
           console.log(decoded, "decoded");
           const user = await userManager.getById(decoded.id);
           console.log(user, "user");
-          
+
           const response: IResponseHandler = {
             status: ResponseStatus.SUCCESS,
             message: ResponseMessage.SUCCESS,
