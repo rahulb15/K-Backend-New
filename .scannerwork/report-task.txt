@@ -1,0 +1,6 @@
+projectKey=kryptomerch
+serverUrl=http://localhost:9000
+serverVersion=10.5.1.90531
+dashboardUrl=http://localhost:9000/dashboard?id=kryptomerch
+ceTaskId=7021f1af-6040-4e4b-8dae-fb5400d1fb55
+ceTaskUrl=http://localhost:9000/api/ce/task?id=7021f1af-6040-4e4b-8dae-fb5400d1fb55
