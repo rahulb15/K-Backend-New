@@ -1,40 +1,40 @@
 import { Router } from "express";
-import multer from "multer";
 import { authMiddleware } from "../../middlewares/auth.middleware";
+import upload from "../../middlewares/multer.middleware";
 import userController from "../controllers/user.controller";
 
 const router = Router();
 
-const storage = multer.memoryStorage();
+// const storage = multer.memoryStorage();
 
-const fileFilter = (req: any, file: any, cb: any) => {
-  // Filtering based on file extension
-  if (
-    file.mimetype === "image/jpeg" ||
-    file.mimetype === "image/png" ||
-    file.mimetype === "image/gif"
-  ) {
-    cb(null, true);
-  } else {
-    cb(
-      new Error(
-        "Invalid file type, only JPEG, PNG, and GIF files are allowed!"
-      ),
-      false
-    );
-  }
-};
+// const fileFilter = (req: any, file: any, cb: any) => {
+//   // Filtering based on file extension
+//   if (
+//     file.mimetype === "image/jpeg" ||
+//     file.mimetype === "image/png" ||
+//     file.mimetype === "image/gif"
+//   ) {
+//     cb(null, true);
+//   } else {
+//     cb(
+//       new Error(
+//         "Invalid file type, only JPEG, PNG, and GIF files are allowed!"
+//       ),
+//       false
+//     );
+//   }
+// };
 
-const upload = multer({
-  storage: storage,
-  fileFilter: fileFilter,
-  limits: {
-    fileSize: 1024 * 1024 * 50, // 50 MB file size limit
-  },
-}).fields([
-  { name: "profileImage", maxCount: 1 },
-  { name: "coverImage", maxCount: 1 },
-]);
+// const upload = multer({
+//   storage: storage,
+//   fileFilter: fileFilter,
+//   limits: {
+//     fileSize: 1024 * 1024 * 50, // 50 MB file size limit
+//   },
+// }).fields([
+//   { name: "profileImage", maxCount: 1 },
+//   { name: "coverImage", maxCount: 1 },
+// ]);
 
 /**
  * @swagger
