@@ -206,5 +206,4 @@ export const userResponseDataForAdmin = (user: IUser) => {
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
   };
-}
-
+};

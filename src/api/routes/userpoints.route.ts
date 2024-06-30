@@ -1,6 +1,6 @@
-import userPointsController  from "../controllers/userpoints.controller";
 import { Router } from "express";
 import { authMiddleware } from "../../middlewares/auth.middleware";
+import userPointsController from "../controllers/userpoints.controller";
 
 const router = Router();
 

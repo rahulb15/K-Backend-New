@@ -1,6 +1,6 @@
-import User from "../models/user.model";
-import { IUserManager } from "../interfaces/user/user.manager.interface";
 import { IUser } from "../interfaces/user/user.interface";
+import { IUserManager } from "../interfaces/user/user.manager.interface";
+import User from "../models/user.model";
 
 export class UserManager implements IUserManager {
   private static instance: UserManager;
@@ -21,10 +21,7 @@ export class UserManager implements IUserManager {
   }
 
   public async create(user: IUser): Promise<IUser> {
-    console.log("🚀 ~ UserManager ~ create ~ user:", user);
-
     const newUser = new User(user);
-    console.log("🚀 ~ UserManager ~ create ~ newUser:", newUser);
     return newUser.save();
   }
 
@@ -95,11 +92,6 @@ export class UserManager implements IUserManager {
     });
     return users;
   }
-
-
-
-
-
 }
 
 export default UserManager.getInstance();

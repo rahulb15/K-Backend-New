@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
+import { hashPassword } from ".././utils/hash.password";
 import { IUser } from "../interfaces/user/user.interface";
-import { hashPassword, comparePassword } from ".././utils/hash.password";
 
 const userSchema = new mongoose.Schema(
   {
@@ -24,7 +24,12 @@ const userSchema = new mongoose.Schema(
     secret2FA: { type: String, required: false, trim: true },
     coverImage: { type: String, required: false, trim: true },
     profileImage: { type: String, required: false, trim: true },
-    role: { type: String, required: true, enum: ["user", "admin", "superadmin"], default: "user" },
+    role: {
+      type: String,
+      required: true,
+      enum: ["user", "admin", "superadmin"],
+      default: "user",
+    },
     status: { type: String, required: true, default: "active" },
     verified: { type: Boolean, default: false },
     social: {
@@ -82,7 +87,8 @@ async function initSuperAdmin() {
         role: "superadmin",
         verified: true,
         walletName: "Ecko Wallet",
-        walletAddress: "k:772961927122fff2ed9f0106fc79c3fa07d2538f9b76cda66b132f59649716e4",
+        walletAddress:
+          "k:772961927122fff2ed9f0106fc79c3fa07d2538f9b76cda66b132f59649716e4",
       });
       await newSuperAdmin.save();
       console.log("Super admin user created successfully.");
@@ -106,7 +112,8 @@ async function initAdmin() {
         role: "admin",
         verified: true,
         walletName: "Ecko Wallet",
-        walletAddress: "k:772961927122fff2ed9f0106fc79c3fa07d2538f9b76cda66b132f59649716e4",
+        walletAddress:
+          "k:772961927122fff2ed9f0106fc79c3fa07d2538f9b76cda66b132f59649716e4",
       });
       await newSuperAdmin.save();
       console.log("admin user created successfully.");
@@ -118,11 +125,6 @@ async function initAdmin() {
   }
 }
 
-
 // Call the initialization function
 initSuperAdmin();
 initAdmin();
-
-
-
-

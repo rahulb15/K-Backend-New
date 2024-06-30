@@ -1,23 +1,23 @@
-import Stripe from 'stripe';
-import ConfigModel from '../models/config.model';
+import Stripe from "stripe";
+import ConfigModel from "../models/config.model";
 
 const zeroDecimalCurrencies = [
-  'BIF',
-  'CLP',
-  'DJF',
-  'GNF',
-  'JPY',
-  'KMF',
-  'KRW',
-  'MGA',
-  'PYG',
-  'RWF',
-  'UGX',
-  'VND',
-  'VUV',
-  'XAF',
-  'XOF',
-  'XPF',
+  "BIF",
+  "CLP",
+  "DJF",
+  "GNF",
+  "JPY",
+  "KMF",
+  "KRW",
+  "MGA",
+  "PYG",
+  "RWF",
+  "UGX",
+  "VND",
+  "VUV",
+  "XAF",
+  "XOF",
+  "XPF",
 ];
 
 interface Transaction {
@@ -33,12 +33,12 @@ interface PaymentTransaction {
 
 export const charge = async (
   transaction: Transaction,
-  token: string,
+  token: string
 ): Promise<Stripe.Charge> => {
   try {
     const configs = await ConfigModel.find({
       key: {
-        $in: ['currency', 'stripeKey'],
+        $in: ["currency", "stripeKey"],
       },
     }).exec();
 
@@ -47,7 +47,7 @@ export const charge = async (
       dataConfig[item.key] = item.value;
     });
 
-    const currency = dataConfig.currency ? dataConfig.currency : 'usd';
+    const currency = dataConfig.currency ? dataConfig.currency : "usd";
     const stripeKey = dataConfig.stripeKey
       ? dataConfig.stripeKey
       : process.env.STRIPE_SECRET_KEY!;
@@ -62,7 +62,7 @@ export const charge = async (
       },
     });
 
-    if (data.status !== 'succeeded' || !data.paid) {
+    if (data.status !== "succeeded" || !data.paid) {
       throw data;
     }
 
@@ -73,12 +73,12 @@ export const charge = async (
 };
 
 export const createPaymentIntent = async (
-  transaction: PaymentTransaction,
+  transaction: PaymentTransaction
 ): Promise<Stripe.PaymentIntent> => {
   try {
     const configs = await ConfigModel.find({
       key: {
-        $in: ['currency', 'stripeKey'],
+        $in: ["currency", "stripeKey"],
       },
     }).exec();
 
@@ -87,7 +87,7 @@ export const createPaymentIntent = async (
       dataConfig[item.key] = item.value;
     });
 
-    const currency = dataConfig.currency ? dataConfig.currency || '' : 'usd';
+    const currency = dataConfig.currency ? dataConfig.currency || "" : "usd";
     const stripeKey = dataConfig.stripeKey
       ? dataConfig.stripeKey
       : process.env.STRIPE_SECRET_KEY!;

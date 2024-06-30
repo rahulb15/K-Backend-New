@@ -1,15 +1,15 @@
-import cartManager from '../../services/cart.manager';
-import { ICart } from '../../interfaces/cart/cart.interface';
-import { Request, Response } from 'express';
+import { Request, Response } from "express";
+import mongoose from "mongoose";
 import {
   ResponseCode,
   ResponseDescription,
   ResponseMessage,
   ResponseStatus,
-} from '../../enum/response-message.enum';
-import { cartResponseData } from '../../utils/userResponse/cart-response.utils';
-import { IResponseHandler } from '../../interfaces/response-handler.interface';
-import mongoose from 'mongoose';
+} from "../../enum/response-message.enum";
+import { ICart } from "../../interfaces/cart/cart.interface";
+import { IResponseHandler } from "../../interfaces/response-handler.interface";
+import cartManager from "../../services/cart.manager";
+import { cartResponseData } from "../../utils/userResponse/cart-response.utils";
 
 export class CartController {
   private static instance: CartController;
@@ -28,9 +28,9 @@ export class CartController {
     try {
       const { nftIds } = req.body;
       const userId: mongoose.Types.ObjectId = req.user._id;
-      console.log(userId, nftIds, 'userId, nftIds');
+      console.log(userId, nftIds, "userId, nftIds");
       const userCart: any = await cartManager.getByUserId(userId);
-      console.log(userCart, 'userCart');
+      console.log(userCart, "userCart");
       if (userCart) {
         const nftIdsArray = userCart.nfts;
         nftIds.forEach((nfts: mongoose.Types.ObjectId) => {
@@ -43,7 +43,7 @@ export class CartController {
 
         const updatedCart: ICart = await cartManager.update(
           new mongoose.Types.ObjectId(userCart._id),
-          userCart,
+          userCart
         );
         const responseData: IResponseHandler = {
           status: ResponseStatus.SUCCESS,
@@ -121,7 +121,7 @@ export class CartController {
   public async update(req: Request, res: Response) {
     try {
       const id: mongoose.Types.ObjectId = new mongoose.Types.ObjectId(
-        req.params.id,
+        req.params.id
       );
       const cart: ICart = req.body;
       const updateCart: ICart = await cartManager.update(id, cart);
@@ -180,7 +180,7 @@ export class CartController {
 
         const updatedCart: ICart = await cartManager.update(
           new mongoose.Types.ObjectId(userCart._id),
-          userCart,
+          userCart
         );
         const responseData: IResponseHandler = {
           status: ResponseStatus.SUCCESS,
@@ -228,7 +228,7 @@ export class CartController {
 
         const updatedCart: ICart = await cartManager.update(
           new mongoose.Types.ObjectId(userCart._id),
-          userCart,
+          userCart
         );
         const responseData: IResponseHandler = {
           status: ResponseStatus.SUCCESS,
@@ -268,7 +268,7 @@ export class CartController {
         userCart.nfts = [];
         const updatedCart: ICart = await cartManager.update(
           new mongoose.Types.ObjectId(userCart._id),
-          userCart,
+          userCart
         );
         const responseData: IResponseHandler = {
           status: ResponseStatus.SUCCESS,

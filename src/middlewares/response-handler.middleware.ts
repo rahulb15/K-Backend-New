@@ -1,10 +1,10 @@
-import { NextFunction, Request, Response } from 'express';
+import { NextFunction, Request, Response } from "express";
 import {
   ResponseCode,
   ResponseDescription,
   ResponseMessage,
   ResponseStatus,
-} from '../enum/response-message.enum';
+} from "../enum/response-message.enum";
 
 export function notFound(req: Request, res: Response, next: NextFunction) {
   const error = new Error(`Not Found - ${req.originalUrl}`);
@@ -22,7 +22,7 @@ export function errorHandler(error: any, req: Request, res: Response) {
     status: ResponseStatus.FAILED,
     message: ResponseMessage.FAILED,
     description: ResponseDescription.INTERNAL_SERVER_ERROR,
-    stack: process.env.NODE_ENV === 'production' ? '🥞' : error.stack,
+    stack: process.env.NODE_ENV === "production" ? "🥞" : error.stack,
   });
 }
 

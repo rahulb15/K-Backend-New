@@ -1,23 +1,19 @@
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const passport = require("passport");
 import crypto from "crypto";
-import { jwtSign, jwtVerify } from "../utils/jwt.sign";
-import userManager from "../services/user.manager";
-import { userResponseData } from "../utils/userResponse/user-response.utils";
 import {
-  ResponseCode,
   ResponseDescription,
   ResponseMessage,
   ResponseStatus,
 } from "../enum/response-message.enum";
 import { IUser } from "../interfaces/user/user.interface";
+import userManager from "../services/user.manager";
+import { userResponseData } from "../utils/userResponse/user-response.utils";
 passport.serializeUser(function (user: any, done: any) {
-  console.log("User:fffffffff", user);
   done(null, user);
 });
 
 passport.deserializeUser(function (user: any, done: any) {
-  console.log("User:fffffffff", user);
   done(null, user);
 });
 
@@ -35,8 +31,6 @@ passport.use(
       profile: any,
       done: any
     ) {
-      console.log("Profile:", profile);
-
       const user: IUser = {
         email: profile.emails[0].value,
         name: profile.displayName,
@@ -46,7 +40,6 @@ passport.use(
           google: profile.id,
         },
       };
-      console.log("User:", user);
 
       async function updateUser(user: IUser) {
         //check if user already exists in our db with the same email if not, create a new user

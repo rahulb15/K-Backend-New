@@ -1,6 +1,6 @@
-import Nft from '../models/nft.model';
-import { INftManager } from '../interfaces/nft/nft.manager.interface';
-import { INft } from '../interfaces/nft/nft.interface';
+import { INft } from "../interfaces/nft/nft.interface";
+import { INftManager } from "../interfaces/nft/nft.manager.interface";
+import Nft from "../models/nft.model";
 
 export class NftManager implements INftManager {
   private static instance: NftManager;

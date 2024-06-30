@@ -1,8 +1,8 @@
-import mongoose from 'mongoose';
-import { ICollection } from '../interfaces/collection/collection.interface';
+import mongoose from "mongoose";
+import { ICollection } from "../interfaces/collection/collection.interface";
 
 const collectionSchema = new mongoose.Schema({
-  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   collectionName: { type: String, required: true },
   tokenSymbol: { type: String, required: false },
   collectionInfo: { type: String, required: false },
@@ -27,8 +27,8 @@ const collectionSchema = new mongoose.Schema({
 });
 
 const Collection = mongoose.model<ICollection & mongoose.Document>(
-  'Collection',
-  collectionSchema,
+  "Collection",
+  collectionSchema
 );
 
 export default Collection;

@@ -1,4 +1,4 @@
-import { IConfig } from '../../interfaces/config/config.interface';
+import { IConfig } from "../../interfaces/config/config.interface";
 
 export const configResponseData = (config: IConfig) => {
   return {

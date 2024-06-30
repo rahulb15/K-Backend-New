@@ -8,7 +8,4 @@ export const claudeResponseData = (claude: IClaude) => {
     createdAt: claude.createdAt,
     updatedAt: claude.updatedAt,
   };
-}
-
-
- 
+};

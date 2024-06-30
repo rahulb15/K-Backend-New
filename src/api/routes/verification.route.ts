@@ -4,7 +4,6 @@ import verificationController from "../controllers/verification.controller";
 
 const router = Router();
 
-
 //create a verification
 router.post(
   "/create",

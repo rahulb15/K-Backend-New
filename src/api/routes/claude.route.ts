@@ -1,6 +1,5 @@
-import claudeController from "../controllers/claude.controller";
 import { Router } from "express";
-import { authMiddleware } from "../../middlewares/auth.middleware";
+import claudeController from "../controllers/claude.controller";
 
 const router = Router();
 

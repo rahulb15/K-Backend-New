@@ -1,7 +1,7 @@
-import Cart from '../models/cart.model';
-import { ICartManager } from '../interfaces/cart/cart.manager.interface';
-import { ICart } from '../interfaces/cart/cart.interface';
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
+import { ICart } from "../interfaces/cart/cart.interface";
+import { ICartManager } from "../interfaces/cart/cart.manager.interface";
+import Cart from "../models/cart.model";
 
 export class CartManager implements ICartManager {
   private static instance: CartManager;
@@ -28,24 +28,24 @@ export class CartManager implements ICartManager {
   public async getById(id: string): Promise<ICart> {
     const cart = await Cart.findById(id);
     if (!cart) {
-      throw new Error('Cart not found');
+      throw new Error("Cart not found");
     }
     return cart;
   }
 
   public async getByUserId(
-    userId: mongoose.Types.ObjectId,
+    userId: mongoose.Types.ObjectId
   ): Promise<ICart | null> {
     return Cart.findOne({ user: userId });
   }
 
   public async update(
     id: mongoose.Types.ObjectId,
-    cart: ICart,
+    cart: ICart
   ): Promise<ICart> {
     const updatedCart = await Cart.findByIdAndUpdate(id, cart, { new: true });
     if (!updatedCart) {
-      throw new Error('Cart not found');
+      throw new Error("Cart not found");
     }
     return updatedCart;
   }
@@ -53,7 +53,7 @@ export class CartManager implements ICartManager {
   public async delete(id: string): Promise<ICart> {
     const deletedCart = await Cart.findByIdAndDelete(id);
     if (!deletedCart) {
-      throw new Error('Cart not found');
+      throw new Error("Cart not found");
     }
     return deletedCart;
   }

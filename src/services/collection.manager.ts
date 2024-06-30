@@ -1,6 +1,6 @@
-import Collection from '../models/collection.model';
-import { ICollectionManager } from '../interfaces/collection/collection.manager.interface';
-import { ICollection } from '../interfaces/collection/collection.interface';
+import { ICollection } from "../interfaces/collection/collection.interface";
+import { ICollectionManager } from "../interfaces/collection/collection.manager.interface";
+import Collection from "../models/collection.model";
 
 export class CollectionManager implements ICollectionManager {
   private static instance: CollectionManager;
@@ -26,7 +26,7 @@ export class CollectionManager implements ICollectionManager {
 
   public async getById(id: string): Promise<ICollection> {
     const collection: ICollection = (await Collection.findById(
-      id,
+      id
     )) as ICollection;
     return collection;
   }

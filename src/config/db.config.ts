@@ -1,10 +1,10 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const dbUrl = () => {
   switch (process.env.NODE_ENV) {
-    case 'test':
+    case "test":
       return process.env.DB_URL_TEST;
-    case 'production':
+    case "production":
       const dbname = process.env.DB_NAME;
       const dbuser = process.env.DB_USER;
       const dbpassword = process.env.DB_PASSWORD;
@@ -15,20 +15,22 @@ const dbUrl = () => {
   }
 };
 
-
 if (!dbUrl) {
-  throw new Error('DB_URL environment variable is not set.');
+  throw new Error("DB_URL environment variable is not set.");
 }
 
 const connectToDatabase = async (): Promise<void> => {
   try {
-    await mongoose.connect(dbUrl() as string, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    } as mongoose.ConnectOptions);
-    console.log('Connected to MongoDB');
+    await mongoose.connect(
+      dbUrl() as string,
+      {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+      } as mongoose.ConnectOptions
+    );
+    console.log("Connected to MongoDB");
   } catch (error) {
-    console.error('Failed to connect to MongoDB:', error);
+    console.error("Failed to connect to MongoDB:", error);
     process.exit(1);
   }
 };

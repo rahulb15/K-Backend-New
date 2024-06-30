@@ -1,15 +1,15 @@
-import configManager from "../../services/config.manager";
-import { IConfig } from "../../interfaces/config/config.interface";
 import { Request, Response } from "express";
+import mongoose from "mongoose";
 import {
   ResponseCode,
   ResponseDescription,
   ResponseMessage,
   ResponseStatus,
 } from "../../enum/response-message.enum";
-import { configResponseData } from "../../utils/userResponse/config-response.utils";
+import { IConfig } from "../../interfaces/config/config.interface";
 import { IResponseHandler } from "../../interfaces/response-handler.interface";
-import mongoose from "mongoose";
+import configManager from "../../services/config.manager";
+import { configResponseData } from "../../utils/userResponse/config-response.utils";
 export class ConfigController {
   private static instance: ConfigController;
 
@@ -133,8 +133,6 @@ export class ConfigController {
       }
       console.log("key found");
       const config: IConfig = await configManager.getByKey("ticker");
-      console.log("🚀 ~ ConfigController ~ getByKey ~ config:", config);
-
       if (!config) {
         console.log("config not found");
         if (req.params.key === "ticker") {

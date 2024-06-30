@@ -1,4 +1,4 @@
-import { ICart } from './cart.interface';
+import { ICart } from "./cart.interface";
 export interface ICartManager {
   create(cart: ICart): Promise<ICart>;
   getAll(): Promise<ICart[]>;

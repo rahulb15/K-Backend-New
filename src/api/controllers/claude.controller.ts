@@ -110,19 +110,15 @@
 //   updatedAt?: Date;
 // }
 
-import claudeManager from "../../services/claude.manager";
-import { IClaude } from "../../interfaces/claude/claude.interface";
-import { Request, Response } from "express";
+import Anthropic from "@anthropic-ai/sdk";
+import { Response } from "express";
 import {
   ResponseCode,
   ResponseDescription,
   ResponseMessage,
   ResponseStatus,
 } from "../../enum/response-message.enum";
-import { claudeResponseData } from "../../utils/userResponse/claude-response.utils";
 import { IResponseHandler } from "../../interfaces/response-handler.interface";
-import mongoose from "mongoose";
-import Anthropic from "@anthropic-ai/sdk";
 const anthropic = new Anthropic({
   apiKey: process.env.CLAUDE_SECRET,
 });
@@ -293,9 +289,6 @@ export class ClaudeController {
       return res.status(ResponseCode.FAILED).json(responseData);
     }
   }
-
-
-
 }
 
 export default ClaudeController.getInstance();

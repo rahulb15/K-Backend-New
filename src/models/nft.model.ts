@@ -1,14 +1,14 @@
-import mongoose from 'mongoose';
-import { INft } from '../interfaces/nft/nft.interface';
+import mongoose from "mongoose";
+import { INft } from "../interfaces/nft/nft.interface";
 
 const nftSchema = new mongoose.Schema({
-  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  collectionId: { type: mongoose.Schema.Types.ObjectId, ref: 'Collection' },
+  user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+  collectionId: { type: mongoose.Schema.Types.ObjectId, ref: "Collection" },
   onMarketplace: { type: Boolean },
   onSale: { type: Boolean },
   bidInfo: { type: Array },
   onAuction: { type: Boolean },
-  sellingType: { type: String, default: 'All' },
+  sellingType: { type: String, default: "All" },
   creatorName: { type: String },
   duration: { type: String },
   nftPrice: { type: String },
@@ -33,6 +33,6 @@ const nftSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
-const Nft = mongoose.model<INft & mongoose.Document>('Nft', nftSchema);
+const Nft = mongoose.model<INft & mongoose.Document>("Nft", nftSchema);
 
 export default Nft;

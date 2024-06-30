@@ -184,11 +184,6 @@ export class TransactionsController {
           order_id: collection._id,
           order_type: req.body.type,
         };
-
-        console.log(
-          "🚀 ~ TransactionsController ~ create ~ transaction",
-          transaction
-        );
         //save transaction
         const newTransaction: ITransaction = await transactionsManager.create(
           transaction
@@ -226,7 +221,6 @@ export class TransactionsController {
       } else {
       }
     } catch (error) {
-      console.log("🚀 ~ TransactionsController ~ create ~ error:", error);
       const responseData: IResponseHandler = {
         status: ResponseStatus.FAILED,
         message: ResponseMessage.FAILED,
@@ -391,12 +385,6 @@ export class TransactionsController {
             paymentMethod: session.payment_method_types[0],
             paymentDescription: session.description,
           });
-
-        console.log(
-          "🚀 ~ TransactionsController ~ checkTransaction ~ updatedTransaction",
-          updatedTransaction
-        );
-
         if (!updatedTransaction) {
           const responseData: IResponseHandler = {
             status: ResponseStatus.FAILED,
@@ -419,17 +407,12 @@ export class TransactionsController {
         //     collection,
         //     { new: true }
         //   );
-        //   console.log(
-        //     "🚀 ~ LaunchCollectionManager ~ updatedCollection:",
-        //     updatedCollection
-        //   );
         //   if (!updatedCollection) {
         //     throw new Error("Collection not found");
         //   }
         //   return updatedCollection;
         // }
 
-     
         console.log(updatedTransaction[0]["order_id"], "updatedTransaction");
         const updatedCollection: ILaunchCollection =
           await LaunchCollectionManager.getInstance().updateById(
@@ -466,10 +449,6 @@ export class TransactionsController {
       //   });
       // }
     } catch (error) {
-      console.log(
-        "🚀 ~ TransactionsController ~ checkTransaction ~ error:",
-        error
-      );
       const responseData: IResponseHandler = {
         status: ResponseStatus.FAILED,
         message: ResponseMessage.FAILED,

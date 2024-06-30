@@ -1,6 +1,5 @@
-import mongoose from "mongoose";
-import { ILaunchCollectionManager } from "../interfaces/launch-collection/launch-collection.manager.interface";
 import { ILaunchCollection } from "../interfaces/launch-collection/launch-collection.interface";
+import { ILaunchCollectionManager } from "../interfaces/launch-collection/launch-collection.manager.interface";
 import LaunchCollection from "../models/launch-collection.model";
 
 // export interface ILaunchCollection {
@@ -89,16 +88,11 @@ export class LaunchCollectionManager implements ILaunchCollectionManager {
       collection,
       { new: true }
     );
-    console.log(
-      "🚀 ~ LaunchCollectionManager ~ updatedCollection:",
-      updatedCollection
-    );
     if (!updatedCollection) {
       throw new Error("Collection not found");
     }
     return updatedCollection;
   }
-  
 
   public async update(
     collectionName: string,
@@ -108,10 +102,6 @@ export class LaunchCollectionManager implements ILaunchCollectionManager {
       { collectionName, user: collection.user },
       collection,
       { new: true }
-    );
-    console.log(
-      "🚀 ~ LaunchCollectionManager ~ updatedCollection:",
-      updatedCollection
     );
     if (!updatedCollection) {
       throw new Error("Collection not found");
@@ -161,23 +151,15 @@ export class LaunchCollectionManager implements ILaunchCollectionManager {
 
   public async getByName(collectionName: string): Promise<any> {
     const collection = await LaunchCollection.findOne({ collectionName });
-    console.log( "🚀 ~ LaunchCollectionManager ~ getByName ~ collection:", collection);
     return collection;
   }
 
   public async getByOrderId(order_id: string): Promise<any> {
-    console.log("🚀 ~ LaunchCollectionManager ~ getByOrderId ~ order_id:", order_id);
     const collection = await LaunchCollection.findOne({ order_id });
-    console.log( "🚀 ~ LaunchCollectionManager ~ getByOrderId ~ collection:", collection);
     return collection;
   }
 
-
-
-
-  public async approve(
-    id: string
-  ): Promise<ILaunchCollection | null> {
+  public async approve(id: string): Promise<ILaunchCollection | null> {
     const approvedCollection = await LaunchCollection.findOneAndUpdate(
       { _id: id },
       { isApproved: true },
@@ -191,23 +173,17 @@ export class LaunchCollectionManager implements ILaunchCollectionManager {
     return approvedCollection;
   }
 
-  public async reject(
-    id: string
-  ): Promise<ILaunchCollection | null> {
+  public async reject(id: string): Promise<ILaunchCollection | null> {
     const rejectedCollection = await LaunchCollection.findOneAndUpdate(
       { _id: id },
       { isRejected: true },
       { new: true }
     );
 
-
     if (!rejectedCollection) {
       throw new Error("Collection not found");
     }
 
     return rejectedCollection;
-
   }
-
-
 }

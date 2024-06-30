@@ -1,7 +1,7 @@
-import Config from "../models/config.model";
-import { IConfigManager } from "../interfaces/config/config.manager.interface";
-import { IConfig } from "../interfaces/config/config.interface";
 import mongoose from "mongoose";
+import { IConfig } from "../interfaces/config/config.interface";
+import { IConfigManager } from "../interfaces/config/config.manager.interface";
+import Config from "../models/config.model";
 
 export class ConfigManager implements IConfigManager {
   private static instance: ConfigManager;

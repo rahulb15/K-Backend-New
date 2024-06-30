@@ -1,8 +1,8 @@
 import {
+  ResponseDescription,
   ResponseMessage,
   ResponseStatus,
-  ResponseDescription,
-} from '../enum/response-message.enum';
+} from "../enum/response-message.enum";
 
 export interface IResponseHandler {
   status: ResponseStatus;

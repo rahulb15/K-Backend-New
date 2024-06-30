@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import { ILaunchCollection } from "../interfaces/launch-collection/launch-collection.interface";
 
 const launchCollectionSchema = new Schema({

@@ -1,5 +1,3 @@
-import userManager from "../../services/user.manager";
-import { IUser } from "../../interfaces/user/user.interface";
 import { Request, Response } from "express";
 import {
   ResponseCode,
@@ -7,29 +5,29 @@ import {
   ResponseMessage,
   ResponseStatus,
 } from "../../enum/response-message.enum";
+import { IResponseHandler } from "../../interfaces/response-handler.interface";
+import { IUser } from "../../interfaces/user/user.interface";
+import { sendForgetPasswordMail } from "../../mail/forgetPassword.mail";
+import userManager from "../../services/user.manager";
+import { comparePassword, hashPassword } from "../../utils/hash.password";
+import { jwtSign, jwtVerify } from "../../utils/jwt.sign";
 import {
   userResponseData,
-  userResponseDataForProfile,
   userResponseDataForAdmin,
+  userResponseDataForProfile,
 } from "../../utils/userResponse/user-response.utils";
-import { jwtSign, jwtVerify } from "../../utils/jwt.sign";
-import { hashPassword, comparePassword } from "../../utils/hash.password";
-import { IResponseHandler } from "../../interfaces/response-handler.interface";
 import {
   emailValidator,
-  passwordValidator,
   nameValidator,
+  passwordValidator,
 } from "../../utils/validator.util";
-import { sendForgetPasswordMail } from "../../mail/forgetPassword.mail";
 
-import speakeasy from "speakeasy";
-import qrcode from "qrcode";
-import mongoose from "mongoose";
-import moment from "moment";
-import { newUserEmail } from "../../mail/newUserEmail";
 import crypto from "crypto";
-import cloudinary from "../../config/cloudinary.config";
 import jwt from "jsonwebtoken";
+import qrcode from "qrcode";
+import speakeasy from "speakeasy";
+import cloudinary from "../../config/cloudinary.config";
+import { newUserEmail } from "../../mail/newUserEmail";
 
 export class UserController {
   /*
@@ -233,8 +231,6 @@ export class UserController {
   public async login(req: Request, res: Response) {
     try {
       const user: IUser = req.body;
-      console.log("🚀 ~ UserController ~ login ~ user:", user);
-
       //validate email
       const isEmailValid = emailValidator(user.email);
       if (!isEmailValid) {
@@ -772,7 +768,7 @@ export class UserController {
 
       // is2FAVerified = true
       //update user
-   
+
       const user = await userManager.getById(userId);
       if (!user) {
         const response: IResponseHandler = {
@@ -787,10 +783,6 @@ export class UserController {
 
       user.is2FAVerified = true;
       await userManager.updateById(userId, user);
-
-
-
-
 
       const response: IResponseHandler = {
         status: ResponseStatus.SUCCESS,
@@ -819,16 +811,6 @@ export class UserController {
     }
   }
 
-  // uploadImage and update profile and cover in user db by using cloudniary
-
-  // const formData = new FormData();
-  // if (selectedImage.profile) {
-  //     formData.append("profile", selectedImage.profile);
-  // }
-  // if (selectedImage.cover) {
-  //     formData.append("cover", selectedImage.cover);
-  // }
-
   public async uploadImage(req: any, res: Response) {
     try {
       console.log("Hello", req.files);
@@ -845,9 +827,7 @@ export class UserController {
       }
 
       const userId = req.user._id;
-      console.log("🚀 ~ UserController ~ uploadImage ~ userId:", userId);
       const user: IUser = await userManager.getById(userId);
-      console.log("🚀 ~ UserController ~ uploadImage ~ user:", user);
       if (!user) {
         const response: IResponseHandler = {
           status: ResponseStatus.FAILED,
@@ -863,7 +843,6 @@ export class UserController {
       const cover = req.files.coverImage;
 
       if (profile) {
-        console.log("🚀 ~ UserController ~ uploadImage ~ profile:", profile);
         cloudinary.uploader.upload(
           profile[0].path,
           {
@@ -925,18 +904,6 @@ export class UserController {
         limit,
         search,
       }: { page: number; limit: number; search: string } = req.body;
-      console.log(
-        "🚀 ~ UserController ~ getAllUsersWithPagination ~ page:",
-        page
-      );
-      console.log(
-        "🚀 ~ UserController ~ getAllUsersWithPagination ~ limit:",
-        limit
-      );
-      console.log(
-        "🚀 ~ UserController ~ getAllUsersWithPagination ~ search:",
-        search
-      );
       const users = await userManager.getAllUsersWithPagination(
         page,
         limit,
@@ -980,7 +947,7 @@ export class UserController {
           console.log(decoded, "decoded");
           const user = await userManager.getById(decoded.id);
           console.log(user, "user");
-          
+
           const response: IResponseHandler = {
             status: ResponseStatus.SUCCESS,
             message: ResponseMessage.SUCCESS,
@@ -995,25 +962,21 @@ export class UserController {
     }
   }
 
-    // getTotalUsers
-    public async getTotalUsers(req: Request, res: Response) {
-      try {
-        const totalUsers = await userManager.getTotalUsers();
-        const response: IResponseHandler = {
-          status: ResponseStatus.SUCCESS,
-          message: ResponseMessage.SUCCESS,
-          description: ResponseDescription.SUCCESS,
-          data: totalUsers,
-        };
-        res.status(ResponseCode.SUCCESS).json(response);
-      } catch (error) {
-        res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(error);
-      }
+  // getTotalUsers
+  public async getTotalUsers(req: Request, res: Response) {
+    try {
+      const totalUsers = await userManager.getTotalUsers();
+      const response: IResponseHandler = {
+        status: ResponseStatus.SUCCESS,
+        message: ResponseMessage.SUCCESS,
+        description: ResponseDescription.SUCCESS,
+        data: totalUsers,
+      };
+      res.status(ResponseCode.SUCCESS).json(response);
+    } catch (error) {
+      res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(error);
     }
-  
-
-
-
+  }
 }
 
 export default new UserController();

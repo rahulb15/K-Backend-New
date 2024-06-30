@@ -1,28 +1,28 @@
-import express from "express";
-import morgan from "morgan";
-import helmet from "helmet";
 import cors, { CorsOptions } from "cors";
-import * as middlewares from "./middlewares/response-handler.middleware";
-import api from "./api";
-import swaggerUI from "swagger-ui-express";
+import express from "express";
+import helmet from "helmet";
+import morgan from "morgan";
 import swaggerJsDoc from "swagger-jsdoc";
-import { options } from "./swagger";
-const GoogleStrategy = require("passport-google-oauth20").Strategy;
-const passport = require("passport");
-const session = require("express-session");
-const cookieParser = require("cookie-parser");
-require("dotenv").config();
-require("./mail/transporter.mail");
-import { userResponseData } from "./utils/userResponse/user-response.utils";
-import { IResponseHandler } from "./interfaces/response-handler.interface";
+import swaggerUI from "swagger-ui-express";
+import api from "./api";
 import {
   ResponseCode,
   ResponseDescription,
   ResponseMessage,
   ResponseStatus,
 } from "./enum/response-message.enum";
-import { jwtSign } from "./utils/jwt.sign";
+import { IResponseHandler } from "./interfaces/response-handler.interface";
 import { IUser } from "./interfaces/user/user.interface";
+import * as middlewares from "./middlewares/response-handler.middleware";
+import { options } from "./swagger";
+import { jwtSign } from "./utils/jwt.sign";
+import { userResponseData } from "./utils/userResponse/user-response.utils";
+const GoogleStrategy = require("passport-google-oauth20").Strategy;
+const passport = require("passport");
+const session = require("express-session");
+const cookieParser = require("cookie-parser");
+require("dotenv").config();
+require("./mail/transporter.mail");
 
 // const data = userResponseData(user);
 //       const response: IResponseHandler = {

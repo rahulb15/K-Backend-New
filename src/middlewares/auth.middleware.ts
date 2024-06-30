@@ -1,16 +1,21 @@
-import { Response, NextFunction } from 'express';
-import { ResponseCode, ResponseMessage, ResponseDescription, ResponseStatus } from '../enum/response-message.enum';
-import { IResponseHandler } from '../interfaces/response-handler.interface';
-import { jwtVerify } from '../utils/jwt.sign';
-import userManager from '../services/user.manager';
+import { NextFunction, Response } from "express";
+import {
+  ResponseCode,
+  ResponseDescription,
+  ResponseMessage,
+  ResponseStatus,
+} from "../enum/response-message.enum";
+import { IResponseHandler } from "../interfaces/response-handler.interface";
+import userManager from "../services/user.manager";
+import { jwtVerify } from "../utils/jwt.sign";
 
 export const authMiddleware = async (
   req: any,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ) => {
   try {
-    const token = req.headers.authorization?.split(' ')[1];
+    const token = req.headers.authorization?.split(" ")[1];
     console.log(token);
     if (!token) {
       const response: IResponseHandler = {
@@ -45,7 +50,3 @@ export const authMiddleware = async (
     return res.status(ResponseCode.UNAUTHORIZED).json(response);
   }
 };
-
-
-        
-   

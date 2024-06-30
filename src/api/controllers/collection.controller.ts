@@ -1,14 +1,14 @@
-import collectionManager from '../../services/collection.manager';
-import { ICollection } from '../../interfaces/collection/collection.interface';
-import { Request, Response } from 'express';
+import { Request, Response } from "express";
 import {
   ResponseCode,
   ResponseDescription,
   ResponseMessage,
   ResponseStatus,
-} from '../../enum/response-message.enum';
-import { collectionResponseData } from '../../utils/userResponse/collection-response.utils';
-import { IResponseHandler } from '../../interfaces/response-handler.interface';
+} from "../../enum/response-message.enum";
+import { ICollection } from "../../interfaces/collection/collection.interface";
+import { IResponseHandler } from "../../interfaces/response-handler.interface";
+import collectionManager from "../../services/collection.manager";
+import { collectionResponseData } from "../../utils/userResponse/collection-response.utils";
 
 export class CollectionController {
   private static instance: CollectionController;
@@ -25,11 +25,11 @@ export class CollectionController {
 
   public async create(req: any, res: Response) {
     try {
-      console.log(req.user, 'user');
+      console.log(req.user, "user");
       const collection: ICollection = req.body;
       collection.user = req.user._id;
       const newCollection: ICollection = await collectionManager.create(
-        collection,
+        collection
       );
       const responseData: IResponseHandler = {
         status: ResponseStatus.SUCCESS,
@@ -57,7 +57,7 @@ export class CollectionController {
         message: ResponseMessage.SUCCESS,
         description: ResponseDescription.SUCCESS,
         data: collections.map((collection) =>
-          collectionResponseData(collection),
+          collectionResponseData(collection)
         ),
       };
       return res.status(ResponseCode.SUCCESS).json(responseData);

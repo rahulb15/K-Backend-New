@@ -1,4 +1,4 @@
-import { ITransaction } from './transactions.interface';
+import { ITransaction } from "./transactions.interface";
 export interface ITransactionManager {
   create(transaction: ITransaction): Promise<ITransaction>;
   getAll(): Promise<ITransaction[]>;

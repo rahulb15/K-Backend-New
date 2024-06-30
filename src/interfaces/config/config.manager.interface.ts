@@ -1,5 +1,5 @@
-import { IConfig } from "./config.interface";
 import { Types } from "mongoose";
+import { IConfig } from "./config.interface";
 
 export interface IConfigManager {
   create(config: IConfig): Promise<IConfig>;

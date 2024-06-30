@@ -1,15 +1,13 @@
+import { Request, Response } from "express";
 import {
   ResponseCode,
   ResponseDescription,
   ResponseMessage,
   ResponseStatus,
 } from "../../enum/response-message.enum";
-import { IResponseHandler } from "../../interfaces/response-handler.interface";
-import { Request, Response } from "express";
-import { LaunchCollectionManager } from "../../services/launch-collection.manager";
 import { ILaunchCollection } from "../../interfaces/launch-collection/launch-collection.interface";
+import { LaunchCollectionManager } from "../../services/launch-collection.manager";
 import { launchCollectionResponseData } from "../../utils/userResponse/launch-collection-response.utils";
-import mongoose from "mongoose";
 
 export class LaunchCollectionController {
   private static instance: LaunchCollectionController;
@@ -27,10 +25,11 @@ export class LaunchCollectionController {
       const collection: ILaunchCollection = req.body;
       collection.user = req.user._id;
 
-
       //check if the collection name already exists then return error
-      const existingCollection = await LaunchCollectionManager.getInstance().getByName(collection.collectionName);
-      console.log("🚀 ~ LaunchCollectionController ~ create ~ existingCollection", existingCollection);
+      const existingCollection =
+        await LaunchCollectionManager.getInstance().getByName(
+          collection.collectionName
+        );
       if (existingCollection) {
         return res.status(ResponseCode.SUCCESS).json({
           status: ResponseStatus.FAILED,
@@ -39,7 +38,6 @@ export class LaunchCollectionController {
           data: null,
         });
       }
-
 
       const newCollection = await LaunchCollectionManager.getInstance().create(
         collection
@@ -111,7 +109,6 @@ export class LaunchCollectionController {
   public async getAll(req: Request, res: Response): Promise<Response> {
     try {
       const { page, limit, search } = req.query;
-      console.log("🚀 ~ LaunchCollectionController ~ getAll ~ page:", page);
       const collections = await LaunchCollectionManager.getInstance().getAll(
         parseInt(page as string),
         parseInt(limit as string),
@@ -135,10 +132,11 @@ export class LaunchCollectionController {
 
   public async approve(req: any, res: Response): Promise<Response> {
     try {
-      console.log("🚀 ~ LaunchCollectionController ~ approve ~ req", req.params);
       const id = req.params.id;
       const updatedCollection: ILaunchCollection =
-        await LaunchCollectionManager.getInstance().approve(id) as ILaunchCollection;
+        (await LaunchCollectionManager.getInstance().approve(
+          id
+        )) as ILaunchCollection;
       return res.status(ResponseCode.SUCCESS).json({
         status: ResponseStatus.SUCCESS,
         message: ResponseMessage.SUCCESS,
@@ -159,7 +157,9 @@ export class LaunchCollectionController {
     try {
       const id = req.params.id;
       const updatedCollection: ILaunchCollection =
-        await LaunchCollectionManager.getInstance().reject(id) as ILaunchCollection;
+        (await LaunchCollectionManager.getInstance().reject(
+          id
+        )) as ILaunchCollection;
       return res.status(ResponseCode.SUCCESS).json({
         status: ResponseStatus.SUCCESS,
         message: ResponseMessage.SUCCESS,
@@ -175,9 +175,6 @@ export class LaunchCollectionController {
       });
     }
   }
-
-
-
 }
 
 export default LaunchCollectionController.getInstance();

@@ -1,17 +1,16 @@
-import app from './app';
-import connectToDatabase from './config/db.config';
+import app from "./app";
+import connectToDatabase from "./config/db.config";
 
 const port = () => {
   switch (process.env.NODE_ENV) {
-    case 'production':
+    case "production":
       return process.env.PORT_PROD || 5000;
-    case 'test':
+    case "test":
       return process.env.PORT_TEST || 5000;
     default:
       return process.env.PORT_DEV || 5000;
   }
 };
-
 
 // Connect to the database
 connectToDatabase()
@@ -24,11 +23,6 @@ connectToDatabase()
     });
   })
   .catch((error) => {
-    console.error('Error connecting to the database:', error);
+    console.error("Error connecting to the database:", error);
     process.exit(1);
   });
-
-
-
-
-

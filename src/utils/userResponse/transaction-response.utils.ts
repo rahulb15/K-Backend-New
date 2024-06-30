@@ -1,4 +1,4 @@
-import { ITransaction } from '../../interfaces/transactions/transactions.interface';
+import { ITransaction } from "../../interfaces/transactions/transactions.interface";
 export const transactionResponseData = (transaction: ITransaction) => {
   return {
     _id: transaction._id,

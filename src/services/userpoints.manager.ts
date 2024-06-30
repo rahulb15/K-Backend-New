@@ -1,6 +1,5 @@
-import mongoose from "mongoose";
-import { IUserPointsManager } from "../interfaces/userpoints/userpoints.manager.interface";
 import { IUserPoints } from "../interfaces/userpoints/userpoints.interface";
+import { IUserPointsManager } from "../interfaces/userpoints/userpoints.manager.interface";
 import UserPoints from "../models/userpoints.model";
 
 export class UserPointsManager implements IUserPointsManager {

@@ -1,15 +1,16 @@
 import express from "express";
-import userRouter from "./routes/user.route";
-import transactionRouter from "./routes/transactions.route";
-import cartRouter from "./routes/cart.route";
-import collectionRouter from "./routes/collection.route";
-import nftRouter from "./routes/nft.route";
-import configRouter from "./routes/config.route";
-import userPointsRouter from "./routes/userpoints.route";
-import claudeRouter from "./routes/claude.route";
-import verificationRouter from "./routes/verification.route";
-import launchCollectionRouter from "./routes/launch-collection.route";
 import adminRouter from "./routes/admin.route";
+import blogRouter from "./routes/blog.route";
+import cartRouter from "./routes/cart.route";
+import claudeRouter from "./routes/claude.route";
+import collectionRouter from "./routes/collection.route";
+import configRouter from "./routes/config.route";
+import launchCollectionRouter from "./routes/launch-collection.route";
+import nftRouter from "./routes/nft.route";
+import transactionRouter from "./routes/transactions.route";
+import userRouter from "./routes/user.route";
+import userPointsRouter from "./routes/userpoints.route";
+import verificationRouter from "./routes/verification.route";
 
 const router = express.Router();
 
@@ -24,5 +25,6 @@ router.use("/userpoints", userPointsRouter);
 router.use("/claude", claudeRouter);
 router.use("/verification", verificationRouter);
 router.use("/launch-collection", launchCollectionRouter);
+router.use("/blog", blogRouter);
 
 export default router;

@@ -1,6 +1,5 @@
-import mongoose from "mongoose";
-import { IVerificationManager } from "../interfaces/verification/verification.manager.interface";
 import { IVerification } from "../interfaces/verification/verification.interface";
+import { IVerificationManager } from "../interfaces/verification/verification.manager.interface";
 import Verification from "../models/verification.model";
 
 export class VerificationManager implements IVerificationManager {
@@ -44,5 +43,4 @@ export class VerificationManager implements IVerificationManager {
     );
     return newVerification as IVerification;
   }
-  
 }

@@ -8,4 +8,4 @@ export const userPointsResponseData = (userPoints: IUserPoints) => {
     ranking: userPoints.ranking,
     priorityPass: userPoints.priorityPass,
   };
-}
+};

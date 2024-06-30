@@ -1,7 +1,7 @@
-import { ITransaction } from '../interfaces/transactions/transactions.interface';
-import { ITransactionManager } from '../interfaces/transactions/transactions.manager.interface';
-import LaunchCollection from '../models/launch-collection.model';
-import Transaction from '../models/transaction.model';
+import { ITransaction } from "../interfaces/transactions/transactions.interface";
+import { ITransactionManager } from "../interfaces/transactions/transactions.manager.interface";
+import LaunchCollection from "../models/launch-collection.model";
+import Transaction from "../models/transaction.model";
 
 export class TransactionManager implements ITransactionManager {
   private static instance: TransactionManager;
@@ -28,22 +28,22 @@ export class TransactionManager implements ITransactionManager {
   public async getById(id: string): Promise<ITransaction> {
     const transaction = await Transaction.findById(id);
     if (!transaction) {
-      throw new Error('Transaction not found');
+      throw new Error("Transaction not found");
     }
     return transaction;
   }
 
   public async update(
     id: string,
-    transaction: ITransaction,
+    transaction: ITransaction
   ): Promise<ITransaction> {
     const updatedTransaction = await Transaction.findByIdAndUpdate(
       id,
       transaction,
-      { new: true },
+      { new: true }
     );
     if (!updatedTransaction) {
-      throw new Error('Transaction not found');
+      throw new Error("Transaction not found");
     }
     return updatedTransaction;
   }
@@ -51,15 +51,15 @@ export class TransactionManager implements ITransactionManager {
   //upate by paymentId
   public async updateByPaymentId(
     paymentId: string,
-    transaction: ITransaction,
+    transaction: ITransaction
   ): Promise<any> {
     const updatedTransaction = await Transaction.findOneAndUpdate(
       { paymentId },
       transaction,
-      { new: true },
+      { new: true }
     );
     if (!updatedTransaction) {
-      throw new Error('Transaction not found');
+      throw new Error("Transaction not found");
     }
 
     const updatedTransaction1 = await Transaction.aggregate([
@@ -70,18 +70,18 @@ export class TransactionManager implements ITransactionManager {
       },
       {
         $lookup: {
-          from: 'launchcollections',
-          localField: 'order_id',
-          foreignField: '_id',
-          as: 'launchCollection',
+          from: "launchcollections",
+          localField: "order_id",
+          foreignField: "_id",
+          as: "launchCollection",
         },
       },
       {
-        $unwind: '$launchCollection',
+        $unwind: "$launchCollection",
       },
       {
         $set: {
-          'launchCollection.isPaid': true,
+          "launchCollection.isPaid": true,
         },
       },
 
@@ -105,33 +105,26 @@ export class TransactionManager implements ITransactionManager {
           launchCollection: 1,
         },
       },
-
     ]);
 
     if (!updatedTransaction1) {
-      throw new Error('Transaction not found');
+      throw new Error("Transaction not found");
     }
 
     if (!updatedTransaction1 || updatedTransaction1.length === 0) {
-      throw new Error('Transaction not found');
+      throw new Error("Transaction not found");
     }
-    
+
     const launchCollectionIds = updatedTransaction1.map(
       (transaction) => transaction.launchCollection._id
     );
-    
-    await LaunchCollection.updateOne (
+
+    await LaunchCollection.updateOne(
       { _id: { $in: launchCollectionIds } },
       { $set: { isPaid: true } }
     );
 
-
-
     return updatedTransaction1;
-
-
-
-
 
     // if (!updatedTransaction) {
     //   throw new Error('Transaction not found');
@@ -139,20 +132,16 @@ export class TransactionManager implements ITransactionManager {
     // return updatedTransaction1;
   }
 
-
   // getByOrderId
   public async getByOrderId(order_id: string): Promise<ITransaction> {
     const transaction = await Transaction.findOne({
       order_id,
     });
     if (!transaction) {
-      throw new Error('Transaction not found');
+      throw new Error("Transaction not found");
     }
     return transaction;
   }
-  
-
-
 }
 
 export default TransactionManager.getInstance();

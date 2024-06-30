@@ -1,6 +1,6 @@
-import userController from "../controllers/admin.controller";
 import { Router } from "express";
 import { adminMiddleware } from "../../middlewares/admin.auth.middleware";
+import userController from "../controllers/admin.controller";
 const router = Router();
 const multer = require("multer");
 
@@ -233,7 +233,7 @@ router.post("/reset-password", userController.resetPassword);
 router.get("/check-user/:walletAddress", userController.getByWalletAddress);
 router.post("/check-email", userController.checkEmail);
 router.post("/create", userController.createWithWalletAddress);
-router.post("/getTotalUsers",adminMiddleware, userController.getTotalUsers);
+router.post("/getTotalUsers", adminMiddleware, userController.getTotalUsers);
 
 //2FA
 router.post(
@@ -241,14 +241,15 @@ router.post(
   adminMiddleware,
   userController.enableTwoFactorAuth
 );
-router.post("/verifyTwoFactorAuth",  adminMiddleware, userController.verifyTwoFactorAuth);
+router.post(
+  "/verifyTwoFactorAuth",
+  adminMiddleware,
+  userController.verifyTwoFactorAuth
+);
 router.post("/disableTwoFactorAuth", userController.disableTwoFactorAuth);
 
 // getAllUsersWithPagination
-router.post(
-  "/getAllUsers",
-  userController.getAllUsersWithPagination
-);
+router.post("/getAllUsers", userController.getAllUsersWithPagination);
 
 // upload-image
 router.post(

@@ -1,4 +1,4 @@
-import { ICollection } from '../../interfaces/collection/collection.interface';
+import { ICollection } from "../../interfaces/collection/collection.interface";
 export const collectionResponseData = (collection: ICollection) => {
   return {
     _id: collection._id,

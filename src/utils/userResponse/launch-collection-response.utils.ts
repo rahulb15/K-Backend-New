@@ -27,8 +27,9 @@ export const launchCollectionResponseData = (collection: ILaunchCollection) => {
   };
 };
 
-
-export const adminLaunchCollectionResponseData = (collection: ILaunchCollection) => {
+export const adminLaunchCollectionResponseData = (
+  collection: ILaunchCollection
+) => {
   return {
     collectionName: collection.collectionName,
     creatorName: collection.creatorName,
@@ -58,4 +59,3 @@ export const adminLaunchCollectionResponseData = (collection: ILaunchCollection)
     updatedAt: collection.updatedAt,
   };
 };
-

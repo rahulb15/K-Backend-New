@@ -1,13 +1,13 @@
-import { INft } from '../../interfaces/nft/nft.interface';
-import { IResponseHandler } from '../../interfaces/response-handler.interface';
-import { Request, Response } from 'express';
+import { Request, Response } from "express";
 import {
   ResponseCode,
   ResponseDescription,
   ResponseMessage,
   ResponseStatus,
-} from '../../enum/response-message.enum';
-import nftManager from '../../services/nft.manager';
+} from "../../enum/response-message.enum";
+import { INft } from "../../interfaces/nft/nft.interface";
+import { IResponseHandler } from "../../interfaces/response-handler.interface";
+import nftManager from "../../services/nft.manager";
 
 export class NftController {
   private static instance: NftController;

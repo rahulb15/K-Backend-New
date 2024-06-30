@@ -1,4 +1,4 @@
-import { ICart } from '../../interfaces/cart/cart.interface';
+import { ICart } from "../../interfaces/cart/cart.interface";
 
 export const cartResponseData = (cart: ICart) => {
   return {

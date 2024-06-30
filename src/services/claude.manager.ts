@@ -1,8 +1,6 @@
-import Claude from "../models/claude.model";
 import { IClaude } from "../interfaces/claude/claude.interface";
-import { IClaudeChats } from "../interfaces/claude/claude.chats.interface";
 import { IClaudeManager } from "../interfaces/claude/claude.manager.interface";
-import mongoose from "mongoose";
+import Claude from "../models/claude.model";
 
 export class ClaudeManager implements IClaudeManager {
   private static instance: ClaudeManager;
@@ -33,5 +31,3 @@ export class ClaudeManager implements IClaudeManager {
 }
 
 export default ClaudeManager.getInstance();
-
-

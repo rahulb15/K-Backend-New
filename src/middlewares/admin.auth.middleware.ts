@@ -1,21 +1,21 @@
-import { Response, NextFunction } from 'express';
+import { NextFunction, Response } from "express";
 import {
   ResponseCode,
-  ResponseMessage,
   ResponseDescription,
+  ResponseMessage,
   ResponseStatus,
-} from '../enum/response-message.enum';
-import { IResponseHandler } from '../interfaces/response-handler.interface';
-import { jwtVerify } from '../utils/jwt.sign';
-import userManager from '../services/user.manager';
+} from "../enum/response-message.enum";
+import { IResponseHandler } from "../interfaces/response-handler.interface";
+import userManager from "../services/user.manager";
+import { jwtVerify } from "../utils/jwt.sign";
 
 export const adminMiddleware = async (
   req: any,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ) => {
   try {
-    const token = req.headers.authorization?.split(' ')[1];
+    const token = req.headers.authorization?.split(" ")[1];
     console.log(token);
     if (!token) {
       const response: IResponseHandler = {

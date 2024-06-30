@@ -1,5 +1,3 @@
-import { Types } from 'mongoose';
-
 export interface IConfig {
   _id?: string;
   key: string;

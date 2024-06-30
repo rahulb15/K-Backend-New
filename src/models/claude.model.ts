@@ -1,8 +1,6 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
-
-import { IClaude } from '../interfaces/claude/claude.interface';
-import { IClaudeChats } from '../interfaces/claude/claude.chats.interface';
+import { IClaude } from "../interfaces/claude/claude.interface";
 
 const claudeChatsSchema = new mongoose.Schema(
   {
@@ -15,19 +13,17 @@ const claudeChatsSchema = new mongoose.Schema(
       },
     ],
   },
-  { timestamps: true },
+  { timestamps: true }
 );
 
 const claudeSchema = new mongoose.Schema(
   {
-    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     chats: [claudeChatsSchema],
   },
-  { timestamps: true },
+  { timestamps: true }
 );
 
-const Claude = mongoose.model<IClaude>('Claude', claudeSchema);
+const Claude = mongoose.model<IClaude>("Claude", claudeSchema);
 
 export default Claude;
-
-
