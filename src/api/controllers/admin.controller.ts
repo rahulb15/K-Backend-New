@@ -811,10 +811,94 @@ export class UserController {
     }
   }
 
-  public async uploadImage(req: any, res: Response) {
+  // public async uploadImage(req: any, res: Response) {
+  //   try {
+  //     console.log("Hello", req.files);
+  //     console.log(req.files.profile, "req.file");
+  //     if (!req.files) {
+  //       const response: IResponseHandler = {
+  //         status: ResponseStatus.FAILED,
+  //         message: ResponseMessage.FAILED,
+  //         description: ResponseDescription.FAILED,
+  //         data: null,
+  //       };
+
+  //       return res.status(ResponseCode.BAD_REQUEST).json(response);
+  //     }
+
+  //     const userId = req.user._id;
+  //     const user: IUser = await userManager.getById(userId);
+  //     if (!user) {
+  //       const response: IResponseHandler = {
+  //         status: ResponseStatus.FAILED,
+  //         message: ResponseMessage.USER_NOT_FOUND,
+  //         description: ResponseDescription.USER_NOT_FOUND,
+  //         data: null,
+  //       };
+
+  //       return res.status(ResponseCode.NOT_FOUND).json(response);
+  //     }
+
+  //     const profile = req.files.profileImage;
+  //     const cover = req.files.coverImage;
+
+  //     if (profile) {
+  //       cloudinary.uploader.upload(
+  //         profile[0].path,
+  //         {
+  //           folder: "profile",
+  //           use_filename: true,
+  //           unique_filename: false,
+  //         },
+  //         async (error: any, result: any) => {
+  //           if (error) {
+  //             console.log(error, "error");
+  //           }
+  //           console.log(result, "result");
+  //           user.profileImage = result.secure_url;
+  //           const updated = await userManager.updateById(userId, user);
+  //           const response: IResponseHandler = {
+  //             status: ResponseStatus.SUCCESS,
+  //             message: ResponseMessage.SUCCESS,
+  //             description: ResponseDescription.SUCCESS,
+  //             data: updated,
+  //           };
+  //           res.status(ResponseCode.SUCCESS).json(response);
+  //         }
+  //       );
+  //     } else {
+  //       cloudinary.uploader.upload(
+  //         cover[0].path,
+  //         {
+  //           folder: "cover",
+  //           use_filename: true,
+  //           unique_filename: false,
+  //         },
+  //         async (error: any, result: any) => {
+  //           if (error) {
+  //             console.log(error, "error");
+  //           }
+  //           console.log(result, "result");
+  //           user.coverImage = result.secure_url;
+  //           const updated = await userManager.updateById(userId, user);
+  //           const response: IResponseHandler = {
+  //             status: ResponseStatus.SUCCESS,
+  //             message: ResponseMessage.SUCCESS,
+  //             description: ResponseDescription.SUCCESS,
+  //             data: updated,
+  //           };
+  //           res.status(ResponseCode.SUCCESS).json(response);
+  //         }
+  //       );
+  //     }
+  //   } catch (error) {
+  //     res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(error);
+  //   }
+  // }
+
+  public async uploadImage(req: any, res: Response): Promise<any> {
     try {
       console.log("Hello", req.files);
-      console.log(req.files.profile, "req.file");
       if (!req.files) {
         const response: IResponseHandler = {
           status: ResponseStatus.FAILED,
@@ -839,60 +923,51 @@ export class UserController {
         return res.status(ResponseCode.NOT_FOUND).json(response);
       }
 
-      const profile = req.files.profileImage;
-      const cover = req.files.coverImage;
+      const uploadToCloudinary = (buffer: Buffer, folder: string) => {
+        return new Promise((resolve, reject) => {
+          const stream = cloudinary.uploader.upload_stream(
+            { folder, use_filename: true, unique_filename: false },
+            (error: any, result: any) => {
+              if (error) {
+                reject(error);
+              } else {
+                resolve(result);
+              }
+            }
+          );
+          stream.end(buffer);
+        });
+      };
 
-      if (profile) {
-        cloudinary.uploader.upload(
-          profile[0].path,
-          {
-            folder: "profile",
-            use_filename: true,
-            unique_filename: false,
-          },
-          async (error: any, result: any) => {
-            if (error) {
-              console.log(error, "error");
-            }
-            console.log(result, "result");
-            user.profileImage = result.secure_url;
-            const updated = await userManager.updateById(userId, user);
-            const response: IResponseHandler = {
-              status: ResponseStatus.SUCCESS,
-              message: ResponseMessage.SUCCESS,
-              description: ResponseDescription.SUCCESS,
-              data: updated,
-            };
-            res.status(ResponseCode.SUCCESS).json(response);
-          }
-        );
-      } else {
-        cloudinary.uploader.upload(
-          cover[0].path,
-          {
-            folder: "cover",
-            use_filename: true,
-            unique_filename: false,
-          },
-          async (error: any, result: any) => {
-            if (error) {
-              console.log(error, "error");
-            }
-            console.log(result, "result");
-            user.coverImage = result.secure_url;
-            const updated = await userManager.updateById(userId, user);
-            const response: IResponseHandler = {
-              status: ResponseStatus.SUCCESS,
-              message: ResponseMessage.SUCCESS,
-              description: ResponseDescription.SUCCESS,
-              data: updated,
-            };
-            res.status(ResponseCode.SUCCESS).json(response);
-          }
-        );
+      const profileImage = req.files.profileImage?.[0];
+      const coverImage = req.files.coverImage?.[0];
+
+      if (profileImage) {
+        const profileResult: any = await uploadToCloudinary(profileImage.buffer, "profile");
+        user.profileImage = profileResult.secure_url;
       }
+      if (coverImage) {
+        const coverResult: any = await uploadToCloudinary(coverImage.buffer, "cover");
+        user.coverImage = coverResult.secure_url;
+      }
+
+      const updated = await userManager.updateById(userId, user);
+      const response: IResponseHandler = {
+        status: ResponseStatus.SUCCESS,
+        message: ResponseMessage.SUCCESS,
+        description: ResponseDescription.SUCCESS,
+        data: updated,
+      };
+      res.status(ResponseCode.SUCCESS).json(response);
+
     } catch (error) {
-      res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(error);
+      console.error("Error in uploadImage function:", error);
+      return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json({
+        status: ResponseStatus.INTERNAL_SERVER_ERROR,
+        message: ResponseMessage.FAILED,
+        description: ResponseDescription.INTERNAL_SERVER_ERROR,
+        data: null,
+      });
     }
   }
 

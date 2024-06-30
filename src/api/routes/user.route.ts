@@ -1,17 +1,11 @@
 import { Router } from "express";
+import multer from "multer";
 import { authMiddleware } from "../../middlewares/auth.middleware";
 import userController from "../controllers/user.controller";
+
 const router = Router();
-const multer = require("multer");
 
-const storage = multer.diskStorage({
-  filename: (req: any, file: any, cb: any) => {
-    console.log(file, "file");
-
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, file.fieldname + "-" + uniqueSuffix + file.originalname);
-  },
-});
+const storage = multer.memoryStorage();
 
 const fileFilter = (req: any, file: any, cb: any) => {
   // Filtering based on file extension
@@ -35,7 +29,7 @@ const upload = multer({
   storage: storage,
   fileFilter: fileFilter,
   limits: {
-    fileSize: 1024 * 1024 * 50, // 5 MB file size limit
+    fileSize: 1024 * 1024 * 50, // 50 MB file size limit
   },
 }).fields([
   { name: "profileImage", maxCount: 1 },

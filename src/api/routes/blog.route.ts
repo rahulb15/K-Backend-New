@@ -1,31 +1,23 @@
 import { Router } from "express";
+import fs from "fs";
+import multer from "multer";
+import path from "path";
+import { v4 as uuidv4 } from "uuid";
 import { adminMiddleware } from "../../middlewares/admin.auth.middleware";
 import { authMiddleware } from "../../middlewares/auth.middleware";
 import blogController from "../controllers/blog.controller";
 
-const multer = require("multer");
 
-const storage = multer.diskStorage({
-  filename: (req: any, file: any, cb: any) => {
-    console.log(file, "file");
-
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, file.fieldname + "-" + uniqueSuffix + file.originalname);
-  },
-});
+const storage = multer.memoryStorage();
 
 const fileFilter = (req: any, file: any, cb: any) => {
-  // Filtering based on file extension
-  if (
-    file.mimetype === "image/jpeg" ||
-    file.mimetype === "image/png" ||
-    file.mimetype === "image/gif"
-  ) {
+  const allowedMimes: string[] = ["image/jpeg", "image/png", "image/gif"];
+  if (allowedMimes.includes(file.mimetype)) {
     cb(null, true);
   } else {
     cb(
       new Error(
-        "Invalid file type, only JPEG, PNG, and GIF files are allowed!"
+        "Invalid file type. Only JPEG, PNG, and GIF files are allowed."
       ),
       false
     );
@@ -36,13 +28,24 @@ const upload = multer({
   storage: storage,
   fileFilter: fileFilter,
   limits: {
-    fileSize: 1024 * 1024 * 50, // 5 MB file size limit
+    fileSize: 5 * 1024 * 1024, // 5 MB file size limit
   },
-}).fields([{ name: "thumbnail", maxCount: 1 }]);
+});
 
-const router = Router();
+const router: Router = Router();
 
-router.post("/", adminMiddleware, upload, blogController.create);
+router.post("/", adminMiddleware, (req, res, next) => {
+  upload.fields([{ name: "thumbnail", maxCount: 1 }])(req, res, (err: any) => {
+    if (err instanceof multer.MulterError) {
+      return res.status(400).json({ error: err.message });
+    } else if (err) {
+      return res.status(500).json({ error: 'An unknown error occurred during file upload.' });
+    }
+    // If you need to access the file, it's now available in req.files
+    // For example: const thumbnailFile = req.files['thumbnail'][0];
+    next();
+  });
+}, blogController.create);
 router.get("/getAll/:source", authMiddleware, blogController.getAll);
 router.get("/:slug", blogController.getBySlug);
 

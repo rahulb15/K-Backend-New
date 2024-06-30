@@ -17,9 +17,9 @@ describe("GET /api/v1/user/:id", () => {
 describe("POST /api/v1/user", () => {
   it("should return 201 Created", () => {
     const data = {
-      username: "test",
-      password: "test",
-      email: "test@gmail.com",
+      username: process.env.TEST_USERNAME,
+      password: process.env.TEST_PASSWORD,
+      email: process.env.TEST_EMAIL,
     };
     return request(app).post("/api/v1/user").send(data).expect(201);
   });
@@ -28,9 +28,9 @@ describe("POST /api/v1/user", () => {
 describe("PUT /api/v1/user/:id", () => {
   it("should return 200 OK", () => {
     const data = {
-      username: "test",
-      password: "test",
-      email: "test@gmail.com",
+      username: process.env.TEST_USERNAME,
+      password: process.env.TEST_PASSWORD,
+      email: process.env.TEST_EMAIL,
     };
     return request(app).put("/api/v1/user/1").send(data).expect(200);
   });

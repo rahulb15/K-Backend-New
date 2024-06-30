@@ -61,39 +61,61 @@ export class CartController {
         source: user?.role === "superadmin" ? "kryptomerch" : "creator",
         user: req.user._id,
       };
-      const thumbnail = req.files.thumbnail;
+      
+      const thumbnail = req.files?.thumbnail?.[0];
       if (thumbnail) {
-        cloudinary.uploader.upload(
-          thumbnail[0].path,
-          {
-            folder: "thumbnail",
-            use_filename: true,
-            unique_filename: false,
-          },
-          async (error: any, result: any) => {
-            if (error) {
-              console.log(error, "error");
-            }
-            console.log(result, "result");
-            blog.thumbnail = result.secure_url;
-            const created = await blogManager.create(blog);
+        // Create a Promise to handle the Cloudinary upload
+        const uploadToCloudinary = () => {
+          return new Promise((resolve, reject) => {
+            const stream = cloudinary.uploader.upload_stream(
+              {
+                folder: "thumbnail",
+                use_filename: true,
+                unique_filename: false,
+              },
+              (error: any, result: any) => {
+                if (error) {
+                  console.log(error, "error");
+                  reject(error);
+                } else {
+                  console.log(result, "result");
+                  resolve(result);
+                }
+              }
+            );
 
-            //update url in blog
-            await blogManager.updateById(created._id as string, {
-              url: `${process.env.BASE_URL}/blog/${created.slug}`,
-            });
+            // Write the buffer to the stream
+            stream.write(thumbnail.buffer);
+            stream.end();
+          });
+        };
 
-            const response: IResponseHandler = {
-              status: ResponseStatus.SUCCESS,
-              message: ResponseMessage.CREATED,
-              description: ResponseDescription.CREATED,
-              data: created,
-            };
-            res.status(ResponseCode.CREATED).json(response);
-          }
-        );
+        try {
+          const result: any = await uploadToCloudinary();
+          blog.thumbnail = result.secure_url;
+          const created = await blogManager.create(blog);
+
+          //update url in blog
+          await blogManager.updateById(created._id as string, {
+            url: `${process.env.BASE_URL}/blog/${created.slug}`,
+          });
+
+          const response: IResponseHandler = {
+            status: ResponseStatus.SUCCESS,
+            message: ResponseMessage.CREATED,
+            description: ResponseDescription.CREATED,
+            data: created,
+          };
+          res.status(ResponseCode.CREATED).json(response);
+        } catch (cloudinaryError) {
+          console.error("Cloudinary upload error:", cloudinaryError);
+          throw cloudinaryError;  // This will be caught by the outer catch block
+        }
+      } else {
+        throw new Error("No thumbnail file provided");
       }
     } catch (error) {
+      console.error("Error in create function:", error);
       return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json({
         status: ResponseStatus.INTERNAL_SERVER_ERROR,
         message: ResponseMessage.FAILED,

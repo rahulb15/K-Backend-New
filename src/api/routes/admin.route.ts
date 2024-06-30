@@ -1,17 +1,11 @@
 import { Router } from "express";
+import multer from "multer";
 import { adminMiddleware } from "../../middlewares/admin.auth.middleware";
 import userController from "../controllers/admin.controller";
+
 const router = Router();
-const multer = require("multer");
 
-const storage = multer.diskStorage({
-  filename: (req: any, file: any, cb: any) => {
-    console.log(file, "file");
-
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, file.fieldname + "-" + uniqueSuffix + file.originalname);
-  },
-});
+const storage = multer.memoryStorage();
 
 const fileFilter = (req: any, file: any, cb: any) => {
   // Filtering based on file extension
@@ -35,12 +29,62 @@ const upload = multer({
   storage: storage,
   fileFilter: fileFilter,
   limits: {
-    fileSize: 1024 * 1024 * 50, // 5 MB file size limit
+    fileSize: 1024 * 1024 * 50, // 50 MB file size limit
   },
 }).fields([
   { name: "profileImage", maxCount: 1 },
   { name: "coverImage", maxCount: 1 },
 ]);
+
+
+
+
+
+
+
+
+
+// const router = Router();
+// const multer = require("multer");
+// const { v4: uuidv4 } = require('uuid');
+
+// const storage = multer.diskStorage({
+//   filename: (req: any, file: any, cb: any) => {
+//     console.log(file, "file");
+
+//     const uniqueSuffix = uuidv4();
+//     cb(null, file.fieldname + "-" + uniqueSuffix + file.originalname);
+//   },
+// });
+
+// const fileFilter = (req: any, file: any, cb: any) => {
+//   // Filtering based on file extension
+//   if (
+//     file.mimetype === "image/jpeg" ||
+//     file.mimetype === "image/png" ||
+//     file.mimetype === "image/gif"
+//   ) {
+//     cb(null, true);
+//   } else {
+//     cb(
+//       new Error(
+//         "Invalid file type, only JPEG, PNG, and GIF files are allowed!"
+//       ),
+//       false
+//     );
+//   }
+// };
+
+// const upload = multer({
+//   storage: storage,
+//   fileFilter: fileFilter,
+//   limits: {
+//     fileSize: 1024 * 1024 * 50, // 5 MB file size limit
+//   },
+// }).fields([
+//   { name: "profileImage", maxCount: 1 },
+//   { name: "coverImage", maxCount: 1 },
+// ]);
 
 /**
  * @swagger
@@ -258,6 +302,7 @@ router.post(
   upload,
   userController.uploadImage
 );
+
 
 // checkToken
 router.post("/me", userController.checkToken);
