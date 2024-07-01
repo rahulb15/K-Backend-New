@@ -16,7 +16,7 @@ export const adminMiddleware = async (
 ) => {
   try {
     const token = req.headers.authorization?.split(" ")[1];
-    console.log(token);
+    console.log(token,"ttttttttttttt");
     if (!token) {
       const response: IResponseHandler = {
         status: ResponseStatus.FAILED,
@@ -26,7 +26,9 @@ export const adminMiddleware = async (
       };
       return res.status(ResponseCode.UNAUTHORIZED).json(response);
     }
+    console.log("JWT VERIFYING... ");
     const decoded: any = await jwtVerify(token, true);
+    console.log("DECODED: ", decoded);
     //check if user exists in db
     const user = await userManager.getById(decoded.id);
     if (!user) {

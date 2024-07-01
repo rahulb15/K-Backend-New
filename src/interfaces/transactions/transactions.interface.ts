@@ -9,7 +9,7 @@ export interface ITransaction {
   paymentMethod?: string;
   paymentDescription?: string;
   paymentUserRole?: string;
-  order_id?: string;
+  order_id?: any;
   order_type?: string;
   refund_amount?: string;
   isRefunded?: boolean;

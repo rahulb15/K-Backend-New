@@ -1,5 +1,3 @@
-import transactionsManager from "../../services/transactions.manager";
-import { ITransaction } from "../../interfaces/transactions/transactions.interface";
 import { Request, Response } from "express";
 import {
   ResponseCode,
@@ -7,12 +5,93 @@ import {
   ResponseMessage,
   ResponseStatus,
 } from "../../enum/response-message.enum";
-import { transactionResponseData } from "../../utils/userResponse/transaction-response.utils";
-import { IResponseHandler } from "../../interfaces/response-handler.interface";
-const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
-import LaunchCollection from "../../models/launch-collection.model";
 import { ILaunchCollection } from "../../interfaces/launch-collection/launch-collection.interface";
+import { IResponseHandler } from "../../interfaces/response-handler.interface";
+import { ITransaction } from "../../interfaces/transactions/transactions.interface";
+import LaunchCollection from "../../models/launch-collection.model";
 import { LaunchCollectionManager } from "../../services/launch-collection.manager";
+import transactionsManager from "../../services/transactions.manager";
+import depositManager from "../../services/deposit.manager";
+import { transactionResponseData } from "../../utils/userResponse/transaction-response.utils";
+import { IDeposit } from "../../interfaces/deposit/deposit.interface";
+import { IDepositManager } from "../../interfaces/deposit/deposit.manager.interface";
+import Deposit from "../../models/deposit.model";
+import { v4 as uuidv4 } from "uuid";
+
+// import mongoose from "mongoose";
+// import { IDeposit } from "../interfaces/deposit/deposit.interface";
+
+// const depositSchema = new mongoose.Schema(
+//   {
+//     user: {
+//       type: mongoose.Schema.Types.ObjectId,
+//       ref: "User",
+//       required: true,
+//       index: true,
+//     },
+//     transactionId: {
+//       type: mongoose.Schema.Types.ObjectId,
+//       ref: "Transaction",
+//       required: true,
+//       index: true,
+//     },
+//     amount: {
+//       type: Number,
+//       required: true,
+//       min: [0, "Amount must be positive"],
+//     },
+//     cryptoCurrency: {
+//       type: String,
+//       enum: ["KDA", "BTC", "ETH", "LTC", "USDT"], // Example list, add more as needed
+//       default: "KDA",
+//       required: true,
+//     },
+//     status: {
+//       type: String,
+//       enum: ["pending", "confirmed", "failed"],
+//       default: "pending",
+//       required: true,
+//     },
+//     address: {
+//       type: String,
+//       required: true,
+//       validate: {
+//         validator: function (v: string) {
+//           return /^[A-Za-z0-9]{26,35}$/.test(v); // Basic validation, modify as per requirements
+//         },
+//         message: (props: any) => `${props.value} is not a valid address!`,
+//       },
+//     },
+//     txHash: {
+//       type: String,
+//       required: true,
+//       unique: true,
+//     },
+//     priorityFee: {
+//       type: Number,
+//       required: true,
+//       min: [0, "Priority fee must be positive"],
+//     },
+//     percentage: {
+//       type: Number,
+//       required: true,
+//       min: [0, "Percentage must be positive"],
+//       default: 3.5,
+//     },
+//     totalAmount: {
+//       type: Number,
+//       required: true,
+//       min: [0, "Total amount must be positive"],
+//     },
+//   },
+//   { timestamps: true }
+// );
+
+// const Deposit = mongoose.model<IDeposit>("Deposit", depositSchema);
+
+// export default Deposit;
+
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 export class TransactionsController {
   private static instance: TransactionsController;
@@ -160,7 +239,7 @@ export class TransactionsController {
                 product_data: {
                   name: req.body.collectionName,
                 },
-                unit_amount: 100,
+                unit_amount: 100 * 100,
               },
               quantity: 1,
             },
@@ -218,9 +297,126 @@ export class TransactionsController {
         //   data: transactionResponseData(newTransaction),
         // };
         // return res.status(ResponseCode.CREATED).json(responseData);
+      } else if (req.body.type === "deposit") {
+        console.log("Deposit");
+        const userId = req.user._id;
+        console.log(req.body.amount, "req.body.amount");
+        console.log(req.body.type, "req.body.type");
+        console.log(userId, "userId");
+
+        // depositSchema.pre('save', function (next) {
+        //   if (this.isModified('amount') || this.isModified('priorityFee') || this.isModified('percentage')) {
+        //     this.totalAmount = this.amount + this.priorityFee + (this.amount * (this.percentage / 100));
+        //   }
+        //   next();
+        // });
+
+        const amount = parseFloat(req.body.amount);
+        console.log(amount, "amount");
+        console.log(req.body.priorityFee, "req.body.priorityFee");
+        const totalAmount =
+          amount + req.body.priorityFee + amount * (3.5 / 100);
+        console.log(totalAmount, "totalAmount");
+
+        const session = await stripe.checkout.sessions.create({
+          payment_method_types: ["card", "alipay", "amazon_pay"],
+          line_items: [
+            {
+              price_data: {
+                currency: "usd",
+                product_data: {
+                  name: "Deposit",
+                },
+                unit_amount: totalAmount * 100,
+              },
+              quantity: 1,
+            },
+          ],
+          mode: "payment",
+          success_url: `${process.env.CLIENT_URL}/deposit?session_id={CHECKOUT_SESSION_ID}&status=success`,
+          cancel_url: `${process.env.CLIENT_URL}/deposit?session_id={CHECKOUT_SESSION_ID}&status=cancel`,
+        });
+
+        //create transaction
+        const transaction: ITransaction = {
+          user: userId,
+          paymentId: session.id,
+          paymentStatus: session.payment_status,
+          paymentAmount: session.amount_total,
+          paymentCurrency: session.currency,
+          paymentDate: new Date(session.created * 1000),
+          paymentMethod: session.payment_method_types[0],
+          paymentDescription: session.description,
+          paymentUserRole: req.user.role,
+          order_id: null,
+          order_type: req.body.type,
+        };
+        //save transaction
+        const newTransaction: ITransaction = await transactionsManager.create(
+          transaction
+        );
+
+        if (!newTransaction) {
+          const responseData: IResponseHandler = {
+            status: ResponseStatus.FAILED,
+            message: ResponseMessage.FAILED,
+            description: ResponseDescription.FAILED,
+            data: null,
+          };
+          return res
+            .status(ResponseCode.INTERNAL_SERVER_ERROR)
+            .json(responseData);
+        }
+
+        const deposit: IDeposit = {
+          user: userId,
+          transactionId: newTransaction._id as string,
+          amount: req.body.amount,
+          cryptoCurrency: req.body.cryptoCurrency,
+          status: "pending",
+          address: req.body.address,
+          txHash: uuidv4(),
+          priorityFee: req.body.priorityFee,
+          percentage: req.body.percentage,
+          totalAmount: newTransaction.paymentAmount,
+        };
+
+        //create deposit
+        const newDeposit: IDeposit = await Deposit.create(deposit);
+        console.log(newDeposit, "newDeposit");
+
+        if (!newDeposit) {
+          const responseData: IResponseHandler = {
+            status: ResponseStatus.FAILED,
+            message: ResponseMessage.FAILED,
+            description: ResponseDescription.FAILED,
+            data: null,
+          };
+          return res
+            .status(ResponseCode.INTERNAL_SERVER_ERROR)
+            .json(responseData);
+        }
+
+        return res.status(ResponseCode.CREATED).json({
+          status: ResponseStatus.SUCCESS,
+          message: ResponseMessage.CREATED,
+          description: ResponseDescription.CREATED,
+          data: session,
+        });
       } else {
+        console.log("Invalid type");
+        const responseData: IResponseHandler = {
+          status: ResponseStatus.FAILED,
+          message: ResponseMessage.FAILED,
+          description: ResponseDescription.FAILED,
+          data: null,
+        };
+        return res
+          .status(ResponseCode.INTERNAL_SERVER_ERROR)
+          .json(responseData);
       }
     } catch (error) {
+      console.log(error, "error");
       const responseData: IResponseHandler = {
         status: ResponseStatus.FAILED,
         message: ResponseMessage.FAILED,
@@ -337,6 +533,7 @@ export class TransactionsController {
       // }
 
       const userId = req.user._id;
+      console.log(userId, "userId");
 
       console.log(req.params.sessionId, "req.params.sessionId");
       const session = await stripe.checkout.sessions.retrieve(
@@ -385,6 +582,8 @@ export class TransactionsController {
             paymentMethod: session.payment_method_types[0],
             paymentDescription: session.description,
           });
+        console.log(updatedTransaction, "updatedTransaction");
+
         if (!updatedTransaction) {
           const responseData: IResponseHandler = {
             status: ResponseStatus.FAILED,
@@ -395,7 +594,7 @@ export class TransactionsController {
           return res.status(ResponseCode.SUCCESS).json(responseData);
         }
 
-        console.log(updatedTransaction["order_id"], "updatedTransaction");
+        // console.log(updatedTransaction["order_id"], "updatedTransaction");
 
         //      // update by id
         // public async updateById(
@@ -413,25 +612,26 @@ export class TransactionsController {
         //   return updatedCollection;
         // }
 
-        console.log(updatedTransaction[0]["order_id"], "updatedTransaction");
-        const updatedCollection: ILaunchCollection =
-          await LaunchCollectionManager.getInstance().updateById(
-            updatedTransaction[0]["order_id"],
-            {
-              isPaid: false,
-            }
-          );
-        console.log(updatedCollection, "updatedCollection");
-
-        if (!updatedCollection) {
-          const responseData: IResponseHandler = {
-            status: ResponseStatus.FAILED,
-            message: ResponseMessage.FAILED,
-            description: ResponseDescription.FAILED,
-            data: null,
-          };
-          return res.status(ResponseCode.SUCCESS).json(responseData);
+        if (updatedTransaction[0]["order_id"] !== null) {
+          const updatedCollection: ILaunchCollection =
+            await LaunchCollectionManager.getInstance().updateById(
+              updatedTransaction[0]["order_id"],
+              {
+                isPaid: false,
+              }
+            );
+          console.log(updatedCollection, "updatedCollection");
         }
+
+        // if (!updatedCollection) {
+        //   const responseData: IResponseHandler = {
+        //     status: ResponseStatus.FAILED,
+        //     message: ResponseMessage.FAILED,
+        //     description: ResponseDescription.FAILED,
+        //     data: null,
+        //   };
+        //   return res.status(ResponseCode.SUCCESS).json(responseData);
+        // }
 
         return res.status(ResponseCode.SUCCESS).json({
           status: ResponseStatus.SUCCESS,
@@ -449,6 +649,7 @@ export class TransactionsController {
       //   });
       // }
     } catch (error) {
+      console.log(error, "error");
       const responseData: IResponseHandler = {
         status: ResponseStatus.FAILED,
         message: ResponseMessage.FAILED,
@@ -472,6 +673,36 @@ export class TransactionsController {
       };
       return res.status(ResponseCode.SUCCESS).json(responseData);
     } catch (error) {
+      const responseData: IResponseHandler = {
+        status: ResponseStatus.FAILED,
+        message: ResponseMessage.FAILED,
+        description: ResponseDescription.FAILED,
+        data: null,
+      };
+      return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(responseData);
+    }
+  }
+  //getAll with pagination srarch and order_type deposit
+  public async getAllDeposit(req: Request, res: Response) {
+    try {
+      const limit = parseInt(req.body.limit as string);
+      const page = parseInt(req.body.page as string);
+      const search = req.body.search as string;
+      const deposits: IDeposit[] = await depositManager.getAllDeposit(
+        limit,
+        page,
+        search
+      );
+      const responseData: IResponseHandler = {
+        status: ResponseStatus.SUCCESS,
+        message: ResponseMessage.SUCCESS,
+        description: ResponseDescription.SUCCESS,
+        data: deposits,
+      };
+
+      return res.status(ResponseCode.SUCCESS).json(responseData);
+    } catch (error) {
+      console.log(error, "error");
       const responseData: IResponseHandler = {
         status: ResponseStatus.FAILED,
         message: ResponseMessage.FAILED,
