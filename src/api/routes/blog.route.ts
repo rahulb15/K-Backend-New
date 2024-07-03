@@ -46,8 +46,32 @@ router.post("/", adminMiddleware, (req, res, next) => {
     next();
   });
 }, blogController.create);
+// editBlog
+router.put("/:id", adminMiddleware, (req, res, next) => {
+  upload.fields([{ name: "thumbnail", maxCount: 1 }])(req, res, (err: any) => {
+    if (err instanceof multer.MulterError) {
+      return res.status(400).json({ error: err.message });
+    } else if (err) {
+      return res.status(500).json({ error: 'An unknown error occurred during file upload.' });
+    }
+    // If you need to access the file, it's now available in req.files
+    // For example: const thumbnailFile = req.files['thumbnail'][0];
+    next();
+  });
+}, blogController.updateById);
+
+// deleteBlog
+router.delete("/:id", adminMiddleware, blogController.deleteById);
+
+
 router.get("/getAll/:source", authMiddleware, blogController.getAll);
 router.get("/:slug", blogController.getBySlug);
+
+// getBlogList
+router.post("/getBlogList",adminMiddleware, blogController.getBlogList);
+
+
+
 
 // router.get("/:id", authMiddleware, blogController.getById);
 

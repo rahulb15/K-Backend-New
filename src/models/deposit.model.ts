@@ -67,12 +67,12 @@ const depositSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-depositSchema.pre('save', function (next) {
-  if (this.isModified('amount') || this.isModified('priorityFee') || this.isModified('percentage')) {
-    this.totalAmount = this.amount + this.priorityFee + (this.amount * (this.percentage / 100));
-  }
-  next();
-});
+// depositSchema.pre('save', function (next) {
+//   if (this.isModified('amount') || this.isModified('priorityFee') || this.isModified('percentage')) {
+//     this.totalAmount = this.amount + this.priorityFee + (this.amount * (this.percentage / 100));
+//   }
+//   next();
+// });
 
 const Deposit = mongoose.model<IDeposit>("Deposit", depositSchema);
 

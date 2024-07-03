@@ -37,6 +37,9 @@ export class TransactionManager implements ITransactionManager {
     id: string,
     transaction: ITransaction
   ): Promise<ITransaction> {
+    console.log("update");
+    console.log("transaction", transaction);
+    console.log("id", id);
     const updatedTransaction = await Transaction.findByIdAndUpdate(
       id,
       transaction,
@@ -149,6 +152,76 @@ export class TransactionManager implements ITransactionManager {
       throw new Error("Transaction not found");
     }
     return transaction;
+  }
+
+  // getAllTransactions page limit search
+  public async getAllTransactions(
+    limit: number,
+    page: number,
+    search: string
+  ): Promise<ITransaction[]> {
+
+    console.log("search", search);
+    console.log("limit", limit);
+    console.log("page", page);
+
+    limit = Math.max(1, limit);
+    page = Math.max(1, page);
+    console.log("search", search);
+    console.log("limit", limit);
+    console.log("page", page);
+    const transactions = await Transaction.aggregate([
+      {
+        $match: {
+          $or: [
+            { paymentId: { $regex: search, $options: "i" } },
+            { paymentStatus: { $regex: search, $options: "i" } },
+            { paymentAmount: { $regex: search, $options: "i" } },
+            { paymentCurrency: { $regex: search, $options: "i" } },
+            { paymentDate: { $regex: search, $options: "i" } },
+            { paymentMethod: { $regex: search, $options: "i" } },
+            { paymentDescription: { $regex: search, $options: "i" } },
+            { paymentUserRole: { $regex: search, $options: "i" } },
+            { order_id: { $regex: search, $options: "i" } },
+            { order_type: { $regex: search, $options: "i" } },
+            { refund_amount: { $regex: search, $options: "i" } },
+            { isRefunded: { $regex: search, $options: "i" } },
+          ],
+        },
+      },
+      {
+        $facet: {
+          transactions: [
+            { $skip: (page - 1) * limit },
+            { $limit: limit },
+            {
+              $project: {
+                user: 1,
+                paymentId: 1,
+                paymentStatus: 1,
+                paymentAmount: 1,
+                paymentCurrency: 1,
+                paymentDate: 1,
+                paymentMethod: 1,
+                paymentDescription: 1,
+                paymentUserRole: 1,
+                order_id: 1,
+                order_type: 1,
+                refund_amount: 1,
+                isRefunded: 1,
+                createdAt: 1,
+                updatedAt: 1,
+              },
+            },
+          ],
+          total: [
+            { $count: "total" }
+          ],
+        },
+      },
+    ]);
+
+    return transactions;
   }
 }
 

@@ -15,6 +15,11 @@ router.get(
 );
 
 router.post("/getAll", adminMiddleware, transactionsController.getAllDeposit);
+router.get("/getPaymentDetail/:id", adminMiddleware, transactionsController.getById);
+
+// getAllTransactions
+router.post("/getAllTransactions", adminMiddleware, transactionsController.getAllTransactions);
+
 router.get(
   "/getById/:id",
   adminMiddleware,

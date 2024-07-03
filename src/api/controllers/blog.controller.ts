@@ -61,7 +61,7 @@ export class CartController {
         source: user?.role === "superadmin" ? "kryptomerch" : "creator",
         user: req.user._id,
       };
-      
+
       const thumbnail = req.files?.thumbnail?.[0];
       if (thumbnail) {
         // Create a Promise to handle the Cloudinary upload
@@ -109,7 +109,7 @@ export class CartController {
           res.status(ResponseCode.CREATED).json(response);
         } catch (cloudinaryError) {
           console.error("Cloudinary upload error:", cloudinaryError);
-          throw cloudinaryError;  // This will be caught by the outer catch block
+          throw cloudinaryError; // This will be caught by the outer catch block
         }
       } else {
         throw new Error("No thumbnail file provided");
@@ -124,6 +124,168 @@ export class CartController {
       });
     }
   }
+
+  // updateById
+  public async updateById(req: any, res: Response): Promise<any> {
+    try {
+      const userId = req.user._id;
+      const user: IUser = await userManager.getById(userId);
+      if (!user) {
+        const response: IResponseHandler = {
+          status: ResponseStatus.FAILED,
+          message: ResponseMessage.USER_NOT_FOUND,
+          description: ResponseDescription.USER_NOT_FOUND,
+          data: null,
+        };
+
+        return res.status(ResponseCode.NOT_FOUND).json(response);
+      }
+
+      const blogId = req.params.id;
+      const blog: IBlog = await blogManager.getById(blogId);
+      if (!blog) {
+        const response: IResponseHandler = {
+          status: ResponseStatus.NOT_FOUND,
+          message: ResponseMessage.NOT_FOUND,
+          description: ResponseDescription.NOT_FOUND,
+          data: null,
+        };
+
+        return res.status(ResponseCode.NOT_FOUND).json(response);
+      }
+
+      //formdata value
+      const { title, description, content, category, slug } = req.body;
+      const newCategory = {
+        title: category,
+        slug: slug,
+      };
+      const updatedBlog: IBlog = {
+        title,
+        slug: slug ? slug : title.toLowerCase().replace(/ /g, "-"),
+        date: new Date(),
+        category: newCategory,
+        description,
+        content,
+        source: user?.role === "superadmin" ? "kryptomerch" : "creator",
+        user: req.user._id,
+      };
+
+      const thumbnail = req.files?.thumbnail?.[0];
+      if (thumbnail) {
+        // Create a Promise to handle the Cloudinary upload
+        const uploadToCloudinary = () => {
+          return new Promise((resolve, reject) => {
+            const stream = cloudinary.uploader.upload_stream(
+              {
+                folder: "thumbnail",
+                use_filename: true,
+                unique_filename: false,
+              },
+              (error: any, result: any) => {
+                if (error) {
+                  console.log(error, "error");
+                  reject(error);
+                } else {
+                  console.log(result, "result");
+                  resolve(result);
+                }
+              }
+            );
+
+            // Write the buffer to the stream
+            stream.write(thumbnail.buffer);
+            stream.end();
+          });
+        };
+
+        try {
+          const result: any = await uploadToCloudinary();
+          updatedBlog.thumbnail = result.secure_url;
+          const updated = await blogManager.updateById(blogId, updatedBlog);
+
+          //update url in blog
+          await blogManager.updateById(updated._id as string, {
+            url: `${process.env.BASE_URL}/blog/${updated.slug}`,
+          });
+
+          const response: IResponseHandler = {
+            status: ResponseStatus.SUCCESS,
+            message: ResponseMessage.UPDATED,
+            description: ResponseDescription.UPDATED,
+            data: updated,
+          };
+
+          return res.status(ResponseCode.SUCCESS).json(response);
+        } catch (cloudinaryError) {
+          console.error("Cloudinary upload error:", cloudinaryError);
+          throw cloudinaryError; // This will be caught by the outer catch block
+        }
+      }
+
+      const updated = await blogManager.updateById(blogId, updatedBlog);
+      //update url in blog
+      await blogManager.updateById(updated._id as string, {
+        url: `${process.env.BASE_URL}/blog/${updated.slug}`,
+      });
+
+      const response: IResponseHandler = {
+        status: ResponseStatus.SUCCESS,
+        message: ResponseMessage.UPDATED,
+        description: ResponseDescription.UPDATED,
+        data: updated,
+      };
+
+      return res.status(ResponseCode.SUCCESS).json(response);
+    } catch (error) {
+      console.error("Error in updateById function:", error);
+      return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json({
+        status: ResponseStatus.INTERNAL_SERVER_ERROR,
+        message: ResponseMessage.FAILED,
+        description: ResponseDescription.INTERNAL_SERVER_ERROR,
+        data: null,
+      });
+    }
+  }
+
+  // deleteBlog
+  public async deleteById(req: Request, res: Response): Promise<any> {
+    try {
+      const blogId = req.params.id;
+      const blog: IBlog = await blogManager.getById(blogId);
+      if (!blog) {
+        const response: IResponseHandler = {
+          status: ResponseStatus.NOT_FOUND,
+          message: ResponseMessage.NOT_FOUND,
+          description: ResponseDescription.NOT_FOUND,
+          data: null,
+        };
+
+        return res.status(ResponseCode.NOT_FOUND).json(response);
+      }
+
+      await blogManager.deleteById(blogId);
+
+      const response: IResponseHandler = {
+        status: ResponseStatus.SUCCESS,
+        message: ResponseMessage.DELETED,
+        description: ResponseDescription.DELETED,
+        data: null,
+      };
+
+      return res.status(ResponseCode.SUCCESS).json(response);
+    } catch (error) {
+      console.error("Error in deleteById function:", error);
+      return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json({
+        status: ResponseStatus.INTERNAL_SERVER_ERROR,
+        message: ResponseMessage.FAILED,
+        description: ResponseDescription.INTERNAL_SERVER_ERROR,
+        data: null,
+      });
+    }
+  }
+  
+
 
   public async getAll(req: Request, res: Response) {
     try {
@@ -190,6 +352,35 @@ export class CartController {
         data: blogResponseData(blog),
       };
 
+      res.status(ResponseCode.SUCCESS).json(response);
+    } catch (error) {
+      return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json({
+        status: ResponseStatus.INTERNAL_SERVER_ERROR,
+        message: ResponseMessage.FAILED,
+        description: ResponseDescription.INTERNAL_SERVER_ERROR,
+        data: null,
+      });
+    }
+  }
+
+  // getBlogList
+  public async getBlogList(req: Request, res: Response) {
+    try {
+      const { limit, page, search } = req.body;
+      console.log("limit", limit);
+      console.log("page", page);
+      console.log("search", search);
+      const blogs: IBlog[] = await blogManager.getBlogList(
+        parseInt(limit),
+        parseInt(page),
+        search
+      );
+      const response: IResponseHandler = {
+        status: ResponseStatus.SUCCESS,
+        message: ResponseMessage.SUCCESS,
+        description: ResponseDescription.SUCCESS,
+        data: blogs.map((blog) => blogResponseData(blog)),
+      };
       res.status(ResponseCode.SUCCESS).json(response);
     } catch (error) {
       return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json({

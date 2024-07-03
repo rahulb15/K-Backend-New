@@ -59,6 +59,55 @@ export class DepositManager implements IDepositManager {
           ],
         },
       },
+      //lookup to get the user details
+      {
+        $lookup: {
+          from: "users",
+          localField: "user",
+          foreignField: "_id",
+          as: "user",
+        },
+      },
+      {
+        $unwind: "$user",
+      },
+      {
+        $lookup: {
+          from: "transactions",
+          localField: "transactionId",
+          foreignField: "_id",
+          as: "transaction",
+        },
+      },
+      {
+        $unwind: "$transaction",
+      },
+
+
+
+      {
+        $project: {
+          user: {
+            _id: 1,
+            name: 1,
+            email: 1,
+          },
+          transaction:
+          {
+            _id: 1,
+            paymentStatus: 1,
+          },
+          address: 1,
+          amount: 1,
+          cryptoCurrency: 1,
+          status: 1,
+          createdAt: 1,
+          txHash: 1,
+          priorityFee : 1,
+          percentage : 1,
+          totalAmount : 1,
+        },
+      },
       {
         $facet: {
           deposits: [

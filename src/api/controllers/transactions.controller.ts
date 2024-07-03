@@ -314,8 +314,7 @@ export class TransactionsController {
         const amount = parseFloat(req.body.amount);
         console.log(amount, "amount");
         console.log(req.body.priorityFee, "req.body.priorityFee");
-        const totalAmount =
-          amount + req.body.priorityFee + amount * (3.5 / 100);
+        const totalAmount = amount + req.body.priorityFee;
         console.log(totalAmount, "totalAmount");
 
         const session = await stripe.checkout.sessions.create({
@@ -327,7 +326,7 @@ export class TransactionsController {
                 product_data: {
                   name: "Deposit",
                 },
-                unit_amount: totalAmount * 100,
+                unit_amount: totalAmount.toFixed(2) * 100,
               },
               quantity: 1,
             },
@@ -342,7 +341,7 @@ export class TransactionsController {
           user: userId,
           paymentId: session.id,
           paymentStatus: session.payment_status,
-          paymentAmount: session.amount_total,
+          paymentAmount: session.amount_total / 100,
           paymentCurrency: session.currency,
           paymentDate: new Date(session.created * 1000),
           paymentMethod: session.payment_method_types[0],
@@ -378,7 +377,7 @@ export class TransactionsController {
           txHash: uuidv4(),
           priorityFee: req.body.priorityFee,
           percentage: req.body.percentage,
-          totalAmount: newTransaction.paymentAmount,
+          totalAmount: newTransaction.paymentAmount as number,
         };
 
         //create deposit
@@ -396,6 +395,13 @@ export class TransactionsController {
             .status(ResponseCode.INTERNAL_SERVER_ERROR)
             .json(responseData);
         }
+
+        // update order_id in transaction
+        const updatedTransaction: ITransaction =
+          await transactionsManager.update(newTransaction._id as string, {
+            order_id: newDeposit._id as string,
+          });
+        console.log(updatedTransaction, "updatedTransaction");
 
         return res.status(ResponseCode.CREATED).json({
           status: ResponseStatus.SUCCESS,
@@ -547,7 +553,7 @@ export class TransactionsController {
           await transactionsManager.updateByPaymentId(session.id, {
             user: userId,
             paymentStatus: session.payment_status,
-            paymentAmount: session.amount_total,
+            paymentAmount: session.amount_total / 100,
             paymentCurrency: session.currency,
             paymentDate: new Date(session.created * 1000),
             paymentMethod: session.payment_method_types[0],
@@ -787,6 +793,35 @@ export class TransactionsController {
         data: null,
       };
       return res.status(ResponseCode.NOT_FOUND).json(responseData);
+    }
+  }
+
+  // getAllTransactions
+  public async getAllTransactions(req: Request, res: Response) {
+    try {
+      const page = parseInt(req.body.page as string);
+      const limit = parseInt(req.body.limit as string);
+      const search = req.body.search as string;
+
+      const transactions: ITransaction[] =
+        await transactionsManager.getAllTransactions( limit,page, search);
+      const responseData: IResponseHandler = {
+        status: ResponseStatus.SUCCESS,
+        message: ResponseMessage.SUCCESS,
+        description: ResponseDescription.SUCCESS,
+        data: transactions,
+      };
+
+      return res.status(ResponseCode.SUCCESS).json(responseData);
+    } catch (error) {
+      console.log(error, "error");
+      const responseData: IResponseHandler = {
+        status: ResponseStatus.FAILED,
+        message: ResponseMessage.FAILED,
+        description: ResponseDescription.FAILED,
+        data: null,
+      };
+      return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(responseData);
     }
   }
 }

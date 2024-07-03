@@ -1,11 +1,11 @@
 export interface ITransaction {
   _id?: string;
-  user: string;
+  user?: string;
   paymentId?: string;
-  paymentStatus: string;
-  paymentAmount: number;
-  paymentCurrency: string;
-  paymentDate: Date;
+  paymentStatus?: string;
+  paymentAmount?: number;
+  paymentCurrency?: string;
+  paymentDate?: Date;
   paymentMethod?: string;
   paymentDescription?: string;
   paymentUserRole?: string;

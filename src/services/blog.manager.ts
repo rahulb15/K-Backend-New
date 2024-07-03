@@ -54,6 +54,62 @@ export class BlogManager implements IBlogManager {
     console.log("source", source);
     return await Blog.find({ source: source }).exec();
   }
+
+  // getBlogList page limit search
+  public async getBlogList(
+    limit: number,
+    page: number,
+    search: string
+  ): Promise<IBlog[]> {
+    const blogs = await Blog.aggregate([
+      {
+        $match: {
+          $or: [
+            { title: { $regex: search, $options: "i" } },
+            { description: { $regex: search, $options: "i" } },
+            { source: { $regex: search, $options: "i" } },
+          ],
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "user",
+          foreignField: "_id",
+          as: "user",
+        },
+      },
+      { $unwind: "$user" },
+      {
+        $project: {
+          title: 1,
+          description: 1,
+          source: 1,
+          slug: 1,
+          thumbnail: 1,
+          createdAt: 1,
+          category: 1,
+          url: 1,
+          content: 1,
+          date: 1,
+          user: {
+            _id: 1,
+            name: 1,
+          },
+        },
+      },
+      { $sort: { createdAt: -1 } },
+      { $skip: (page - 1) * limit },
+      { $limit: limit },
+    ]);
+
+    return blogs;
+  }
+
+  //deleteById
+  public async deleteById(id: string): Promise<IBlog> {
+    return (await Blog.findByIdAndDelete(id)) as IBlog;
+  }
 }
 
 export default BlogManager.getInstance();
