@@ -19,20 +19,37 @@ if (!dbUrl) {
   throw new Error("DB_URL environment variable is not set.");
 }
 
+// const connectToDatabase = async (): Promise<void> => {
+//   try {
+//     await mongoose.connect(
+//       dbUrl() as string,
+//       {
+//         useNewUrlParser: true,
+//         useUnifiedTopology: true,
+//       } as mongoose.ConnectOptions
+//     );
+//     console.log("Connected to MongoDB");
+//   } catch (error) {
+//     console.error("Failed to connect to MongoDB:", error);
+//     process.exit(1);
+//   }
+// };
+
 const connectToDatabase = async (): Promise<void> => {
+  const connectionString = dbUrl();
+  if (!connectionString) {
+    throw new Error("Database URL is not set.");
+  }
+
   try {
-    await mongoose.connect(
-      dbUrl() as string,
-      {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-      } as mongoose.ConnectOptions
-    );
+    await mongoose.connect(connectionString);
     console.log("Connected to MongoDB");
   } catch (error) {
     console.error("Failed to connect to MongoDB:", error);
     process.exit(1);
   }
 };
+
+
 
 export default connectToDatabase;

@@ -88,7 +88,7 @@ async function initSuperAdmin() {
         verified: true,
         walletName: "Ecko Wallet",
         walletAddress:
-          "k:772961927122fff2ed9f0106fc79c3fa07d2538f9b76cda66b132f59649716e4",
+          "k:e29791d246eaa1749b047836f8b23182ea0163efb257ca7e2fa0f07de827b0be",
       });
       await newSuperAdmin.save();
       console.log("Super admin user created successfully.");
@@ -113,7 +113,7 @@ async function initAdmin() {
         verified: true,
         walletName: "Ecko Wallet",
         walletAddress:
-          "k:772961927122fff2ed9f0106fc79c3fa07d2538f9b76cda66b132f59649716e4",
+          "k:a2ff4689f89f0f3bb6a32fa35b8547c0cb4070f6b4af76fb53892f44fe1f9069",
       });
       await newSuperAdmin.save();
       console.log("admin user created successfully.");

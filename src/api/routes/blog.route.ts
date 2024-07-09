@@ -64,7 +64,7 @@ router.put("/:id", adminMiddleware, (req, res, next) => {
 router.delete("/:id", adminMiddleware, blogController.deleteById);
 
 
-router.get("/getAll/:source", authMiddleware, blogController.getAll);
+router.get("/getAll/:source", blogController.getAll);
 router.get("/:slug", blogController.getBySlug);
 
 // getBlogList

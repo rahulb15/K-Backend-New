@@ -67,7 +67,7 @@ app.use(
 );
 app.use(cookieParser());
 app.use(express.json());
-app.use(session({ secret: "cats" }));
+// app.use(session({ secret: "cats" }));
 app.use(
   session({
     secret: "test123",

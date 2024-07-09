@@ -14,5 +14,6 @@
     "./*.js",
     "src/**/*.ts",
     "test/**/*.ts", "src/utils/auth", "src/config/sumsub.config.js",
+    "src/types/environment.d.ts"
   ],
 }
