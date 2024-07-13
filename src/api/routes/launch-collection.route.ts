@@ -2,6 +2,7 @@ import { Router } from "express";
 import { adminMiddleware } from "../../middlewares/admin.auth.middleware";
 import { authMiddleware } from "../../middlewares/auth.middleware";
 import launchCollectionController from "../controllers/launch-collection.controller";
+import upload from "../../middlewares/multer.middleware";
 
 const router = Router();
 
@@ -11,6 +12,18 @@ router.put(
   authMiddleware,
   launchCollectionController.update
 );
+
+// upload-image
+router.post(
+  "/upload-image/:collectionName",
+  authMiddleware,
+  upload,
+  launchCollectionController.uploadImage
+);
+
+
+
+
 router.get(
   "/getByUserId/:userId",
   authMiddleware,

@@ -8,6 +8,11 @@ import {
 import { ILaunchCollection } from "../../interfaces/launch-collection/launch-collection.interface";
 import { LaunchCollectionManager } from "../../services/launch-collection.manager";
 import { launchCollectionResponseData } from "../../utils/userResponse/launch-collection-response.utils";
+import { IResponseHandler } from "../../interfaces/response-handler.interface";
+import { IUser } from "../../interfaces/user/user.interface";
+import userManager from "../../services/user.manager";
+import cloudinary from "../../config/cloudinary.config";
+import { newUserEmail } from "../../mail/newUserEmail";
 
 export class LaunchCollectionController {
   private static instance: LaunchCollectionController;
@@ -61,8 +66,12 @@ export class LaunchCollectionController {
   public async update(req: any, res: Response): Promise<Response> {
     try {
       const collectionName = req.params.collectionName;
+      console.log(collectionName);
       const collection: ILaunchCollection = req.body;
       collection.user = req.user._id;
+      console.log(collection);
+      console.log(req.user._id);
+
       const updatedCollection =
         await LaunchCollectionManager.getInstance().update(
           collectionName,
@@ -75,6 +84,96 @@ export class LaunchCollectionController {
         data: launchCollectionResponseData(updatedCollection),
       });
     } catch (error) {
+      return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json({
+        status: ResponseStatus.INTERNAL_SERVER_ERROR,
+        message: ResponseMessage.FAILED,
+        description: ResponseDescription.INTERNAL_SERVER_ERROR,
+        data: null,
+      });
+    }
+  }
+
+  public async uploadImage(req: any, res: Response): Promise<any> {
+    try {
+      console.log("Hello", req.files);
+      if (!req.files) {
+        const response: IResponseHandler = {
+          status: ResponseStatus.FAILED,
+          message: ResponseMessage.FAILED,
+          description: ResponseDescription.FAILED,
+          data: null,
+        };
+
+        return res.status(ResponseCode.BAD_REQUEST).json(response);
+      }
+
+      const userId = req.user._id;
+      const user: IUser = await userManager.getById(userId);
+      if (!user) {
+        const response: IResponseHandler = {
+          status: ResponseStatus.FAILED,
+          message: ResponseMessage.USER_NOT_FOUND,
+          description: ResponseDescription.USER_NOT_FOUND,
+          data: null,
+        };
+
+        return res.status(ResponseCode.NOT_FOUND).json(response);
+      }
+
+      const collectionName = req.params.collectionName;
+      console.log(collectionName);
+      const collection: ILaunchCollection = req.body;
+      collection.user = req.user._id;
+
+      const uploadToCloudinary = (buffer: Buffer, folder: string) => {
+        return new Promise((resolve, reject) => {
+          const stream = cloudinary.uploader.upload_stream(
+            { folder, use_filename: true, unique_filename: false },
+            (error: any, result: any) => {
+              if (error) {
+                reject(error);
+              } else {
+                resolve(result);
+              }
+            }
+          );
+          stream.end(buffer);
+        });
+      };
+
+      const collectionBannerImage = req.files.profileImage?.[0];
+      const collectionCoverImage = req.files.coverImage?.[0];
+
+      if (collectionBannerImage) {
+        const profileResult: any = await uploadToCloudinary(
+          collectionBannerImage.buffer,
+          "collectionBannerImage"
+        );
+        // user.profileImage = profileResult.secure_url;
+        collection.collectionBannerImage = profileResult.secure_url;
+      }
+      if (collectionCoverImage) {
+        const coverResult: any = await uploadToCloudinary(
+          collectionCoverImage.buffer,
+          "collectionCoverImage"
+        );
+        // user.coverImage = coverResult.secure_url;
+        collection.collectionCoverImage = coverResult.secure_url;
+      }
+
+      const updatedCollection =
+        await LaunchCollectionManager.getInstance().update(
+          collectionName,
+          collection
+        );
+      return res.status(ResponseCode.SUCCESS).json({
+        status: ResponseStatus.SUCCESS,
+        message: ResponseMessage.SUCCESS,
+        description: ResponseDescription.SUCCESS,
+        data: launchCollectionResponseData(updatedCollection),
+      });
+    } catch (error) {
+      console.error("Error in uploadImage function:", error);
       return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json({
         status: ResponseStatus.INTERNAL_SERVER_ERROR,
         message: ResponseMessage.FAILED,

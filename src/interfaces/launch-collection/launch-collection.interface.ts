@@ -21,6 +21,10 @@ export interface ILaunchCollection {
   collectionBannerImage: string;
   mintStartDate: string;
   mintStartTime: string;
+  allowFreeMints: boolean;
+  enableWhitelist: boolean;
+  enablePresale: boolean;
+  enableAirdrop : boolean;
   isPaid: boolean;
   transactionId: string;
   isApproved: boolean;
