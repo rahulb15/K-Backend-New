@@ -17,6 +17,8 @@ export interface ILaunchCollection {
   royaltyPercentage: string;
   mintPrice: string;
   mintPriceCurrency: string;
+  tokenList: string[];
+  policy: string[];
   collectionCoverImage: string;
   collectionBannerImage: string;
   mintStartDate: string;
@@ -26,6 +28,7 @@ export interface ILaunchCollection {
   enablePresale: boolean;
   enableAirdrop : boolean;
   isPaid: boolean;
+  paymentMode: string;
   transactionId: string;
   isApproved: boolean;
   isRejected: boolean;

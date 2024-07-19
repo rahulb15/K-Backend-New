@@ -5,6 +5,9 @@ import { IUser } from "../interfaces/user/user.interface";
 const userSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true },
+    username: { type: String, required: false, trim: true },
+    isAdminAccess: { type: Boolean, default: false },
+    adminPassword: { type: String, required: false },
     email: {
       type: String,
       required: true,

@@ -3,7 +3,10 @@ export const collectionResponseData = (collection: ICollection) => {
   return {
     _id: collection._id,
     user: collection.user,
+    applicationId: collection.applicationId,
+    applicationType: collection.applicationType,
     collectionName: collection.collectionName,
+    slug: collection.slug,
     tokenSymbol: collection.tokenSymbol,
     collectionInfo: collection.collectionInfo,
     collectionUrl: collection.collectionUrl,
@@ -21,7 +24,6 @@ export const collectionResponseData = (collection: ICollection) => {
     minNftPrice: collection.minNftPrice,
     maxNftPrice: collection.maxNftPrice,
     totalNftUser: collection.totalNftUser,
-    createdDate: collection.createdDate,
     createdAt: collection.createdAt,
     updatedAt: collection.updatedAt,
   };

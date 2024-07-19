@@ -1,7 +1,10 @@
 export interface ICollection {
-  _id: string;
+  _id?: string;
   user: string;
+  applicationId: string;
+  applicationType: string;
   collectionName: string;
+  slug: string;
   tokenSymbol: string;
   collectionInfo: string;
   collectionUrl: string;
@@ -19,7 +22,6 @@ export interface ICollection {
   minNftPrice: number;
   maxNftPrice: number;
   totalNftUser: number;
-  createdDate: Date;
   createdAt?: Date;
   updatedAt?: Date;
 }

@@ -101,6 +101,9 @@ export const userResponseDataForProfile = (user: IUser) => {
   return {
     _id: user._id,
     name: user.name,
+    username: user.username,
+    isAdminAccess: user.isAdminAccess,
+    adminPassword: user.adminPassword,
     email: user.email,
     bio: user.bio,
     gender: user.gender,
@@ -139,6 +142,9 @@ export const userResponseDataForProfileWithToken = (
   return {
     _id: user._id,
     name: user.name,
+    username: user.username,
+    isAdminAccess: user.isAdminAccess,
+    adminPassword: user.adminPassword,
     email: user.email,
     bio: user.bio,
     gender: user.gender,
@@ -175,6 +181,9 @@ export const userResponseDataForAdmin = (user: IUser) => {
   return {
     _id: user._id,
     name: user.name,
+    username: user.username,
+    isAdminAccess: user.isAdminAccess,
+    adminPassword: user.adminPassword,
     email: user.email,
     bio: user.bio,
     gender: user.gender,

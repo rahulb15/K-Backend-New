@@ -30,6 +30,14 @@ export class CollectionManager implements ICollectionManager {
     )) as ICollection;
     return collection;
   }
+
+  // getByName
+  public async getByName(collectionName: string): Promise<ICollection> {
+    const collection: ICollection = (await Collection.findOne({
+      collectionName,
+    })) as ICollection;
+    return collection;
+  }
 }
 
 export default CollectionManager.getInstance();

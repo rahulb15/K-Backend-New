@@ -2,6 +2,7 @@ import { ILaunchCollection } from "../../interfaces/launch-collection/launch-col
 
 export const launchCollectionResponseData = (collection: ILaunchCollection) => {
   return {
+    _id: collection._id,
     collectionName: collection.collectionName,
     creatorName: collection.creatorName,
     creatorWallet: collection.creatorWallet,
@@ -18,6 +19,8 @@ export const launchCollectionResponseData = (collection: ILaunchCollection) => {
     royaltyPercentage: collection.royaltyPercentage,
     mintPrice: collection.mintPrice,
     mintPriceCurrency: collection.mintPriceCurrency,
+    tokenList: collection.tokenList,
+    policy: collection.policy,
     collectionCoverImage: collection.collectionCoverImage,
     collectionBannerImage: collection.collectionBannerImage,
     mintStartDate: collection.mintStartDate,
@@ -51,6 +54,8 @@ export const adminLaunchCollectionResponseData = (
     royaltyPercentage: collection.royaltyPercentage,
     mintPrice: collection.mintPrice,
     mintPriceCurrency: collection.mintPriceCurrency,
+    tokenList: collection.tokenList,
+    policy: collection.policy,
     collectionCoverImage: collection.collectionCoverImage,
     collectionBannerImage: collection.collectionBannerImage,
     mintStartDate: collection.mintStartDate,
@@ -60,6 +65,7 @@ export const adminLaunchCollectionResponseData = (
     enablePresale: collection.enablePresale,
     enableAirdrop : collection.enableAirdrop,
     isPaid: collection.isPaid,
+    paymentMode: collection.paymentMode,
     transactionId: collection.transactionId,
     isApproved: collection.isApproved,
     isRejected: collection.isRejected,

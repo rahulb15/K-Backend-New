@@ -9,6 +9,8 @@ import { ICollection } from "../../interfaces/collection/collection.interface";
 import { IResponseHandler } from "../../interfaces/response-handler.interface";
 import collectionManager from "../../services/collection.manager";
 import { collectionResponseData } from "../../utils/userResponse/collection-response.utils";
+import { LaunchCollectionManager } from "../../services/launch-collection.manager";
+import { ILaunchCollection } from "../../interfaces/launch-collection/launch-collection.interface";
 
 export class CollectionController {
   private static instance: CollectionController;
@@ -26,8 +28,67 @@ export class CollectionController {
   public async create(req: any, res: Response) {
     try {
       console.log(req.user, "user");
-      const collection: ICollection = req.body;
-      collection.user = req.user._id;
+      // const collection: ICollection = req.body;
+
+        //check if the collection name already exists then return error
+        const existingLaunchCollection =
+        await LaunchCollectionManager.getInstance().getByName(
+          req.body.collectionName
+        );
+
+        if (!existingLaunchCollection) {
+          return res.status(ResponseCode.SUCCESS).json({
+            status: ResponseStatus.FAILED,
+            message: ResponseMessage.NOT_FOUND,
+            description: ResponseDescription.NOT_FOUND,
+            data: null,
+          });
+
+        }
+
+        const existingCollection =
+          await collectionManager.getByName(req.body.collectionName);
+        if (existingCollection) {
+          return res.status(ResponseCode.SUCCESS).json({
+            status: ResponseStatus.FAILED,
+            message: ResponseMessage.CONFLICT,
+            description: ResponseDescription.CONFLICT,
+            data: null,
+          });
+        }
+
+
+
+     
+         const collection: ICollection = {
+          user : existingLaunchCollection.user,
+          applicationId : existingLaunchCollection._id,
+          applicationType : req.body.applicationType,
+          collectionName : existingLaunchCollection.collectionName,
+          slug : existingLaunchCollection.collectionName.toLowerCase().replace(/ /g, "-"),
+          tokenSymbol : "",
+          collectionInfo : existingLaunchCollection.projectDescription,
+          collectionUrl : "",
+          category : existingLaunchCollection.projectCategory,
+          imageUrl : existingLaunchCollection.collectionCoverImage,
+          bannerUrl : existingLaunchCollection.collectionBannerImage,
+          totalSupply : parseInt(existingLaunchCollection.totalSupply),
+          mintPrice : parseFloat(existingLaunchCollection.mintPrice),
+          isActive : false,
+          tokenList : [],
+          royaltyFee : parseFloat(existingLaunchCollection.royaltyPercentage),
+          royaltyAddress : "",
+          totalNftPrice : 0,
+          totalNft : 0,
+          minNftPrice : 0,
+          maxNftPrice : 0,
+          totalNftUser : 0,
+          createdAt : new Date(),
+          updatedAt : new Date(),
+        }
+
+        console.log(collection, "collection");
+
       const newCollection: ICollection = await collectionManager.create(
         collection
       );
@@ -93,5 +154,51 @@ export class CollectionController {
       return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(responseData);
     }
   }
+
+  public async getByName(req: Request, res: Response) {
+    try {
+      const name: string = req.params.name;
+      const collection: ICollection = await collectionManager.getByName(name);
+      console.log(collection, "collection");
+      // const responseData: IResponseHandler = {
+      //   status: ResponseStatus.SUCCESS,
+      //   message: ResponseMessage.SUCCESS,
+      //   description: ResponseDescription.SUCCESS,
+      //   data: collectionResponseData(collection),
+      // };
+      // return res.status(ResponseCode.SUCCESS).json(responseData);
+      if (!collection) {
+        return res.status(ResponseCode.NOT_FOUND).json({
+          status: ResponseStatus.FAILED,
+          message: ResponseMessage.NOT_FOUND,
+          description: ResponseDescription.NOT_FOUND,
+          data: null,
+        });
+      }
+
+      return res.status(ResponseCode.SUCCESS).json({
+        status: ResponseStatus.SUCCESS,
+        message: ResponseMessage.SUCCESS,
+        description: ResponseDescription.SUCCESS,
+        data: collectionResponseData(collection),
+      });
+
+      
+
+
+
+    } catch (error) {
+      const responseData: IResponseHandler = {
+        status: ResponseStatus.FAILED,
+        message: ResponseMessage.FAILED,
+        description: ResponseDescription.FAILED,
+        data: null,
+      };
+      return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(responseData);
+    }
+  }
+
+
+
 }
 export default CollectionController.getInstance();

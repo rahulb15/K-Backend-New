@@ -1,6 +1,9 @@
 export interface IUser {
   _id?: string;
   name: string;
+  username?: string;
+  isAdminAccess?: boolean;
+  adminPassword?: string;
   email: string;
   bio?: string;
   gender?: string;

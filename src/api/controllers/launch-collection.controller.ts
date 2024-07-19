@@ -7,7 +7,7 @@ import {
 } from "../../enum/response-message.enum";
 import { ILaunchCollection } from "../../interfaces/launch-collection/launch-collection.interface";
 import { LaunchCollectionManager } from "../../services/launch-collection.manager";
-import { launchCollectionResponseData } from "../../utils/userResponse/launch-collection-response.utils";
+import { launchCollectionResponseData, adminLaunchCollectionResponseData } from "../../utils/userResponse/launch-collection-response.utils";
 import { IResponseHandler } from "../../interfaces/response-handler.interface";
 import { IUser } from "../../interfaces/user/user.interface";
 import userManager from "../../services/user.manager";
@@ -240,7 +240,7 @@ export class LaunchCollectionController {
         status: ResponseStatus.SUCCESS,
         message: ResponseMessage.SUCCESS,
         description: ResponseDescription.SUCCESS,
-        data: launchCollectionResponseData(updatedCollection),
+        data: adminLaunchCollectionResponseData(updatedCollection),
       });
     } catch (error) {
       return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json({

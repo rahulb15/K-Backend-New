@@ -17,6 +17,8 @@ import { IDeposit } from "../../interfaces/deposit/deposit.interface";
 import { IDepositManager } from "../../interfaces/deposit/deposit.manager.interface";
 import Deposit from "../../models/deposit.model";
 import { v4 as uuidv4 } from "uuid";
+import { ICollection } from "../../interfaces/collection/collection.interface";
+import collectionManager from "../../services/collection.manager";
 
 // import mongoose from "mongoose";
 // import { IDeposit } from "../interfaces/deposit/deposit.interface";
@@ -408,6 +410,165 @@ export class TransactionsController {
           message: ResponseMessage.CREATED,
           description: ResponseDescription.CREATED,
           data: session,
+        });
+      } else if (req.body.type === "wallet") {
+        console.log("Wallet");
+        const userId = req.user._id;
+        console.log(req.body.type, "req.body.type");
+        console.log(userId, "userId");
+        //create transaction
+        const transaction: ITransaction = {
+          user: userId,
+          paymentId: req.body.paymentId,
+          paymentStatus: req.body.paymentStatus,
+          paymentAmount: req.body.paymentAmount,
+          paymentCurrency: req.body.paymentCurrency,
+          paymentDate: new Date(req.body.paymentDate),
+          paymentMethod: req.body.paymentMethod,
+          paymentDescription: req.body.paymentDescription,
+          paymentUserRole: req.user.role,
+          order_id: req.body.order_id,
+          order_type: req.body.type,
+        };
+        //save transaction
+        const newTransaction: ITransaction = await transactionsManager.create(
+          transaction
+        );
+
+        if (!newTransaction) {
+          const responseData: IResponseHandler = {
+            status: ResponseStatus.FAILED,
+            message: ResponseMessage.FAILED,
+            description: ResponseDescription.FAILED,
+            data: null,
+          };
+          return res
+            .status(ResponseCode.INTERNAL_SERVER_ERROR)
+            .json(responseData);
+        }
+
+        const updatedCollection: ILaunchCollection =
+          await LaunchCollectionManager.getInstance().updateById(
+            req.body.order_id,
+            {
+              isPaid: true,
+            }
+          );
+        console.log(updatedCollection, "updatedCollection");
+
+        // {
+        //   _id: new ObjectId('6692d5c3b1c9f93293490064'),
+        //   user: new ObjectId('668f8c440e9f7e72ecd1f335'),
+        //   collectionName: 'monkey112',
+        //   creatorName: 'rahul',
+        //   creatorWallet: 'k:23aeee7b47d93716ebd03da536b319ae8114ba17c784d75681a4eb4731f970d3',
+        //   creatorEmail: 'rahul@yopmail.com',
+        //   projectDescription: 'Hello',
+        //   projectCategory: 'art',
+        //   expectedLaunchDate: '2024-07-14',
+        //   twitter: '',
+        //   discord: '',
+        //   instagram: '',
+        //   website: '',
+        //   allowFreeMints: false,
+        //   enableWhitelist: false,
+        //   enablePresale: false,
+        //   enableAirdrop: false,
+        //   isPaid: true,
+        //   isApproved: false,
+        //   isRejected: false,
+        //   createdAt: 2024-07-13T19:30:11.247Z,
+        //   updatedAt: 2024-07-13T19:30:11.247Z,
+        //   __v: 0,
+        //   collectionCoverImage: 'https://res.cloudinary.com/dh187xay8/image/upload/v1720898689/collectionCoverImage/file.jpg',
+        //   collectionBannerImage: 'https://res.cloudinary.com/dh187xay8/image/upload/v1720899020/collectionBannerImage/file.jpg',
+        //   contractType: 'ng',
+        //   mintPrice: '1.0',
+        //   mintPriceCurrency: 'kda',
+        //   mintStartDate: '2024-07-14',
+        //   mintStartTime: '01:00',
+        //   royaltyPercentage: '1.0',
+        //   totalSupply: '4'
+        // } updatedCollection
+
+
+        // const collectionSchema = new mongoose.Schema({
+        //   user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+        //   applicationId : { type: mongoose.Schema.Types.ObjectId },
+        //   applicationType : { type: String },
+        //   collectionName: { type: String, required: true },
+        //   slug: { type: String, required: false, unique: true },
+        //   tokenSymbol: { type: String, required: false },
+        //   collectionInfo: { type: String, required: false },
+        //   collectionUrl: { type: String, required: false },
+        //   category: { type: String, required: false },
+        //   imageUrl: { type: String, required: false },
+        //   bannerUrl: { type: String, required: false },
+        //   totalSupply: { type: Number, required: false },
+        //   mintPrice: { type: Number, required: false },
+        //   isActive: { type: Boolean, required: false },
+        //   tokenList: { type: [String], required: false },
+        //   totalItems: { type: Number, required: false },
+        //   royaltyFee: { type: Number, required: false },
+        //   royaltyAddress: { type: String, required: false },
+        //   totalNftPrice: { type: Number, required: false },
+        //   totalNft: { type: Number, required: false },
+        //   minNftPrice: { type: Number, required: false },
+        //   maxNftPrice: { type: Number, required: false },
+        //   totalNftUser: { type: Number, required: false },
+        //   createdDate: { type: Date, required: false },
+        //   createdAt: { type: Date, required: false, default: Date.now },
+        //   updatedAt: { type: Date, required: false, default: Date.now },
+        // });
+
+
+        // const obj_for_collection: ICollection = {
+        //   user : updatedCollection.user,
+        //   applicationId : updatedCollection._id,
+        //   applicationType : "launchpad",
+        //   collectionName : updatedCollection.collectionName,
+        //   slug : updatedCollection.collectionName.toLowerCase().replace(/ /g, "-"),
+        //   tokenSymbol : "NFT",
+        //   collectionInfo : updatedCollection.projectDescription,
+        //   collectionUrl : "",
+        //   category : updatedCollection.projectCategory,
+        //   imageUrl : updatedCollection.collectionCoverImage,
+        //   bannerUrl : updatedCollection.collectionBannerImage,
+        //   totalSupply : parseInt(updatedCollection.totalSupply),
+        //   mintPrice : parseFloat(updatedCollection.mintPrice),
+        //   isActive : false,
+        //   tokenList : [],
+        //   royaltyFee : parseFloat(updatedCollection.royaltyPercentage),
+        //   royaltyAddress : "",
+        //   totalNftPrice : 0,
+        //   totalNft : 0,
+        //   minNftPrice : 0,
+        //   maxNftPrice : 0,
+        //   totalNftUser : 0,
+        //   createdDate : new Date(),
+        //   createdAt : new Date(),
+        //   updatedAt : new Date(),
+        // }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        return res.status(ResponseCode.CREATED).json({
+          status: ResponseStatus.SUCCESS,
+          message: ResponseMessage.CREATED,
+          description: ResponseDescription.CREATED,
+          data: newTransaction,
         });
       } else {
         console.log("Invalid type");
@@ -804,7 +965,7 @@ export class TransactionsController {
       const search = req.body.search as string;
 
       const transactions: ITransaction[] =
-        await transactionsManager.getAllTransactions( limit,page, search);
+        await transactionsManager.getAllTransactions(limit, page, search);
       const responseData: IResponseHandler = {
         status: ResponseStatus.SUCCESS,
         message: ResponseMessage.SUCCESS,

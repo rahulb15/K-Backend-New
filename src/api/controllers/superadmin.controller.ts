@@ -9,7 +9,6 @@ import { IResponseHandler } from "../../interfaces/response-handler.interface";
 import { IUser } from "../../interfaces/user/user.interface";
 import { sendForgetPasswordMail } from "../../mail/forgetPassword.mail";
 import userManager from "../../services/user.manager";
-import { UserPointsManager } from "../../services/userpoints.manager";
 import { comparePassword, hashPassword } from "../../utils/hash.password";
 import { jwtSign, jwtVerify } from "../../utils/jwt.sign";
 import {
@@ -25,7 +24,6 @@ import {
 
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
-import moment from "moment";
 import qrcode from "qrcode";
 import speakeasy from "speakeasy";
 import cloudinary from "../../config/cloudinary.config";
@@ -94,7 +92,6 @@ export class UserController {
       const newUser: IUser = {
         ...user,
         walletAddress: generateWalletAddress(user),
-        username: user.name
       };
 
       console.log(newUser, "user");
@@ -203,7 +200,7 @@ export class UserController {
 
       user.isWalletConnected = true;
 
-      console.log(user, "user------------------------");
+      console.log(user, "user");
 
       const newUser = await userManager.create(user);
       const token = jwtSign(newUser);
@@ -281,6 +278,18 @@ export class UserController {
           status: ResponseStatus.FAILED,
           message: ResponseMessage.PASSWORD_NOT_MATCH,
           description: ResponseDescription.PASSWORD_NOT_MATCH,
+          data: null,
+        };
+
+        return res.status(ResponseCode.SUCCESS).json(response);
+      }
+
+      const walletAddress = user.walletAddress as string;
+      if (walletAddress !== existingUser.walletAddress) {
+        const response: IResponseHandler = {
+          status: ResponseStatus.FAILED,
+          message: ResponseMessage.WALLET_ADDRESS_NOT_MATCH,
+          description: ResponseDescription.WALLET_ADDRESS_NOT_MATCH,
           data: null,
         };
 
@@ -584,36 +593,6 @@ export class UserController {
     }
   }
 
-  //verify Email
-  public async verifyEmail(req: Request, res: Response) {
-    try {
-      const { token } = req.params;
-      const decoded: any = jwtVerify(token);
-      const user = await userManager.getById(decoded.id);
-      if (!user) {
-        const response: IResponseHandler = {
-          status: ResponseStatus.FAILED,
-          message: ResponseMessage.USER_NOT_FOUND,
-          description: ResponseDescription.USER_NOT_FOUND,
-          data: null,
-        };
-
-        return res.status(ResponseCode.NOT_FOUND).json(response);
-      }
-      user.isEmailVerified = true;
-      await userManager.updateById(decoded.id, user);
-      const response: IResponseHandler = {
-        status: ResponseStatus.SUCCESS,
-        message: ResponseMessage.SUCCESS,
-        description: ResponseDescription.SUCCESS,
-        data: null,
-      };
-      res.status(ResponseCode.SUCCESS).json(response);
-    } catch (error) {
-      res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(error);
-    }
-  }
-
   /*
    * @creator: rahul baghel
    * @desc Get user by wallet address
@@ -640,52 +619,6 @@ export class UserController {
       const token = jwtSign(user);
       const data = userResponseData(user);
       console.log(data, "data");
-
-      const userPoints: any = await UserPointsManager.getInstance().getByUserId(
-        user._id
-      );
-      console.log(userPoints, "userPoints===============");
-      // activityLog: [
-      //   {
-      //     type: 'Login',
-      //     pointsEarned: 1,
-      //     _id: new ObjectId('661fbc0d0b7da3b58a91337c'),
-      //     createdAt: 2024-04-18T12:09:49.594Z
-      //   }
-      // ],
-
-      //find type Login in activityLog and if found then update the pointsEarned and totalPoints
-
-      //find
-      userPoints.activityLog.forEach((element: any) => {
-        if (element.type === "Login") {
-          //check date if today then do not update
-          const today = new Date();
-          const lastActivityLogDate = new Date(element.createdAt);
-          // if (today.getDate() !== lastActivityLogDate.getDate()) {
-          //   element.pointsEarned += 1;
-          //   userPoints.totalPoints += 1;
-          //   element.createdAt = new Date();
-          // }
-
-          console.log(
-            moment(today).diff(lastActivityLogDate, "days"),
-            "moment(today).diff(lastActivityLogDate, 'days')"
-          );
-
-          //check if user skip a day login then reset the pointsEarned to 1 and if user login again then increment the pointsEarned but increment only one for same day as compare to yesterday day not day before yesterday
-          if (moment(today).diff(lastActivityLogDate, "days") === 1) {
-            element.pointsEarned += 1;
-            element.createdAt = new Date();
-          } else if (moment(today).diff(lastActivityLogDate, "days") > 1) {
-            element.pointsEarned = 1;
-            element.createdAt = new Date();
-          }
-        }
-      });
-
-      console.log(userPoints, "userPoints===============463");
-      await UserPointsManager.getInstance().updateById(user._id, userPoints);
 
       const response: IResponseHandler = {
         status: ResponseStatus.SUCCESS,
@@ -830,8 +763,11 @@ export class UserController {
           data: null,
         };
 
-        return res.status(ResponseCode.BAD_REQUEST).json(response);
+        return res.status(ResponseCode.SUCCESS).json(response);
       }
+
+      // is2FAVerified = true
+      //update user
 
       const user = await userManager.getById(userId);
       if (!user) {
@@ -1007,17 +943,11 @@ export class UserController {
       const coverImage = req.files.coverImage?.[0];
 
       if (profileImage) {
-        const profileResult: any = await uploadToCloudinary(
-          profileImage.buffer,
-          "profile"
-        );
+        const profileResult: any = await uploadToCloudinary(profileImage.buffer, "profile");
         user.profileImage = profileResult.secure_url;
       }
       if (coverImage) {
-        const coverResult: any = await uploadToCloudinary(
-          coverImage.buffer,
-          "cover"
-        );
+        const coverResult: any = await uploadToCloudinary(coverImage.buffer, "cover");
         user.coverImage = coverResult.secure_url;
       }
 
@@ -1029,6 +959,7 @@ export class UserController {
         data: updated,
       };
       res.status(ResponseCode.SUCCESS).json(response);
+
     } catch (error) {
       console.error("Error in uploadImage function:", error);
       return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json({
@@ -1069,12 +1000,11 @@ export class UserController {
   // check token is valid or not if valid then return user data else return null
   public async checkToken(req: Request, res: Response) {
     try {
-      console.log(req.headers.authorization, "req.headers.authorization");
       const token = req.headers.authorization?.split(" ")[1];
-      console.log(token, "token");
+      console.log(token, "token admin");
       jwt.verify(
         token as string,
-        process.env.JWT_USER_SECRET as string,
+        process.env.JWT_ADMIN_SECRET as string,
         async (err: any, decoded: any) => {
           if (err) {
             console.log(err, "err");
@@ -1102,6 +1032,22 @@ export class UserController {
           return res.status(ResponseCode.SUCCESS).json(response);
         }
       );
+    } catch (error) {
+      res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(error);
+    }
+  }
+
+  // getTotalUsers
+  public async getTotalUsers(req: Request, res: Response) {
+    try {
+      const totalUsers = await userManager.getTotalUsers();
+      const response: IResponseHandler = {
+        status: ResponseStatus.SUCCESS,
+        message: ResponseMessage.SUCCESS,
+        description: ResponseDescription.SUCCESS,
+        data: totalUsers,
+      };
+      res.status(ResponseCode.SUCCESS).json(response);
     } catch (error) {
       res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(error);
     }
