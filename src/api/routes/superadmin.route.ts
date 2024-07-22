@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { adminMiddleware } from "../../middlewares/admin.auth.middleware";
 import upload from "../../middlewares/multer.middleware";
-import userController from "../controllers/admin.controller";
+import userController from "../controllers/superadmin.controller";
 
 const router = Router();
 

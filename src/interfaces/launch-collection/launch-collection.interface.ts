@@ -25,13 +25,24 @@ export interface ILaunchCollection {
   mintStartTime: string;
   allowFreeMints: boolean;
   enableWhitelist: boolean;
+  whitelistAddresses: string[];
+  whitelistStartDate: string;
+  whitelistStartTime: string;
+  whitelistPrice: string;
   enablePresale: boolean;
+  presaleStartDate: string;
+  presaleStartTime: string;
+  presaleEndDate: string;
+  presaleEndTime: string;
+  presalePrice: string;
+  presaleAddressess: string[];
   enableAirdrop : boolean;
   isPaid: boolean;
   paymentMode: string;
   transactionId: string;
   isApproved: boolean;
   isRejected: boolean;
+  isLaunched: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

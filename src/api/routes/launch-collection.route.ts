@@ -12,7 +12,11 @@ router.put(
   authMiddleware,
   launchCollectionController.update
 );
-
+router.put(
+  "/update-admin/:collectionName",
+  adminMiddleware,
+  launchCollectionController.update
+);
 // upload-image
 router.post(
   "/upload-image/:collectionName",
@@ -29,12 +33,19 @@ router.get(
   authMiddleware,
   launchCollectionController.getByUserId
 );
-router.get("/getAll", launchCollectionController.getAll);
+router.get("/getAll",adminMiddleware, launchCollectionController.getAll);
+
+//getAllApproved
+router.get("/getAllApproved",adminMiddleware, launchCollectionController.getAllApproved);
 
 // approve
 router.put("/approve/:id", adminMiddleware, launchCollectionController.approve);
 
 // reject
 router.put("/reject/:id", adminMiddleware, launchCollectionController.reject);
+
+// launch
+router.put("/launch/:id", adminMiddleware, launchCollectionController.launch);
+
 
 export default router;

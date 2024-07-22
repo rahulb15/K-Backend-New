@@ -92,6 +92,12 @@ export class UserManager implements IUserManager {
     });
     return users;
   }
+
+  // getByUsername
+  public async getByUsername(username: string): Promise<IUser> {
+    const user: IUser = (await User.findOne({ username: username })) as IUser;
+    return user;
+  }
 }
 
 export default UserManager.getInstance();

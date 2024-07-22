@@ -231,32 +231,10 @@ export class UserController {
   public async login(req: Request, res: Response) {
     try {
       const user: IUser = req.body;
-      //validate email
-      const isEmailValid = emailValidator(user.email);
-      if (!isEmailValid) {
-        const response: IResponseHandler = {
-          status: ResponseStatus.FAILED,
-          message: ResponseMessage.EMAIL_INVALID,
-          description: ResponseDescription.EMAIL_INVALID,
-          data: null,
-        };
-
-        return res.status(ResponseCode.SUCCESS).json(response);
-      }
-      //validate password
-      // const isPasswordValid = passwordValidator(user.password as string);
-      // if (!isPasswordValid) {
-      //   const response: IResponseHandler = {
-      //     status: ResponseStatus.FAILED,
-      //     message: ResponseMessage.PASSWORD_INVALID,
-      //     description: ResponseDescription.PASSWORD_INVALID,
-      //     data: null,
-      //   };
-
-      //   return res.status(ResponseCode.SUCCESS).json(response);
-      // }
-
-      const existingUser = await userManager.getByEmail(user.email);
+      console.log(user, "user");
+      
+      // username
+      const existingUser = await userManager.getByUsername(user.username as string);
       if (!existingUser) {
         const response: IResponseHandler = {
           status: ResponseStatus.FAILED,
@@ -271,7 +249,7 @@ export class UserController {
       //check password
       const isPasswordMatch = await comparePassword(
         user.password as string,
-        existingUser.password as string
+        existingUser.adminPassword as string
       );
       if (!isPasswordMatch) {
         const response: IResponseHandler = {

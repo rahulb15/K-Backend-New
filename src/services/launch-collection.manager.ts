@@ -149,6 +149,40 @@ export class LaunchCollectionManager implements ILaunchCollectionManager {
     return collections;
   }
 
+  // getAllApproved
+  public async getAllApproved(
+    page: number,
+    limit: number,
+    search: string,
+    userId: string
+  ): Promise<ILaunchCollection[]> {
+    //using aggregation to search by collectionName and creatorName at the same time and also to paginate the results and return total count of documents
+    const collections = await LaunchCollection.aggregate([
+      {
+        $match: {
+          $or: [
+            { collectionName: { $regex: search, $options: "i" } },
+            { creatorName: { $regex: search, $options: "i" } },
+          ],
+          isApproved: true,
+          user: userId,
+        },
+      },
+      {
+        $facet: {
+          metadata: [{ $count: "total" }, { $addFields: { page, limit } }],
+          data: [{ $skip: (page - 1) * limit }, { $limit: limit }],
+        },
+      },
+    ]);
+
+    if (!collections) {
+      throw new Error("Collections not found");
+    }
+
+    return collections;
+  }
+
   public async getByName(collectionName: string): Promise<any> {
     const collection = await LaunchCollection.findOne({ collectionName });
     return collection;
@@ -185,5 +219,19 @@ export class LaunchCollectionManager implements ILaunchCollectionManager {
     }
 
     return rejectedCollection;
+  }
+
+  public async launch(id: string): Promise<ILaunchCollection | null> {
+    const launchedCollection = await LaunchCollection.findOneAndUpdate(
+      { _id: id },
+      { isLaunched: true },
+      { new: true }
+    );
+
+    if (!launchedCollection) {
+      throw new Error("Collection not found");
+    }
+
+    return launchedCollection;
   }
 }

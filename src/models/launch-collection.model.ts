@@ -27,13 +27,27 @@ const launchCollectionSchema = new Schema({
   mintStartTime: { type: String },
   allowFreeMints: { type: Boolean, default: false },
   enableWhitelist: { type: Boolean, default: false },
+  whitelistAddresses: { type: [String] },
+  whitelistStartDate: { type: String },
+  whitelistStartTime: { type: String },
+  whitelistPrice: { type: String },
+
+
+
   enablePresale: { type: Boolean, default: false },
+  presaleStartDate: { type: String },
+  presaleStartTime: { type: String },
+  presaleEndDate: { type: String },
+  presaleEndTime: { type: String },
+  presalePrice: { type: String },
+  presaleAddressess: { type: [String] },
   enableAirdrop : { type: Boolean, default: false },
   isPaid: { type: Boolean, default: false },
   paymentMode: { type: String },
   transactionId: { type: String },
   isApproved: { type: Boolean, default: false },
   isRejected: { type: Boolean, default: false },
+  isLaunched: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });

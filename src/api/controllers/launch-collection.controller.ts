@@ -5,14 +5,19 @@ import {
   ResponseMessage,
   ResponseStatus,
 } from "../../enum/response-message.enum";
+import { comparePassword, hashPassword } from "../../utils/hash.password";
 import { ILaunchCollection } from "../../interfaces/launch-collection/launch-collection.interface";
 import { LaunchCollectionManager } from "../../services/launch-collection.manager";
-import { launchCollectionResponseData, adminLaunchCollectionResponseData } from "../../utils/userResponse/launch-collection-response.utils";
+import {
+  launchCollectionResponseData,
+  adminLaunchCollectionResponseData,
+} from "../../utils/userResponse/launch-collection-response.utils";
 import { IResponseHandler } from "../../interfaces/response-handler.interface";
 import { IUser } from "../../interfaces/user/user.interface";
 import userManager from "../../services/user.manager";
 import cloudinary from "../../config/cloudinary.config";
-import { newUserEmail } from "../../mail/newUserEmail";
+// import { newUserEmail } from "../../mail/newUserEmail";
+import { approveLaunchpadEmail } from "../../mail/approveLaunchpadEmail.mail";
 
 export class LaunchCollectionController {
   private static instance: LaunchCollectionController;
@@ -229,6 +234,43 @@ export class LaunchCollectionController {
     }
   }
 
+
+  // getAllApproved by user id
+  public async getAllApproved(req: any, res: Response): Promise<Response> {
+    try {
+      const { page, limit, search } = req.query;
+      const userId = req.user._id;
+      console.log(userId,"userIdapproved");
+      const collections =
+        await LaunchCollectionManager.getInstance().getAllApproved(
+          parseInt(page as string),
+          parseInt(limit as string),
+          search as string,
+          userId
+        );
+
+    
+      return res.status(ResponseCode.SUCCESS).json({
+        status: ResponseStatus.SUCCESS,
+        message: ResponseMessage.SUCCESS,
+        description: ResponseDescription.SUCCESS,
+        data: collections,
+      });
+    } catch (error) {
+      return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json({
+        status: ResponseStatus.INTERNAL_SERVER_ERROR,
+        message: ResponseMessage.FAILED,
+        description: ResponseDescription.INTERNAL_SERVER_ERROR,
+        data: null,
+      });
+    }
+  }
+
+
+
+
+
+
   public async approve(req: any, res: Response): Promise<Response> {
     try {
       const id = req.params.id;
@@ -236,6 +278,36 @@ export class LaunchCollectionController {
         (await LaunchCollectionManager.getInstance().approve(
           id
         )) as ILaunchCollection;
+
+      //get user details
+      const user: IUser = await userManager.getById(updatedCollection.user);
+      console.log(user);
+
+      if (user.isAdminAccess) {
+        //send email to user
+        await approveLaunchpadEmail(user, user.adminPassword as string);
+
+        return res.status(ResponseCode.SUCCESS).json({
+          status: ResponseStatus.SUCCESS,
+          message: ResponseMessage.SUCCESS,
+          description: ResponseDescription.SUCCESS,
+          data: adminLaunchCollectionResponseData(updatedCollection),
+        });
+      }
+
+      //gernerate random username and password
+      const username = Math.random().toString(36).substring(7);
+      const password = Math.random().toString(36).substring(7);
+
+      //update user with username and password
+      user.username = user?.username || username;
+      user.adminPassword = user?.adminPassword || await hashPassword(password);
+      user.isAdminAccess = true;
+      await userManager.update(user._id as string, user);
+
+      //send email to user
+      await approveLaunchpadEmail(user, password);
+
       return res.status(ResponseCode.SUCCESS).json({
         status: ResponseStatus.SUCCESS,
         message: ResponseMessage.SUCCESS,
@@ -274,6 +346,36 @@ export class LaunchCollectionController {
       });
     }
   }
+
+  // launch
+
+  public async launch(req: any, res: Response): Promise<Response> {
+    try {
+      const id = req.params.id;
+      const updatedCollection: ILaunchCollection =
+        (await LaunchCollectionManager.getInstance().launch(
+          id
+        )) as ILaunchCollection;
+      return res.status(ResponseCode.SUCCESS).json({
+        status: ResponseStatus.SUCCESS,
+        message: ResponseMessage.SUCCESS,
+        description: ResponseDescription.SUCCESS,
+        data: launchCollectionResponseData(updatedCollection),
+      });
+    } catch (error) {
+      return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json({
+        status: ResponseStatus.INTERNAL_SERVER_ERROR,
+        message: ResponseMessage.FAILED,
+        description: ResponseDescription.INTERNAL_SERVER_ERROR,
+        data: null,
+      });
+    }
+  }
+
+
+
+
+
 }
 
 export default LaunchCollectionController.getInstance();
