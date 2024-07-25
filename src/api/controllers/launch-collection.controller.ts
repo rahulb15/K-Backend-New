@@ -6,7 +6,7 @@ import {
   ResponseStatus,
 } from "../../enum/response-message.enum";
 import { comparePassword, hashPassword } from "../../utils/hash.password";
-import { ILaunchCollection } from "../../interfaces/launch-collection/launch-collection.interface";
+import { ILaunchCollection, IUpdateLaunchCollection } from "../../interfaces/launch-collection/launch-collection.interface";
 import { LaunchCollectionManager } from "../../services/launch-collection.manager";
 import {
   launchCollectionResponseData,
@@ -49,6 +49,11 @@ export class LaunchCollectionController {
         });
       }
 
+      const mintStartDateTime = new Date(req.body.mintStartDate);
+      const mintEndDateTime = new Date(req.body.mintEndDate);
+      collection.mintStartDate = mintStartDateTime;
+      collection.mintEndDate = mintEndDateTime;
+
       const newCollection = await LaunchCollectionManager.getInstance().create(
         collection
       );
@@ -72,7 +77,7 @@ export class LaunchCollectionController {
     try {
       const collectionName = req.params.collectionName;
       console.log(collectionName);
-      const collection: ILaunchCollection = req.body;
+      const collection: IUpdateLaunchCollection = req.body;
       collection.user = req.user._id;
       console.log(collection);
       console.log(req.user._id);
@@ -212,7 +217,7 @@ export class LaunchCollectionController {
   //get all collections with pagination search and filter
   public async getAll(req: Request, res: Response): Promise<Response> {
     try {
-      const { page, limit, search } = req.query;
+      const { page, limit, search } = req.body;
       const collections = await LaunchCollectionManager.getInstance().getAll(
         parseInt(page as string),
         parseInt(limit as string),
@@ -234,13 +239,12 @@ export class LaunchCollectionController {
     }
   }
 
-
   // getAllApproved by user id
   public async getAllApproved(req: any, res: Response): Promise<Response> {
     try {
-      const { page, limit, search } = req.query;
+      const { page, limit, search } = req.body;
       const userId = req.user._id;
-      console.log(userId,"userIdapproved");
+      console.log(userId, "userIdapproved");
       const collections =
         await LaunchCollectionManager.getInstance().getAllApproved(
           parseInt(page as string),
@@ -249,7 +253,6 @@ export class LaunchCollectionController {
           userId
         );
 
-    
       return res.status(ResponseCode.SUCCESS).json({
         status: ResponseStatus.SUCCESS,
         message: ResponseMessage.SUCCESS,
@@ -266,10 +269,32 @@ export class LaunchCollectionController {
     }
   }
 
-
-
-
-
+  //get all isLaunched collections
+  public async getAllLaunched(req: Request, res: Response): Promise<Response> {
+    try {
+      const { page, limit, search } = req.body;
+      console.log(page, limit, search);
+      const collections =
+        await LaunchCollectionManager.getInstance().getAllLaunched(
+          parseInt(page as string),
+          parseInt(limit as string),
+          search as string
+        );
+      return res.status(ResponseCode.SUCCESS).json({
+        status: ResponseStatus.SUCCESS,
+        message: ResponseMessage.SUCCESS,
+        description: ResponseDescription.SUCCESS,
+        data: collections,
+      });
+    } catch (error) {
+      return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json({
+        status: ResponseStatus.INTERNAL_SERVER_ERROR,
+        message: ResponseMessage.FAILED,
+        description: ResponseDescription.INTERNAL_SERVER_ERROR,
+        data: null,
+      });
+    }
+  }
 
   public async approve(req: any, res: Response): Promise<Response> {
     try {
@@ -301,7 +326,8 @@ export class LaunchCollectionController {
 
       //update user with username and password
       user.username = user?.username || username;
-      user.adminPassword = user?.adminPassword || await hashPassword(password);
+      user.adminPassword =
+        user?.adminPassword || (await hashPassword(password));
       user.isAdminAccess = true;
       await userManager.update(user._id as string, user);
 
@@ -372,10 +398,28 @@ export class LaunchCollectionController {
     }
   }
 
-
-
-
-
+  // getByName
+  public async getByName(req: Request, res: Response): Promise<Response> {
+    try {
+      const name = req.params.name;
+      const collection = await LaunchCollectionManager.getInstance().getByName(
+        name
+      );
+      return res.status(ResponseCode.SUCCESS).json({
+        status: ResponseStatus.SUCCESS,
+        message: ResponseMessage.SUCCESS,
+        description: ResponseDescription.SUCCESS,
+        data: launchCollectionResponseData(collection),
+      });
+    } catch (error) {
+      return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json({
+        status: ResponseStatus.INTERNAL_SERVER_ERROR,
+        message: ResponseMessage.FAILED,
+        description: ResponseDescription.INTERNAL_SERVER_ERROR,
+        data: null,
+      });
+    }
+  }
 }
 
 export default LaunchCollectionController.getInstance();

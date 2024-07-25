@@ -1,4 +1,4 @@
-import { ILaunchCollection } from "../interfaces/launch-collection/launch-collection.interface";
+import { ILaunchCollection, IUpdateLaunchCollection } from "../interfaces/launch-collection/launch-collection.interface";
 import { ILaunchCollectionManager } from "../interfaces/launch-collection/launch-collection.manager.interface";
 import LaunchCollection from "../models/launch-collection.model";
 
@@ -96,13 +96,17 @@ export class LaunchCollectionManager implements ILaunchCollectionManager {
 
   public async update(
     collectionName: string,
-    collection: ILaunchCollection
+    collection: IUpdateLaunchCollection
   ): Promise<ILaunchCollection> {
+    console.log("collection test 1", collection);
+    console.log("collection test 2", collectionName);
     const updatedCollection = await LaunchCollection.findOneAndUpdate(
-      { collectionName, user: collection.user },
+      { collectionName},
       collection,
       { new: true }
     );
+
+    console.log("updatedCollection", updatedCollection);
     if (!updatedCollection) {
       throw new Error("Collection not found");
     }
@@ -182,6 +186,44 @@ export class LaunchCollectionManager implements ILaunchCollectionManager {
 
     return collections;
   }
+
+  public async getAllLaunched(
+    page: number,
+    limit: number,
+    search: string
+  ): Promise<ILaunchCollection[]> {
+    //using aggregation to search by collectionName and creatorName at the same time and also to paginate the results and return total count of documents
+    console.log("search", search);
+    console.log("page", page);
+    console.log("limit", limit);
+    const collections = await LaunchCollection.aggregate([
+      {
+        $match: {
+          $or: [
+            { collectionName: { $regex: search, $options: "i" } },
+            { creatorName: { $regex: search, $options: "i" } },
+          ],
+          isLaunched: true,
+        },
+      },
+      {
+        $facet: {
+          metadata: [{ $count: "total" }, { $addFields: { page, limit } }],
+          data: [{ $skip: (page - 1) * limit }, { $limit: limit }],
+        },
+      },
+    ]);
+
+    if (!collections) {
+      throw new Error("Collections not found");
+    }
+
+    return collections;
+  }
+
+
+
+
 
   public async getByName(collectionName: string): Promise<any> {
     const collection = await LaunchCollection.findOne({ collectionName });

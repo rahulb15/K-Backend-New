@@ -130,4 +130,4 @@ async function initAdmin() {
 
 // Call the initialization function
 initSuperAdmin();
-initAdmin();
+// initAdmin();

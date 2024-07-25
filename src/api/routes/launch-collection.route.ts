@@ -26,6 +26,9 @@ router.post(
 );
 
 
+router.get("/:name", launchCollectionController.getByName);
+
+
 
 
 router.get(
@@ -33,10 +36,13 @@ router.get(
   authMiddleware,
   launchCollectionController.getByUserId
 );
-router.get("/getAll",adminMiddleware, launchCollectionController.getAll);
+router.post("/getAll",adminMiddleware, launchCollectionController.getAll);
+
+// getAllLaunched
+router.post("/getAllLaunched", launchCollectionController.getAllLaunched);
 
 //getAllApproved
-router.get("/getAllApproved",adminMiddleware, launchCollectionController.getAllApproved);
+router.post("/getAllApproved",adminMiddleware, launchCollectionController.getAllApproved);
 
 // approve
 router.put("/approve/:id", adminMiddleware, launchCollectionController.approve);
