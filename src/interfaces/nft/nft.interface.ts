@@ -1,37 +1,26 @@
 export interface INft {
-  _id: string;
+  _id?: string;
   user: string;
   collectionId: string;
+  collectionType: string;
+  collectionName: string;
+  creator: string;
+  tokenImage: string;
+  tokenId: string;
+  nftPrice: number;
+  unlockable: boolean;
+  isRevealed: boolean;
+  digitalCode: string;
   onMarketplace: boolean;
   onSale: boolean;
-  bidInfo: any[];
+  bidInfo: string[];
   onAuction: boolean;
   sellingType: string;
   creatorName: string;
   duration: string;
-  nftPrice: string;
-  unlockable: boolean;
-  tokenId: string;
-  isRevealed: boolean;
-  digitalCode: string;
-  description: string;
-  externalLink: string;
   roylaities: string;
-  properties1: string;
-  properties2: string;
-  likes: string;
-  collectionName: string;
-  creator: string;
-  tokenImage: string;
-  hash: string;
-  imageIndex: string;
-  history: any[];
-  chartPrice: any[];
-  views: number;
-  fileImageUrl: string;
-  fileName: string;
-  createdAt: Date;
-  updatedAt: Date;
+  properties: string[];
+  likes: number;
 }
 
 export interface INfts {

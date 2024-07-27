@@ -8,6 +8,9 @@ import {
 import { INft } from "../../interfaces/nft/nft.interface";
 import { IResponseHandler } from "../../interfaces/response-handler.interface";
 import nftManager from "../../services/nft.manager";
+import { ILaunchCollection } from "../../interfaces/launch-collection/launch-collection.interface";
+import { LaunchCollectionManager } from "../../services/launch-collection.manager";
+
 
 export class NftController {
   private static instance: NftController;
@@ -22,10 +25,66 @@ export class NftController {
     return NftController.instance;
   }
 
+
+  // _id?: string;
+  // user: string;
+  // collectionId: string;
+  // collectionType: string;
+  // collectionName: string;
+  // creator: string;
+  // tokenImage: string;
+  // tokenId: string;
+  // nftPrice: number;
+  // unlockable: boolean;
+  // isRevealed: boolean;
+  // digitalCode: string;
+  // onMarketplace: boolean;
+  // onSale: boolean;
+  // bidInfo: string[];
+  // onAuction: boolean;
+  // sellingType: string;
+  // creatorName: string;
+  // duration: string;
+  // roylaities: string;
+  // properties: string[];
+  // likes: number;
+
   public async create(req: any, res: Response) {
     try {
-      const nft: INft = req.body;
-      nft.user = req.user._id;
+
+      // const data = {
+      //   collectionName: syncColName,
+      //   tokenId: response.data.result.data[0],
+      //   wallet: user?.walletName,
+      // };
+      const body: any = req.body;
+      const collection: ILaunchCollection = await LaunchCollectionManager.getInstance().getByName(body.collectionName);
+    
+
+      const nft: INft = {
+        user: req.user._id,
+        collectionId: collection._id as any,
+        collectionType: "Launchpad",
+        collectionName: body.collectionName,
+        creator: req.user._id,
+        creatorName: req.user.username,
+        onMarketplace: false,
+        onSale: false,
+        onAuction: false,
+        sellingType: "All",
+        likes: 0,
+        properties: [],
+        bidInfo: [],
+        isRevealed: false,
+        unlockable: false,
+        digitalCode: "",
+        duration: "",
+        roylaities: "",
+        tokenImage: "",
+        nftPrice: 0,
+        tokenId: body.tokenId,
+      }
+
       const newNft: INft = await nftManager.create(nft);
       const responseData: IResponseHandler = {
         status: ResponseStatus.SUCCESS,
@@ -45,9 +104,24 @@ export class NftController {
     }
   }
 
-  public async getAll(req: Request, res: Response) {
+  public async getAll(req: any, res: Response) {
     try {
-      const nfts: INft[] = await nftManager.getAll();
+      // OPTIONS /api/v1/nft?pageNo=1&limit=10&search= 204 0.166 ms - 0
+      const userId = req.user._id;
+      console.log(userId);
+      const pageNo: number = parseInt(req.query.pageNo as string);
+      const limit: number = parseInt(req.query.limit as string);
+      const search: string = req.query.search as string;
+
+
+    // ): Promise<{ nfts: INft[], total: number, currentPage: number }> {
+
+      // const nfts: INft[] = await nftManager.getAll(userId, pageNo, limit, search);
+      const nfts: any = await nftManager.getAll(userId, pageNo, limit, search);
+      
+      
+
+
       const responseData: IResponseHandler = {
         status: ResponseStatus.SUCCESS,
         message: ResponseMessage.SUCCESS,
