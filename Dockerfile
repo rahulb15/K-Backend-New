@@ -28,5 +28,4 @@ COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 # Expose the ports
 EXPOSE 5001 6379
 
-# Start Supervisor to manage services
 CMD ["supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
