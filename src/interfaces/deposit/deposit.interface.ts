@@ -3,6 +3,7 @@ export interface IDeposit {
     user: string;
     transactionId: string;
     amount: number;
+    price: number;
     cryptoCurrency: string;
     status: string;
     address: string;

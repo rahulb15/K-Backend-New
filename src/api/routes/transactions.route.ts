@@ -26,4 +26,13 @@ router.get(
   transactionsController.getByOrderId
 );
 
+router.post(
+  "/approveDeposit",
+  adminMiddleware,
+  transactionsController.approveDeposit
+);
+
+
+
+
 export default router;

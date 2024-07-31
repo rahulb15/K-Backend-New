@@ -99,6 +99,7 @@ export class DepositManager implements IDepositManager {
           },
           address: 1,
           amount: 1,
+          price: 1,
           cryptoCurrency: 1,
           status: 1,
           createdAt: 1,
@@ -137,7 +138,7 @@ export class DepositManager implements IDepositManager {
 
 
 
-  public async update(id: string, deposit: IDeposit): Promise<IDeposit> {
+  public async update(id: string, deposit: any): Promise<IDeposit> {
     const updatedDeposit = await Deposit.findByIdAndUpdate(id, deposit, {
       new: true,
     });

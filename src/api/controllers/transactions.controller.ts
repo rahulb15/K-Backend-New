@@ -313,12 +313,17 @@ export class TransactionsController {
         //   next();
         // });
 
-        const amount = parseFloat(req.body.amount);
+        const givenAmount: number = req.body.amount;
+        const givenPrice: number = req.body.price;
+
+        const amount = givenAmount * givenPrice;
         console.log(amount, "amount");
         console.log(req.body.priorityFee, "req.body.priorityFee");
         const totalAmount = amount + req.body.priorityFee;
         console.log(totalAmount, "totalAmount");
 
+        // Convert to cents and round to the nearest integer
+        const amountInCents = Math.round(totalAmount * 100);
         const session = await stripe.checkout.sessions.create({
           payment_method_types: ["card", "alipay", "amazon_pay"],
           line_items: [
@@ -328,7 +333,7 @@ export class TransactionsController {
                 product_data: {
                   name: "Deposit",
                 },
-                unit_amount: totalAmount.toFixed(2) * 100,
+                unit_amount: amountInCents,
               },
               quantity: 1,
             },
@@ -373,6 +378,7 @@ export class TransactionsController {
           user: userId,
           transactionId: newTransaction._id as string,
           amount: req.body.amount,
+          price: req.body.price,
           cryptoCurrency: req.body.cryptoCurrency,
           status: "pending",
           address: req.body.address,
@@ -491,7 +497,6 @@ export class TransactionsController {
         //   totalSupply: '4'
         // } updatedCollection
 
-
         // const collectionSchema = new mongoose.Schema({
         //   user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
         //   applicationId : { type: mongoose.Schema.Types.ObjectId },
@@ -521,7 +526,6 @@ export class TransactionsController {
         //   updatedAt: { type: Date, required: false, default: Date.now },
         // });
 
-
         // const obj_for_collection: ICollection = {
         //   user : updatedCollection.user,
         //   applicationId : updatedCollection._id,
@@ -549,20 +553,6 @@ export class TransactionsController {
         //   createdAt : new Date(),
         //   updatedAt : new Date(),
         // }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
         return res.status(ResponseCode.CREATED).json({
           status: ResponseStatus.SUCCESS,
@@ -985,5 +975,65 @@ export class TransactionsController {
       return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(responseData);
     }
   }
+
+
+  public async approveDeposit(req: Request, res: Response) {
+    try {
+      const id: string = req.body.id;
+
+      const deposit: IDeposit = await depositManager.getById(id);
+      console.log(deposit, "deposit");
+
+      if (!deposit) {
+        const responseData: IResponseHandler = {
+          status: ResponseStatus.FAILED,
+          message: ResponseMessage.NOT_FOUND,
+          description: ResponseDescription.NOT_FOUND,
+          data: null,
+        };
+        return res.status(ResponseCode.NOT_FOUND).json(responseData);
+      }
+
+      const updatedDeposit: IDeposit = await depositManager.update(id, {
+        status: "approved"
+      });
+
+      if (!updatedDeposit) {
+        const responseData: IResponseHandler = {
+          status: ResponseStatus.FAILED,
+          message: ResponseMessage.FAILED,
+          description: ResponseDescription.FAILED,
+          data: null,
+        };
+        return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(responseData);
+      }
+
+      return res.status(ResponseCode.SUCCESS).json({
+        status: ResponseStatus.SUCCESS,
+        message: ResponseMessage.SUCCESS,
+        description: ResponseDescription.SUCCESS,
+        data: updatedDeposit,
+      });
+    } catch (error) {
+      console.log(error, "error");
+      const responseData: IResponseHandler = {
+        status: ResponseStatus.FAILED,
+        message: ResponseMessage.FAILED,
+        description: ResponseDescription.FAILED,
+        data: null,
+      };
+      return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(responseData);
+    }
+  }
+
+
+
+    
+
+
+
+
+
+
 }
 export default TransactionsController.getInstance();

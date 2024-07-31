@@ -20,6 +20,13 @@ const depositSchema = new mongoose.Schema(
       required: true,
       min: [0, "Amount must be positive"],
     },
+    price: {
+      type: Number,
+      required: true,
+      min: [0, "KDA price must be positive"],
+    },
+
+
     cryptoCurrency: {
       type: String,
       enum: ["KDA", "BTC", "ETH", "LTC", "USDT"], // Example list, add more as needed
