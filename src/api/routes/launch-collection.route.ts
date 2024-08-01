@@ -53,5 +53,8 @@ router.put("/reject/:id", adminMiddleware, launchCollectionController.reject);
 // launch
 router.put("/launch/:id", adminMiddleware, launchCollectionController.launch);
 
+//getbuId
+router.get("/getById/:id",adminMiddleware, launchCollectionController.getById);
+
 
 export default router;

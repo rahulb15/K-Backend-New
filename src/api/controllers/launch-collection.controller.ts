@@ -420,6 +420,27 @@ export class LaunchCollectionController {
       });
     }
   }
+  // getById
+  public async getById(req: Request, res: Response): Promise<Response> {
+    try {
+      const id = req.params.id;
+      const collection = await LaunchCollectionManager.getInstance().getById(id);
+      return res.status(ResponseCode.SUCCESS).json({
+        status: ResponseStatus.SUCCESS,
+        message: ResponseMessage.SUCCESS,
+        description: ResponseDescription.SUCCESS,
+        data: launchCollectionResponseData(collection),
+      });
+    } catch (error) {
+      return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json({
+        status: ResponseStatus.INTERNAL_SERVER_ERROR,
+        message: ResponseMessage.FAILED,
+        description: ResponseDescription.INTERNAL_SERVER_ERROR,
+        data: null,
+      });
+    }
+  }
+
 }
 
 export default LaunchCollectionController.getInstance();

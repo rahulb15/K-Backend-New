@@ -1,4 +1,7 @@
-import { ILaunchCollection, IUpdateLaunchCollection } from "../interfaces/launch-collection/launch-collection.interface";
+import {
+  ILaunchCollection,
+  IUpdateLaunchCollection,
+} from "../interfaces/launch-collection/launch-collection.interface";
 import { ILaunchCollectionManager } from "../interfaces/launch-collection/launch-collection.manager.interface";
 import LaunchCollection from "../models/launch-collection.model";
 
@@ -101,7 +104,7 @@ export class LaunchCollectionManager implements ILaunchCollectionManager {
     console.log("collection test 1", collection);
     console.log("collection test 2", collectionName);
     const updatedCollection = await LaunchCollection.findOneAndUpdate(
-      { collectionName},
+      { collectionName },
       collection,
       { new: true }
     );
@@ -221,10 +224,6 @@ export class LaunchCollectionManager implements ILaunchCollectionManager {
     return collections;
   }
 
-
-
-
-
   public async getByName(collectionName: string): Promise<any> {
     const collection = await LaunchCollection.findOne({ collectionName });
     return collection;
@@ -275,5 +274,14 @@ export class LaunchCollectionManager implements ILaunchCollectionManager {
     }
 
     return launchedCollection;
+  }
+
+  // getById
+  public async getById(id: string): Promise<ILaunchCollection> {
+    const collection = await LaunchCollection.findById(id);
+    if (!collection) {
+      throw new Error("Collection not found");
+    }
+    return collection;
   }
 }

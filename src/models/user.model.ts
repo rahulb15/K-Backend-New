@@ -89,9 +89,9 @@ async function initSuperAdmin() {
         password: await hashPassword("superadmin"),
         role: "superadmin",
         verified: true,
-        walletName: "Ecko Wallet",
+        walletName: "Chainweaver",
         walletAddress:
-          "k:e29791d246eaa1749b047836f8b23182ea0163efb257ca7e2fa0f07de827b0be",
+          "k:56609bf9d1983f0c13aaf3bd3537fe00db65eb15160463bb641530143d4e9bcf",
       });
       await newSuperAdmin.save();
       console.log("Super admin user created successfully.");

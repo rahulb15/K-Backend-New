@@ -43,6 +43,9 @@ export const launchCollectionResponseData = (collection: ILaunchCollection) => {
     presalePrice: collection.presalePrice,
     presaleAddressess: collection.presaleAddressess,
     enableAirdrop : collection.enableAirdrop,
+    isApproved: collection.isApproved,
+    isRejected: collection.isRejected,
+    isLaunched: collection.isLaunched,
     createdAt: collection.createdAt,
     updatedAt: collection.updatedAt,
   };
