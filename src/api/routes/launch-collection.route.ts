@@ -7,6 +7,7 @@ import upload from "../../middlewares/multer.middleware";
 const router = Router();
 
 router.post("/create", authMiddleware, launchCollectionController.create);
+router.post("/create-pass", adminMiddleware, launchCollectionController.create);
 router.put(
   "/update/:collectionName",
   authMiddleware,
@@ -23,6 +24,22 @@ router.post(
   authMiddleware,
   upload,
   launchCollectionController.uploadImage
+);
+
+// upload-image
+router.post(
+  "/upload-image-data",
+  authMiddleware,
+  upload,
+  launchCollectionController.uploadImageOnCloud
+);
+
+// upload-image
+router.post(
+  "/upload-image-data-admin",
+  adminMiddleware,
+  upload,
+  launchCollectionController.uploadImageOnCloud
 );
 
 
