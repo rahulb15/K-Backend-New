@@ -20,6 +20,7 @@ export interface INft {
   duration: string;
   roylaities: string;
   properties: string[];
+  attributes: string[];
   likes: number;
 }
 

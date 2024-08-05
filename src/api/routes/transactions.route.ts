@@ -13,6 +13,12 @@ router.get(
   authMiddleware,
   transactionsController.checkTransaction
 );
+//get all deposits
+router.post(
+  "/getAllDeposits",
+  authMiddleware,
+  transactionsController.getAllDeposits
+);
 
 router.post("/getAll", adminMiddleware, transactionsController.getAllDeposit);
 router.get("/getPaymentDetail/:id", adminMiddleware, transactionsController.getById);
@@ -31,6 +37,7 @@ router.post(
   adminMiddleware,
   transactionsController.approveDeposit
 );
+
 
 
 

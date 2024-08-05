@@ -124,6 +124,7 @@ export class NftController {
           sellingType: "All",
           likes: 0,
           properties: [],
+          attributes: [],
           bidInfo: [],
           isRevealed: false,
           unlockable: false,

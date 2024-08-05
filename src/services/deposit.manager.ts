@@ -21,6 +21,7 @@ export class DepositManager implements IDepositManager {
   }
 
   public async getAll(): Promise<IDeposit[]> {
+    console.log("getAll");
     return Deposit.find();
   }
 

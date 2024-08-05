@@ -23,6 +23,7 @@ const nftSchema = new mongoose.Schema({
   duration: { type: String },
   roylaities: { type: String },
   properties: { type: Array },
+  attributes: { type: Array },
   likes: { type: Number },
 });
 

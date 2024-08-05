@@ -163,7 +163,8 @@ export class LaunchCollectionManager implements ILaunchCollectionManager {
     search: string,
     userId: string
   ): Promise<ILaunchCollection[]> {
-    //using aggregation to search by collectionName and creatorName at the same time and also to paginate the results and return total count of documents
+    // using aggregation to search by collectionName and creatorName at the same time
+    // and also to paginate the results and return total count of documents
     const collections = await LaunchCollection.aggregate([
       {
         $match: {
@@ -173,6 +174,7 @@ export class LaunchCollectionManager implements ILaunchCollectionManager {
           ],
           isApproved: true,
           user: userId,
+          collectionName: { $ne: "Priority Pass" }  // Exclude collectionName "Priority Pass"
         },
       },
       {
@@ -182,13 +184,14 @@ export class LaunchCollectionManager implements ILaunchCollectionManager {
         },
       },
     ]);
-
+  
     if (!collections) {
       throw new Error("Collections not found");
     }
-
+  
     return collections;
   }
+  
 
   public async getAllLaunched(
     page: number,

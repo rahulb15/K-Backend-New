@@ -9,21 +9,21 @@ function ipfsResolution(cid:any) {
   return `https://${PREFERED_GATEWAY}/ipfs/${cid}`;
 }
 
-// Helper function to convert any URL to IPFS gateway URL
-function convertToIPFSUrl(url: string): string {
-  if (url.startsWith('ipfs://')) {
-    return `https://ipfs.io/ipfs/${url.split('ipfs://')[1]}`;
-  } else if (url.startsWith('https://ipfs.io/ipfs/')) {
-    return url; // Already in the correct format
-  } else if (url.startsWith('http://') || url.startsWith('https://')) {
-    // For other HTTP(S) URLs, assume the last part is the CID
-    const parts = url.split('/');
-    return `https://ipfs.io/ipfs/${parts[parts.length - 1]}`;
-  } else {
-    // For anything else (including blob URLs), treat the entire string as a CID
-    return `https://ipfs.io/ipfs/${url.replace('blob:', '')}`;
-  }
-}
+// // Helper function to convert any URL to IPFS gateway URL
+// function convertToIPFSUrl(url: string): string {
+//   if (url.startsWith('ipfs://')) {
+//     return `https://ipfs.io/ipfs/${url.split('ipfs://')[1]}`;
+//   } else if (url.startsWith('https://ipfs.io/ipfs/')) {
+//     return url; // Already in the correct format
+//   } else if (url.startsWith('http://') || url.startsWith('https://')) {
+//     // For other HTTP(S) URLs, assume the last part is the CID
+//     const parts = url.split('/');
+//     return `https://ipfs.io/ipfs/${parts[parts.length - 1]}`;
+//   } else {
+//     // For anything else (including blob URLs), treat the entire string as a CID
+//     return `https://ipfs.io/ipfs/${url.replace('blob:', '')}`;
+//   }
+// }
 
 
 async function fetchIPFSData(uri:any) {
@@ -63,6 +63,34 @@ async function fetchIPFSData(uri:any) {
     console.error("Error fetching IPFS data:", error);
     throw error;
   }
+}
+
+async function fetchMetadata(uri: string): Promise<any> {
+  try {
+    let response;
+    if (uri.startsWith('ipfs://')) {
+      response = await fetch(convertToIPFSUrl(uri));
+    } else {
+      response = await fetch(uri);
+    }
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching metadata:', error);
+    throw error;
+  }
+}
+
+function convertToIPFSUrl(ipfsUri: string): string {
+  if (ipfsUri.startsWith('ipfs://')) {
+    return `https://ipfs.io/ipfs/${ipfsUri.slice(7)}`;
+  }
+  return ipfsUri;
 }
 
 
@@ -192,8 +220,12 @@ export class NftManager implements INftManager {
         return { message: "Too many token IDs provided" };
     }
 
+    console.log("continue");
+
     // Update each NFT with the corresponding token ID
     const updatePromises = nftData.map((item, index) => {
+      console.log(index, "index");
+      console.log(nft.tokenId[index], "nft.tokenId[index]");
         return Nft.updateOne(
             { _id: item._id },
             { $set: { tokenId: nft.tokenId[index], isRevealed: true } }
@@ -266,32 +298,36 @@ export class NftManager implements INftManager {
 
 public async updateRevealedNFTs(nft: any): Promise<any> {
   console.log(nft, "nftaaazzzzz");
-
-  const collectionName = nft.reveledData[0].collection.name;
   const updatePromises = nft.reveledData.map(async (item: any, index: number) => {
+    console.log(item.collection, "item.collection");
     const tokenId = item['token-id'];
     console.log(tokenId, "tokenId " + index);
     const uri = item.uri;
     console.log(uri, "uri");
 
     try {
-      // Fetch IPFS data
-      const ipfsData = await fetchIPFSData(uri);
-      console.log(ipfsData, "ipfsData" + index);
+      // Fetch metadata (works for both IPFS and HTTP URLs)
+      const metadata = await fetchMetadata(uri);
+      console.log(metadata, "metadata" + index);
 
       let imageUrl = '';
-      let metadata = {};
 
-      if (typeof ipfsData === 'object' && ipfsData !== null) {
-        metadata = ipfsData;
-        if (ipfsData.image) {
-          imageUrl = convertToIPFSUrl(ipfsData.image);
-        }
+      if (typeof metadata === 'object' && metadata !== null && metadata.image) {
+        imageUrl = metadata.image.startsWith('ipfs://') 
+          ? convertToIPFSUrl(metadata.image)
+          : metadata.image;
       }
+
+      console.log("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+      console.log(tokenId, "tokenId " + index);
+      console.log(metadata, "metadata" + index);
+      console.log(imageUrl, "imageUrl" + index);
+      console.log(item.collection.name, "item.collection.name" + index);
+      console.log("=========================================================================");
 
       // Find the NFT in the database and update it
       const updatedNft = await Nft.findOneAndUpdate(
-        { tokenId: tokenId, collectionName: collectionName },
+        { tokenId: tokenId, collectionName: item.collection.name === "priority_pass_001" ? "Priority Pass" : item.collection.name },
         {
           $set: {
             isRevealed: true,

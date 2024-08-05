@@ -19,6 +19,7 @@ import Deposit from "../../models/deposit.model";
 import { v4 as uuidv4 } from "uuid";
 import { ICollection } from "../../interfaces/collection/collection.interface";
 import collectionManager from "../../services/collection.manager";
+import { depositResponseData } from "../../utils/userResponse/deposit-response.utils";
 
 // import mongoose from "mongoose";
 // import { IDeposit } from "../interfaces/deposit/deposit.interface";
@@ -845,6 +846,7 @@ export class TransactionsController {
       const limit = parseInt(req.body.limit as string);
       const page = parseInt(req.body.page as string);
       const search = req.body.search as string;
+      console.log(limit, "limit");
       const deposits: IDeposit[] = await depositManager.getAllDeposit(
         limit,
         page,
@@ -1014,6 +1016,48 @@ export class TransactionsController {
         description: ResponseDescription.SUCCESS,
         data: updatedDeposit,
       });
+    } catch (error) {
+      console.log(error, "error");
+      const responseData: IResponseHandler = {
+        status: ResponseStatus.FAILED,
+        message: ResponseMessage.FAILED,
+        description: ResponseDescription.FAILED,
+        data: null,
+      };
+      return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(responseData);
+    }
+  }
+
+  //getAll with pagination srarch and order_type deposit
+  public async getAllDeposits(req: Request, res: Response) {
+    try {
+      const limit = parseInt(req.body.limit as string);
+      const page = parseInt(req.body.page as string);
+      const search = req.body.search as string;
+      console.log(limit, "limit");
+      const deposits: any[] = await depositManager.getAllDeposit(
+        limit,
+        page,
+        search
+      );
+
+
+      console.log(deposits[0], "deposits");
+      const depositsData = deposits[0].deposits.map((deposit:IDeposit) => depositResponseData(deposit));
+      console.log(depositsData, "depositsData");
+
+      deposits[0].deposits = depositsData;
+
+
+
+      const responseData: IResponseHandler = {
+        status: ResponseStatus.SUCCESS,
+        message: ResponseMessage.SUCCESS,
+        description: ResponseDescription.SUCCESS,
+        data: deposits,
+      };
+
+      return res.status(ResponseCode.SUCCESS).json(responseData);
     } catch (error) {
       console.log(error, "error");
       const responseData: IResponseHandler = {
