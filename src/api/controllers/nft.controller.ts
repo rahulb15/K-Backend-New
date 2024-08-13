@@ -213,6 +213,29 @@ export class NftController {
     }
   }
 
+  public async onSale(req: any, res: Response) {
+    try {
+      const body: any = req.body;
+      console.log(body);
+      const updatedNft: INft = await nftManager.onSale(body);
+      const responseData: IResponseHandler = {
+        status: ResponseStatus.SUCCESS,
+        message: ResponseMessage.UPDATED,
+        description: ResponseDescription.UPDATED,
+        data: updatedNft,
+      };
+      return res.status(ResponseCode.SUCCESS).json(responseData);
+    } catch (error) {
+      const responseData: IResponseHandler = {
+        status: ResponseStatus.FAILED,
+        message: ResponseMessage.FAILED,
+        description: ResponseDescription.FAILED,
+        data: null,
+      };
+      return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(responseData);
+    }
+  }
+
   // update
   public async update(req: any, res: Response) {
     try {
@@ -284,6 +307,34 @@ export class NftController {
         message: ResponseMessage.SUCCESS,
         description: ResponseDescription.SUCCESS,
         data: null,
+      };
+      return res.status(ResponseCode.SUCCESS).json(responseData);
+    } catch (error) {
+      const responseData: IResponseHandler = {
+        status: ResponseStatus.FAILED,
+        message: ResponseMessage.FAILED,
+        description: ResponseDescription.FAILED,
+        data: null,
+      };
+      return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(responseData);
+    }
+  }
+
+  // getMarketPlaceNfts
+  public async getMarketPlaceNfts(req: any, res: Response) {
+    try {
+      const pageNo: number = parseInt(req.query.pageNo as string);
+      const limit: number = parseInt(req.query.limit as string);
+      const search: string = req.query.search as string;
+      console.log(pageNo, limit, search);
+
+      const nfts: any = await nftManager.getMarketPlaceNfts( pageNo, limit, search);
+
+      const responseData: IResponseHandler = {
+        status: ResponseStatus.SUCCESS,
+        message: ResponseMessage.SUCCESS,
+        description: ResponseDescription.SUCCESS,
+        data: nfts,
       };
       return res.status(ResponseCode.SUCCESS).json(responseData);
     } catch (error) {
