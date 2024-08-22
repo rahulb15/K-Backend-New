@@ -1,4 +1,6 @@
 import mongoose from "mongoose";
+import Nft from "../models/nft.model";
+import LaunchCollection from "../models/launch-collection.model";
 
 const dbUrl = () => {
   switch (process.env.NODE_ENV) {
@@ -15,26 +17,6 @@ const dbUrl = () => {
   }
 };
 
-if (!dbUrl) {
-  throw new Error("DB_URL environment variable is not set.");
-}
-
-// const connectToDatabase = async (): Promise<void> => {
-//   try {
-//     await mongoose.connect(
-//       dbUrl() as string,
-//       {
-//         useNewUrlParser: true,
-//         useUnifiedTopology: true,
-//       } as mongoose.ConnectOptions
-//     );
-//     console.log("Connected to MongoDB");
-//   } catch (error) {
-//     console.error("Failed to connect to MongoDB:", error);
-//     process.exit(1);
-//   }
-// };
-
 const connectToDatabase = async (): Promise<void> => {
   const connectionString = dbUrl();
   if (!connectionString) {
@@ -44,12 +26,29 @@ const connectToDatabase = async (): Promise<void> => {
   try {
     await mongoose.connect(connectionString);
     console.log("Connected to MongoDB");
+
+    // Create indexes after successful connection
+    await createIndexes();
   } catch (error) {
     console.error("Failed to connect to MongoDB:", error);
     process.exit(1);
   }
 };
 
-
+const createIndexes = async (): Promise<void> => {
+  try {
+    await Nft.createIndexes();
+    await LaunchCollection.createIndexes();
+    console.log("Indexes have been created or updated");
+  } catch (error) {
+    if (error instanceof mongoose.mongo.MongoServerError && error.code === 11000) {
+      console.warn("Duplicate key error when creating indexes. This is expected if you have existing duplicate data.");
+      console.warn("The non-unique index on tokenId will still be created.");
+    } else {
+      console.error("Error creating indexes:", error);
+    }
+    // We don't exit the process here, allowing the application to continue running
+  }
+};
 
 export default connectToDatabase;

@@ -17,12 +17,28 @@ import * as middlewares from "./middlewares/response-handler.middleware";
 import { options } from "./swagger";
 import { jwtSign } from "./utils/jwt.sign";
 import { userResponseData } from "./utils/userResponse/user-response.utils";
+const salesRoutes = require('./marmalade/routes/salesRoutes.js');
+const collectionRoutes = require('./marmalade/routes/collectionRoutes.js');
+const { MarmaladeNGClient, set_client } = require('./marmalade/chainweb_marmalade_ng.js');
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const passport = require("passport");
 const session = require("express-session");
 const cookieParser = require("cookie-parser");
 require("dotenv").config();
 require("./mail/transporter.mail");
+require("./marmalade/services/cron-job/cron-job");
+import { setupRealTimeSync } from "./config/elasticsearchSync";
+setupRealTimeSync();
+// Initialize the MarmaladeNGClient
+const client = new MarmaladeNGClient(
+  'Testnet Chain 1',
+  'https://api.testnet.chainweb.com',
+  'testnet04',
+  '1',
+  'n_442d3e11cfe0d39859878e5b1520cd8b8c36e5db',
+  'n_a55cdf159bc9fda0a8af03a71bb046942b1e4faf'
+);
+set_client(client);
 
 // const data = userResponseData(user);
 //       const response: IResponseHandler = {
@@ -139,6 +155,12 @@ app.get("/api/v1/logout", (req, res) => {
 
 // Routes
 app.use("/api/v1", api);
+
+app.use(express.json());
+
+//MarmaledNG Routes
+app.use('/api/v1/marmalade/sales', salesRoutes);
+app.use('/api/v1/marmalade/collections', collectionRoutes);
 
 app.use(middlewares.notFound);
 app.use(middlewares.errorHandler);

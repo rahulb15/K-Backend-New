@@ -15,5 +15,5 @@
     "src/**/*.ts",
     "test/**/*.ts", "src/utils/auth", "src/config/sumsub.config.js",
     "src/types/environment.d.ts"
-  ],
+, "src/marmalade/services/SalesProcessingService.js", "src/marmalade/services/cron-job/cron-job.js", "src/marmalade/chainweb_marmalade_ng.js", "src/marmalade/services/salesService.js", "src/marmalade/services/cron-job/worket.ts", "src/marmalade/services/cron-job/processingManager.js"  ],
 }

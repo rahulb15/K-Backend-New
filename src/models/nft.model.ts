@@ -25,7 +25,43 @@ const nftSchema = new mongoose.Schema({
   properties: { type: Array },
   attributes: { type: Array },
   likes: { type: Number },
+  // New fields
+  isPlatform: { type: Boolean, default: false },
+  saleType: { type: String, enum: ['f', 'a', 'd'] },
+  saleId: { type: String },
+  price: { type: String },
+  amount: { type: String },
+  timeout: { type: Date },
+  currency: { type: String },
+  enabled: { type: Boolean },
+  seller: { type: String },
+  recipient: { type: String },
+  escrowAccount: { type: String },
+  uri: { type: String },
+  supply: { type: Object },
+  policies: { type: [String] },
+  collection: { type: Object },
+  nftData: { type: Object },
+  lastUpdated: { type: Date, default: Date.now }
 });
+
+// Indexes
+nftSchema.index({ tokenId: 1 }, { unique: false }); // Changed to non-unique
+nftSchema.index({ user: 1 });
+nftSchema.index({ collectionId: 1 });
+nftSchema.index({ creator: 1 });
+nftSchema.index({ onMarketplace: 1 });
+nftSchema.index({ onSale: 1 });
+nftSchema.index({ onAuction: 1 });
+nftSchema.index({ saleType: 1 });
+nftSchema.index({ saleId: 1 });
+nftSchema.index({ seller: 1 });
+nftSchema.index({ lastUpdated: -1 });
+
+// Compound indexes
+nftSchema.index({ collectionId: 1, onSale: 1 });
+nftSchema.index({ creator: 1, onMarketplace: 1 });
+nftSchema.index({ saleType: 1, price: 1 });
 
 const Nft = mongoose.model<INft & mongoose.Document>("Nft", nftSchema);
 

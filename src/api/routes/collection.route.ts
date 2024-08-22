@@ -6,6 +6,7 @@ import { adminMiddleware } from "../../middlewares/admin.auth.middleware";
 const router = Router();
 
 router.post("/", adminMiddleware, collectionController.create);
+router.post("/getAll", collectionController.getAllPaginationData);
 
 router.get("/", collectionController.getAll);
 // router.get("/:id", authMiddleware, collectionController.getById);

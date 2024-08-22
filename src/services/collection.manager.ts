@@ -38,6 +38,52 @@ export class CollectionManager implements ICollectionManager {
     })) as ICollection;
     return collection;
   }
+
+  // getAllPaginationData
+  // public async getAllPaginationData(
+  //   page: number,
+  //   limit: number
+  // ): Promise<ICollection[]> {
+  //   return Collection.find()
+  //     .skip((page - 1) * limit)
+  //     .limit(limit);
+
+  //   // return data with pagination and total count using aggregation
+
+
+  // }
+  public async getAllPaginationData(
+    page: number,
+    limit: number,
+    search: string
+  ): Promise<{ data: ICollection[]; totalCount: number }> {
+    const query = search
+    ? { collectionName: { $regex: search, $options: 'i' } }
+    : {};
+
+  const result = await Collection.aggregate([
+    { $match: query },
+    {
+      $facet: {
+        data: [
+          { $skip: (page - 1) * limit },
+          { $limit: limit }
+        ],
+        totalCount: [
+          { $count: 'count' }
+        ]
+      }
+    }
+  ]);
+
+  const data = result[0].data;
+  const totalCount = result[0].totalCount[0]?.count || 0;
+  
+    return { data, totalCount };
+  }
+
+
+
 }
 
 export default CollectionManager.getInstance();

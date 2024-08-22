@@ -204,8 +204,9 @@ export class NftManager implements INftManager {
        // First, get the total count of matching documents
        const total = await Nft.countDocuments({
         onMarketplace: true,
-        collectionName: { $regex: search, $options: "i" },
+        // collectionName: { $regex: search, $options: "i" },
       });
+      console.log(total, "total");
 
 
 
@@ -213,27 +214,28 @@ export class NftManager implements INftManager {
       {
         $match: {
           onMarketplace: true,
-          collectionName: { $regex: search, $options: "i" },
+          // collectionName: { $regex: search, $options: "i" },
         },
       },
-      {
-        $lookup: {
-          from: "users",
-          localField: "user",
-          foreignField: "_id",
-          as: "user",
-        },
-      },
-      {
-        $unwind: "$user",
-      },
+      // {
+      //   $lookup: {
+      //     from: "users",
+      //     localField: "user",
+      //     foreignField: "_id",
+      //     as: "user",
+      //   },
+      // },
+      // {
+      //   $unwind: "$user",
+      // },
       {
         $project: {
           user: 1,
           collectionId: 1,
           collectionType: 1,
           collectionName: 1,
-          creator: "$user.username",
+          // creator: "$user.username",
+          creator:1,
           tokenImage: 1,
           tokenId: 1,
           nftPrice: 1,
@@ -454,6 +456,88 @@ public async updateRevealedNFTs(nft: any): Promise<any> {
   return updatedNfts;
 }
 
+
+public async getCollectionNfts(
+  pageNo: number,
+  limit: number,
+  search: string,
+  collectionName: string
+): Promise<{ nfts: INft[], total: number, currentPage: number }> {
+console.log(collectionName, "collectionName---------------------------------------------");
+  // First, get the total count of matching documents
+  const total = await Nft.countDocuments({
+    collectionName: collectionName,
+  });
+  console.log(total, "total");
+
+  const nfts: INft[] = await Nft.aggregate([
+    {
+      $match: {
+        collectionName: collectionName,
+      },
+    },
+    {
+      $project: {
+        user: 1,
+        collectionId: 1,
+        collectionType: 1,
+        collectionName: 1,
+        AccountId: 1,
+        creator: 1,
+        tokenImage: 1,
+        tokenId: 1,
+        nftPrice: 1,
+        unlockable: 1,
+        isRevealed: 1,
+        digitalCode: 1,
+        onMarketplace: 1,
+        onSale: 1,
+        bidInfo: 1,
+        onAuction: 1,
+        sellingType: 1,
+        creatorName: 1,
+        duration: 1,
+        royalties: 1,
+        properties: 1,
+        attributes: 1,
+        likes: 1,
+        isPlatform: 1,
+        saleType: 1,
+        saleId: 1,
+        price: 1,
+        amount: 1,
+        timeout: 1,
+        currency: 1,
+        enabled: 1,
+        seller: 1,
+        recipient: 1,
+        escrowAccount: 1,
+        uri: 1,
+        supply: 1,
+        policies: 1,
+        collection: 1,
+        nftData: 1,
+        lastUpdated: 1,
+        createdAt: 1
+      },
+    },
+    {
+      $sort: { createdAt: -1 },
+    },
+    {
+      $skip: (pageNo - 1) * limit,
+    },
+    {
+      $limit: limit,
+    },
+  ]);
+
+  return {
+    nfts,
+    total,
+    currentPage: pageNo
+  };
+}
 
 
 

@@ -60,32 +60,70 @@ export class CollectionController {
 
 
      
-         const collection: ICollection = {
-          user : existingLaunchCollection.user,
-          applicationId : existingLaunchCollection._id,
-          applicationType : req.body.applicationType,
-          collectionName : existingLaunchCollection.collectionName,
-          slug : existingLaunchCollection.collectionName.toLowerCase().replace(/ /g, "-"),
-          tokenSymbol : "",
-          collectionInfo : existingLaunchCollection.projectDescription,
-          collectionUrl : "",
-          category : existingLaunchCollection.projectCategory,
-          imageUrl : existingLaunchCollection.collectionCoverImage,
-          bannerUrl : existingLaunchCollection.collectionBannerImage,
-          totalSupply : parseInt(existingLaunchCollection.totalSupply),
-          mintPrice : parseFloat(existingLaunchCollection.mintPrice),
-          isActive : false,
-          tokenList : [],
-          royaltyFee : parseFloat(existingLaunchCollection.royaltyPercentage),
-          royaltyAddress : "",
-          totalNftPrice : 0,
-          totalNft : 0,
-          minNftPrice : 0,
-          maxNftPrice : 0,
-          totalNftUser : 0,
-          createdAt : new Date(),
-          updatedAt : new Date(),
-        }
+        //  const collection: ICollection = {
+        //   user : existingLaunchCollection.user,
+        //   applicationId : existingLaunchCollection._id,
+        //   applicationType : req.body.applicationType,
+        //   collectionName : existingLaunchCollection.collectionName,
+        //   slug : existingLaunchCollection.collectionName.toLowerCase().replace(/ /g, "-"),
+        //   tokenSymbol : "",
+        //   collectionInfo : existingLaunchCollection.projectDescription,
+        //   collectionUrl : "",
+        //   category : existingLaunchCollection.projectCategory,
+        //   imageUrl : existingLaunchCollection.collectionCoverImage,
+        //   bannerUrl : existingLaunchCollection.collectionBannerImage,
+        //   totalSupply : parseInt(existingLaunchCollection.totalSupply),
+        //   mintPrice : parseFloat(existingLaunchCollection.mintPrice),
+        //   isActive : false,
+        //   tokenList : [],
+        //   royaltyFee : parseFloat(existingLaunchCollection.royaltyPercentage),
+        //   royaltyAddress : "",
+        //   totalNftPrice : 0,
+        //   totalNft : 0,
+        //   minNftPrice : 0,
+        //   maxNftPrice : 0,
+        //   totalNftUser : 0,
+        //   createdAt : new Date(),
+        //   updatedAt : new Date(),
+        // }
+        const collection: ICollection = {
+          user: existingLaunchCollection.user,
+          applicationId: existingLaunchCollection._id,
+          applicationType: req.body.applicationType,
+          collectionName: existingLaunchCollection.collectionName,
+          slug: existingLaunchCollection.collectionName.toLowerCase().replace(/ /g, "-"),
+          tokenSymbol: "",
+          collectionInfo: existingLaunchCollection.projectDescription,
+          collectionUrl: "",
+          category: existingLaunchCollection.projectCategory,
+          imageUrl: existingLaunchCollection.collectionCoverImage,
+          bannerUrl: existingLaunchCollection.collectionBannerImage,
+          totalSupply: parseInt(existingLaunchCollection.totalSupply),
+          mintPrice: parseFloat(existingLaunchCollection.mintPrice),
+          isActive: false,
+          tokenList: [],
+          royaltyFee: parseFloat(existingLaunchCollection.royaltyPercentage),
+          royaltyAddress: "",
+          totalNftPrice: 0,
+          totalNft: 0,
+          minNftPrice: 0,
+          maxNftPrice: 0,
+          totalNftUser: 0,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          collectionId: "", // Set to default, will need to be generated or assigned later
+          size: "", // Default empty string
+          maxSize: "", // Default empty string
+          creator: existingLaunchCollection.creator || "", // If `creator` exists, else default to empty string
+          creatorGuard: {}, // Default to empty object
+          tokens: [], // Default to empty array
+          firstTokenData: null, // Default to null
+          lastUpdated: new Date(), // Default to current date
+          collectionCoverImage: existingLaunchCollection.collectionCoverImage || "", // Default to empty string
+          collectionBannerImage: existingLaunchCollection.collectionBannerImage || "", // Default to empty string
+          reservePrice: 0, // Default to 0
+        };
+        
 
         console.log(collection, "collection");
 
@@ -159,14 +197,6 @@ export class CollectionController {
     try {
       const name: string = req.params.name;
       const collection: ICollection = await collectionManager.getByName(name);
-      console.log(collection, "collection");
-      // const responseData: IResponseHandler = {
-      //   status: ResponseStatus.SUCCESS,
-      //   message: ResponseMessage.SUCCESS,
-      //   description: ResponseDescription.SUCCESS,
-      //   data: collectionResponseData(collection),
-      // };
-      // return res.status(ResponseCode.SUCCESS).json(responseData);
       if (!collection) {
         return res.status(ResponseCode.NOT_FOUND).json({
           status: ResponseStatus.FAILED,
@@ -188,6 +218,77 @@ export class CollectionController {
 
 
     } catch (error) {
+      const responseData: IResponseHandler = {
+        status: ResponseStatus.FAILED,
+        message: ResponseMessage.FAILED,
+        description: ResponseDescription.FAILED,
+        data: null,
+      };
+      return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(responseData);
+    }
+  }
+
+  // getAllPaginationData
+  // public async getAllPaginationData(req: Request, res: Response) {
+  //   try {
+  //     const { page, limit } = req.body;
+  //     const collections: ICollection[] = await collectionManager.getAllPaginationData(
+  //       page,
+  //       limit
+  //     );
+  //     const responseData: IResponseHandler = {
+  //       status: ResponseStatus.SUCCESS,
+  //       message: ResponseMessage.SUCCESS,
+  //       description: ResponseDescription.SUCCESS,
+  //       data: collections.map((collection) =>
+  //         collectionResponseData(collection)
+  //       ),
+  //     };
+  //     return res.status(ResponseCode.SUCCESS).json(responseData);
+  //   } catch (error) {
+  //     const responseData: IResponseHandler = {
+  //       status: ResponseStatus.FAILED,
+  //       message: ResponseMessage.FAILED,
+  //       description: ResponseDescription.FAILED,
+  //       data: null,
+  //     };
+  //     return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(responseData);
+  //   }
+  // }
+
+  public async getAllPaginationData(req: Request, res: Response) {
+    try {
+      const page = parseInt(req.body.page as string) || 1;
+      const limit = parseInt(req.body.limit as string) || 10;
+      const search = req.body.search as string || '';
+      console.log(page, limit, "page, limit");
+  
+      const { data: collections, totalCount } = await collectionManager.getAllPaginationData(
+        page,
+        limit,
+        search
+      );
+  
+      const responseData: IResponseHandler = {
+        status: ResponseStatus.SUCCESS,
+        message: ResponseMessage.SUCCESS,
+        description: ResponseDescription.SUCCESS,
+        data: {
+          collections: collections.map((collection: any) =>
+            collectionResponseData(collection)
+          ),
+          pagination: {
+            currentPage: page,
+            limit: limit,
+            totalItems: totalCount,
+            totalPages: Math.ceil(totalCount / limit)
+          }
+        },
+      };
+  
+      return res.status(ResponseCode.SUCCESS).json(responseData);
+    } catch (error) {
+      console.error('Error in getAllPaginationData:', error);
       const responseData: IResponseHandler = {
         status: ResponseStatus.FAILED,
         message: ResponseMessage.FAILED,

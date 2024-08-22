@@ -1,4 +1,5 @@
 import { ICollection } from "../../interfaces/collection/collection.interface";
+
 export const collectionResponseData = (collection: ICollection) => {
   return {
     _id: collection._id,
@@ -26,5 +27,16 @@ export const collectionResponseData = (collection: ICollection) => {
     totalNftUser: collection.totalNftUser,
     createdAt: collection.createdAt,
     updatedAt: collection.updatedAt,
+    collectionId: collection.collectionId,
+    size: collection.size,
+    maxSize: collection.maxSize,
+    creator: collection.creator,
+    creatorGuard: collection.creatorGuard,
+    tokens: collection.tokens,
+    firstTokenData: collection.firstTokenData,
+    lastUpdated: collection.lastUpdated,
+    collectionCoverImage: collection.collectionCoverImage,
+    collectionBannerImage: collection.collectionBannerImage,
+    reservePrice: collection.reservePrice,
   };
 };
