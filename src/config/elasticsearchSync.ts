@@ -7,7 +7,7 @@ import { INft } from '../interfaces/nft/nft.interface';
 
 // It's better to use environment variables for sensitive information
 const ELASTICSEARCH_USERNAME = process.env.ELASTICSEARCH_USERNAME || 'elastic';
-const ELASTICSEARCH_PASSWORD = process.env.ELASTICSEARCH_PASSWORD || 'DdaX8+i3ks2wGVDmBoNJ';
+const ELASTICSEARCH_PASSWORD = process.env.ELASTICSEARCH_PASSWORD || 'ExLkqmnDybOnCHuqy7+K';
 
 const esClient = new Client({
   node: 'https://172.18.0.2:9200',
@@ -60,7 +60,6 @@ async function indexNft(nft: INft & mongoose.Document): Promise<void> {
         tokenImage: nft.tokenImage,
         nftPrice: nft.nftPrice,
         attributes: nft.attributes,
-        // Add other relevant fields
       }
     });
   } catch (error) {
@@ -79,10 +78,9 @@ async function indexCollection(collection: ICollection & mongoose.Document): Pro
       id: collection._id.toString(),
       document: {
         collectionName: collection.collectionName,
-        collectionInfo: collection.collectionInfo,
         category: collection.category,
         creator: collection.creator,
-        // Add other relevant fields
+        collectionBannerImage: collection.collectionBannerImage,
       }
     });
   } catch (error) {
@@ -140,6 +138,103 @@ function setupRealTimeSync(): void {
   });
 }
 
+async function searchNftsAndCollections(query: string): Promise<any> {
+  try {
+    const result = await esClient.search({
+      index: ['nfts', 'collections'],
+      body: {
+        query: {
+          multi_match: {
+            query: query,
+            fields: ['tokenId', 'collectionName', 'creator', 'category', 'collectionInfo']
+          }
+        }
+      }
+    });
+    
+    return result.hits.hits;
+  } catch (error) {
+    console.error('Error searching NFTs and Collections:', error);
+    throw error;
+  }
+}
+
+
+async function flexibleSearchNftsAndCollections(query: string): Promise<any> {
+  try {
+    const result = await esClient.search({
+      index: ['nfts', 'collections'],
+      body: {
+        query: {
+          bool: {
+            should: [
+              {
+                multi_match: {
+                  query: query,
+                  fields: ['tokenId', 'collectionName', 'creator', 'category', 'collectionInfo'],
+                  fuzziness: 'AUTO',
+                  prefix_length: 2
+                }
+              },
+              {
+                wildcard: {
+                  collectionName: {
+                    value: `*${query.toLowerCase()}*`
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    });
+    
+    return result.hits.hits;
+  } catch (error) {
+    console.error('Error in flexible search for NFTs and Collections:', error);
+    throw error;
+  }
+}
+
+// flexibleSearchCollections('collection');
+async function flexibleSearchCollections(query: string): Promise<any> {
+  try {
+    const result = await esClient.search({
+      index: 'collections',
+      body: {
+        query: {
+          bool: {
+            should: [
+              {
+                multi_match: {
+                  query: query,
+                  fields: ['collectionName', 'creator', 'category'],
+                  fuzziness: 'AUTO',
+                  prefix_length: 2
+                }
+              },
+              {
+                wildcard: {
+                  collectionName: {
+                    value: `*${query.toLowerCase()}*`
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    });
+    
+    return result.hits.hits;
+  } catch (error) {
+    console.error('Error in flexible search for Collections:', error);
+    throw error;
+  }
+}
+
+
+
 // Initial sync
 syncNftsToElasticsearch();
 syncCollectionsToElasticsearch();
@@ -147,4 +242,4 @@ syncCollectionsToElasticsearch();
 // Set up real-time sync
 setupRealTimeSync();
 
-export { syncNftsToElasticsearch, syncCollectionsToElasticsearch, setupRealTimeSync };
+export { syncNftsToElasticsearch, syncCollectionsToElasticsearch, setupRealTimeSync, searchNftsAndCollections, flexibleSearchNftsAndCollections, flexibleSearchCollections };

@@ -29,6 +29,7 @@ require("./mail/transporter.mail");
 require("./marmalade/services/cron-job/cron-job");
 import { setupRealTimeSync } from "./config/elasticsearchSync";
 setupRealTimeSync();
+
 // Initialize the MarmaladeNGClient
 const client = new MarmaladeNGClient(
   'Testnet Chain 1',

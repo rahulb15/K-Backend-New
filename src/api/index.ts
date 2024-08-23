@@ -12,6 +12,7 @@ import userRouter from "./routes/user.route";
 import userPointsRouter from "./routes/userpoints.route";
 import verificationRouter from "./routes/verification.route";
 import superAdminRouter from "./routes/superadmin.route";
+import elasticRouter from "./routes/elastic.route";
 
 const router = express.Router();
 
@@ -28,5 +29,6 @@ router.use("/verification", verificationRouter);
 router.use("/launch-collection", launchCollectionRouter);
 router.use("/blog", blogRouter);
 router.use("/superadmin", superAdminRouter);
+router.use("/elastic", elasticRouter);
 
 export default router;
