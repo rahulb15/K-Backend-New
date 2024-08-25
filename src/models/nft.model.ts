@@ -42,6 +42,9 @@ const nftSchema = new mongoose.Schema({
   policies: { type: [String] },
   collection: { type: Object },
   nftData: { type: Object },
+  rarityScore: { type: Number },
+  rarityRank: { type: Number },
+  traitCount: { type: Number },
   lastUpdated: { type: Date, default: Date.now }
 });
 

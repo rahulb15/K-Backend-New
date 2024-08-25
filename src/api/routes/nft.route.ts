@@ -22,6 +22,10 @@ router.put("/update", adminMiddleware, nftController.update);
 // updateRevealedNFTs
 router.post("/owned", authMiddleware, nftController.updateRevealedNFTs);
 
+router.post("/ownedNfts", authMiddleware, nftController.getOwnedNfts);
+// getOwnSaleNfts
+router.post("/ownSaleNfts", authMiddleware, nftController.getOwnSaleNfts);
+
 router.get("ipfs", nftController.getIpfsJson);
 
 // const response = await axios.post(`${url}nft/collectionNfts?pageNo=${pageNo}&limit=${limit}`, data, {

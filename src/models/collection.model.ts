@@ -46,6 +46,6 @@ collectionSchema.index({ createdAt: -1, isActive: 1 });
 collectionSchema.index({ totalSupply: -1, isActive: 1 });
 collectionSchema.index({ mintPrice: 1, isActive: 1 });
 
-const Collection = mongoose.model<ICollection & mongoose.Document>("Collection", collectionSchema);
+const Collection = mongoose.model<ICollection & mongoose.Document>("CollectionMarketPlace", collectionSchema);
 
 export default Collection;

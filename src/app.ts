@@ -27,6 +27,9 @@ const cookieParser = require("cookie-parser");
 require("dotenv").config();
 require("./mail/transporter.mail");
 require("./marmalade/services/cron-job/cron-job");
+import RarityCalculationService from "./services/rarityCalculationService";
+const rarityService = RarityCalculationService.getInstance();
+    rarityService.scheduleRarityCalculation();
 import { setupRealTimeSync } from "./config/elasticsearchSync";
 setupRealTimeSync();
 

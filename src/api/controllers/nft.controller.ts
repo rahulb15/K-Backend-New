@@ -273,8 +273,9 @@ export class NftController {
   public async updateRevealedNFTs(req: any, res: Response) {
     try {
       const body: any = req.body;
+      const userId = req.user._id;
       console.log(body,"ddddddddddddddddddddddddddddddd");
-      const updatedNft: INft = await nftManager.updateRevealedNFTs(body);
+      const updatedNft: INft = await nftManager.updateRevealedNFTs(body, userId);
       const responseData: IResponseHandler = {
         status: ResponseStatus.SUCCESS,
         message: ResponseMessage.UPDATED,
@@ -359,6 +360,64 @@ export class NftController {
       console.log(collectionName,"dddddddddddddddddddddddddddddddddddddddddddddd");
 
       const nfts: any = await nftManager.getCollectionNfts( pageNo, limit, search, collectionName);
+
+      const responseData: IResponseHandler = {
+        status: ResponseStatus.SUCCESS,
+        message: ResponseMessage.SUCCESS,
+        description: ResponseDescription.SUCCESS,
+        data: nfts,
+      };
+      return res.status(ResponseCode.SUCCESS).json(responseData);
+    } catch (error) {
+      const responseData: IResponseHandler = {
+        status: ResponseStatus.FAILED,
+        message: ResponseMessage.FAILED,
+        description: ResponseDescription.FAILED,
+        data: null,
+      };
+      return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(responseData);
+    }
+  }
+
+  // getOwnedNfts page limit search
+  public async getOwnedNfts(req: any, res: Response) {
+    try {
+      const userId = req.user._id;
+      const pageNo: number = parseInt(req.body.pageNo as string);
+      const limit: number = parseInt(req.body.limit as string);
+      const search: string = req.body.search as string;
+      console.log(pageNo, limit, search);
+
+      const nfts: any = await nftManager.getOwnedNfts(userId, pageNo, limit, search);
+
+      const responseData: IResponseHandler = {
+        status: ResponseStatus.SUCCESS,
+        message: ResponseMessage.SUCCESS,
+        description: ResponseDescription.SUCCESS,
+        data: nfts,
+      };
+      return res.status(ResponseCode.SUCCESS).json(responseData);
+    } catch (error) {
+      const responseData: IResponseHandler = {
+        status: ResponseStatus.FAILED,
+        message: ResponseMessage.FAILED,
+        description: ResponseDescription.FAILED,
+        data: null,
+      };
+      return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(responseData);
+    }
+  }
+
+
+  public async getOwnSaleNfts(req: any, res: Response) {
+    try {
+      const userId = req.user._id;
+      const pageNo: number = parseInt(req.query.pageNo as string);
+      const limit: number = parseInt(req.query.limit as string);
+      const search: string = req.query.search as string;
+      console.log(pageNo, limit, search);
+
+      const nfts: any = await nftManager.getOwnSaleNfts(userId, pageNo, limit, search);
 
       const responseData: IResponseHandler = {
         status: ResponseStatus.SUCCESS,

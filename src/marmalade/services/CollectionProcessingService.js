@@ -17,7 +17,7 @@ class CollectionProcessingService {
         new transports.File({ filename: "collection-combined.log" }),
       ],
     });
-    this.Collection = mongoose.model("Collection");
+    this.Collection = mongoose.model("CollectionMarketPlace");
   }
 
   async processCollections() {
