@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import { ICollection } from "../interfaces/collection/collection.interface";
 
-const collectionSchema = new mongoose.Schema({
+const collectionMarketPlaceSchema = new mongoose.Schema({
   user: { type: mongoose.Schema.Types.ObjectId, ref: "User", index: true },
   applicationId: { type: mongoose.Schema.Types.ObjectId, index: true },
   applicationType: { type: String, index: true },
@@ -41,11 +41,11 @@ const collectionSchema = new mongoose.Schema({
 });
 
 // Compound indexes
-collectionSchema.index({ collectionName: 1, creator: 1 }, { unique: true });
-collectionSchema.index({ createdAt: -1, isActive: 1 });
-collectionSchema.index({ totalSupply: -1, isActive: 1 });
-collectionSchema.index({ mintPrice: 1, isActive: 1 });
+collectionMarketPlaceSchema.index({ collectionName: 1, creator: 1 }, { unique: true });
+collectionMarketPlaceSchema.index({ createdAt: -1, isActive: 1 });
+collectionMarketPlaceSchema.index({ totalSupply: -1, isActive: 1 });
+collectionMarketPlaceSchema.index({ mintPrice: 1, isActive: 1 });
 
-const Collection = mongoose.model<ICollection & mongoose.Document>("CollectionMarketPlace", collectionSchema);
+const CollectionMarketPlace = mongoose.model<ICollection & mongoose.Document>("CollectionMarketPlace", collectionMarketPlaceSchema);
 
-export default Collection;
+export default CollectionMarketPlace;

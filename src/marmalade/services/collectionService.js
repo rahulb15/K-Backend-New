@@ -88,7 +88,6 @@ class CollectionService {
       for (const gateway of IPFS_GATEWAYS) {
         try {
           const accessibleUrl = this.convertToAccessibleUrl(uri, gateway);
-          console.log(`Attempting to fetch from: ${accessibleUrl}`);
           
           const response = await axios.get(accessibleUrl, { 
             timeout: timeout,
@@ -141,7 +140,6 @@ class CollectionService {
   convertToAccessibleUrl(uri, gateway) {
     if (!uri) return '';
     
-    console.log('Converting URI to accessible URL:', uri);
     
     if (uri.startsWith('ipfs://')) {
       const ipfsHash = uri.slice(7);
@@ -214,7 +212,6 @@ class CollectionService {
  
 
   convertToIPFSUrl(uri) {
-    console.log('Converting URI to IPFS URL:', uri);
     if (uri.startsWith('ipfs://')) {
       // Try multiple IPFS gateways
       const gateways = [

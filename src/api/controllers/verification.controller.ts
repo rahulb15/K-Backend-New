@@ -25,9 +25,9 @@ const config = {
   baseURL: SUMSUB_BASE_URL,
 };
 
-axios.interceptors.request.use(createSignature, function (error) {
-  return Promise.reject(error);
-});
+// axios.interceptors.request.use(createSignature, function (error) {
+//   return Promise.reject(error);
+// });
 
 // Function to create the signature
 function createSignature(config: any) {
@@ -187,6 +187,9 @@ export class VerificationController {
       ...config,
     };
     try {
+      axios.interceptors.request.use(createSignature, function (error) {
+        return Promise.reject(error);
+      });
       const response = await axios(requestConfig);
 
       const responseData = response.data;

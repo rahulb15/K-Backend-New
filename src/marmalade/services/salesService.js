@@ -45,7 +45,6 @@ class SalesService {
 
     const nftData = await this.getNFTData(uri);
     const price = await this.getSalePrice(sale);
-    console.log('Enriched sale data:', price);
 
  
     // Convert BigInt values to strings
@@ -124,7 +123,6 @@ class SalesService {
   }
 
   async getSalePrice(sale) {
-    console.log('Getting sale price:', sale);
     const m_client = get_client();
     switch (sale.type) {
       case 'f':

@@ -17,9 +17,18 @@ import * as middlewares from "./middlewares/response-handler.middleware";
 import { options } from "./swagger";
 import { jwtSign } from "./utils/jwt.sign";
 import { userResponseData } from "./utils/userResponse/user-response.utils";
-const salesRoutes = require('./marmalade/routes/salesRoutes.js');
-const collectionRoutes = require('./marmalade/routes/collectionRoutes.js');
-const { MarmaladeNGClient, set_client } = require('./marmalade/chainweb_marmalade_ng.js');
+import { v4 as uuidv4 } from "uuid";
+import {
+  sendNotification,
+  startNotificationConsumer,
+} from "./services/notification.manager";
+
+const salesRoutes = require("./marmalade/routes/salesRoutes.js");
+const collectionRoutes = require("./marmalade/routes/collectionRoutes.js");
+const {
+  MarmaladeNGClient,
+  set_client,
+} = require("./marmalade/chainweb_marmalade_ng.js");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const passport = require("passport");
 const session = require("express-session");
@@ -29,29 +38,20 @@ require("./mail/transporter.mail");
 require("./marmalade/services/cron-job/cron-job");
 import RarityCalculationService from "./services/rarityCalculationService";
 const rarityService = RarityCalculationService.getInstance();
-    rarityService.scheduleRarityCalculation();
+rarityService.scheduleRarityCalculation();
 import { setupRealTimeSync } from "./config/elasticsearchSync";
 setupRealTimeSync();
 
 // Initialize the MarmaladeNGClient
 const client = new MarmaladeNGClient(
-  'Testnet Chain 1',
-  'https://api.testnet.chainweb.com',
-  'testnet04',
-  '1',
-  'n_442d3e11cfe0d39859878e5b1520cd8b8c36e5db',
-  'n_a55cdf159bc9fda0a8af03a71bb046942b1e4faf'
+  "Testnet Chain 1",
+  "https://api.testnet.chainweb.com",
+  "testnet04",
+  "1",
+  "n_442d3e11cfe0d39859878e5b1520cd8b8c36e5db",
+  "n_a55cdf159bc9fda0a8af03a71bb046942b1e4faf"
 );
 set_client(client);
-
-// const data = userResponseData(user);
-//       const response: IResponseHandler = {
-//         status: ResponseStatus.SUCCESS,
-//         message: ResponseMessage.SUCCESS,
-//         description: ResponseDescription.SUCCESS,
-//         data: data,
-//       };
-//       res.status(ResponseCode.SUCCESS).json(response);
 
 const app = express();
 
@@ -78,13 +78,11 @@ const corsOptions: CorsOptions = {
 // Enable CORS
 app.use(morgan("dev"));
 app.use(helmet());
-app.use(
-  cors({
-    origin: "*",
-    methods: "GET,POST,PUT,DELETE",
-    credentials: true,
-  })
-);
+app.use(cors({
+  origin: 'http://localhost:3000', // Change to your frontend URL
+  methods: ['GET', 'POST'],
+  credentials: true
+}));
 app.use(cookieParser());
 app.use(express.json());
 // app.use(session({ secret: "cats" }));
@@ -157,14 +155,31 @@ app.get("/api/v1/logout", (req, res) => {
   });
 });
 
+// app.post("/api/notifications", async (req, res) => {
+//   try {
+//     const { userId, message } = req.body;
+//     const notification: any = {
+//       id: uuidv4(),
+//       userId,
+//       message,
+//       createdAt: new Date(),
+//     };
+//     await sendNotification(notification);
+//     res.status(201).json({ message: "Notification sent successfully" });
+//   } catch (error) {
+//     console.error("Error sending notification: ", error);
+//     res.status(500).json({ error: "Internal server error" });
+//   }
+// });
+
 // Routes
 app.use("/api/v1", api);
 
 app.use(express.json());
 
 //MarmaledNG Routes
-app.use('/api/v1/marmalade/sales', salesRoutes);
-app.use('/api/v1/marmalade/collections', collectionRoutes);
+app.use("/api/v1/marmalade/sales", salesRoutes);
+app.use("/api/v1/marmalade/collections", collectionRoutes);
 
 app.use(middlewares.notFound);
 app.use(middlewares.errorHandler);

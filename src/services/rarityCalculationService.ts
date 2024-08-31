@@ -112,8 +112,20 @@ class RarityCalculationService {
     console.log('Rarity calculation completed and NFTs updated.');
   }
 
+  // public scheduleRarityCalculation(): void {
+  //   cron.schedule('0 */2 * * *', async () => { // Run every 2 hours
+  //     console.log('Starting scheduled rarity calculation...');
+  //     try {
+  //       await this.calculateRarityScores();
+  //       console.log('Scheduled rarity calculation completed successfully.');
+  //     } catch (error) {
+  //       console.error('Error in scheduled rarity calculation:', error);
+  //     }
+  //   });
+  // }
+
   public scheduleRarityCalculation(): void {
-    cron.schedule('0 */2 * * *', async () => {
+    cron.schedule('*/2 * * * *', async () => { // Run every 2 minutes
       console.log('Starting scheduled rarity calculation...');
       try {
         await this.calculateRarityScores();

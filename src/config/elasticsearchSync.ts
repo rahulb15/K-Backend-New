@@ -1,16 +1,18 @@
 import mongoose from 'mongoose';
 import { Client } from '@elastic/elasticsearch';
 import Nft from '../models/nft.model';
-import Collection from '../models/collection.model';
+import CollectionMarketPlace from '../models/collection.model';
 import { ICollection } from '../interfaces/collection/collection.interface';
 import { INft } from '../interfaces/nft/nft.interface';
 
 // It's better to use environment variables for sensitive information
 const ELASTICSEARCH_USERNAME = process.env.ELASTICSEARCH_USERNAME || 'elastic';
-const ELASTICSEARCH_PASSWORD = process.env.ELASTICSEARCH_PASSWORD || 'ExLkqmnDybOnCHuqy7+K';
+const ELASTICSEARCH_PASSWORD = process.env.ELASTICSEARCH_PASSWORD || 'Gm46nGxXWqjnkMA99Lpm';
+
+const ELASTICSEARCH_NODE = process.env.ELASTICSEARCH_NODE || 'https://172.18.0.2:9200/';
 
 const esClient = new Client({
-  node: 'https://172.18.0.2:9200',
+  node: ELASTICSEARCH_NODE,
   auth: {
     username: ELASTICSEARCH_USERNAME,
     password: ELASTICSEARCH_PASSWORD
@@ -34,7 +36,7 @@ async function syncNftsToElasticsearch(): Promise<void> {
 
 async function syncCollectionsToElasticsearch(): Promise<void> {
   try {
-    const collections = await Collection.find({});
+    const collections = await CollectionMarketPlace.find({});
     for (const collection of collections) {
       await indexCollection(collection);
     }
@@ -114,17 +116,17 @@ function setupRealTimeSync(): void {
   });
 
   // Similar setup for Collection model
-  Collection.schema.post('save', async function(doc: ICollection & mongoose.Document) {
+  CollectionMarketPlace.schema.post('save', async function(doc: ICollection & mongoose.Document) {
     await indexCollection(doc);
   });
 
-  Collection.schema.post('findOneAndUpdate', async function(doc: ICollection & mongoose.Document | null) {
+  CollectionMarketPlace.schema.post('findOneAndUpdate', async function(doc: ICollection & mongoose.Document | null) {
     if (doc) {
       await indexCollection(doc);
     }
   });
 
-  Collection.schema.post('findOneAndDelete', async function(doc: ICollection & mongoose.Document | null) {
+  CollectionMarketPlace.schema.post('findOneAndDelete', async function(doc: ICollection & mongoose.Document | null) {
     if (doc && doc._id) {
       try {
         await esClient.delete({

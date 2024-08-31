@@ -280,6 +280,8 @@ export class NftManager implements INftManager {
           royalties: 1,
           properties: 1,
           attributes: 1,
+          rarityScore: 1,
+          rarityRank:1,
           likes: 1,
           createdAt: 1 // Add createdAt here
         },
@@ -642,6 +644,8 @@ console.log(collectionName, "collectionName-------------------------------------
           royalties: 1,
           properties: 1,
           attributes: 1,
+          rarityScore: 1,
+          rarityRank:1,
           likes: 1,
           createdAt: 1 // Add createdAt here
         },
@@ -724,6 +728,8 @@ console.log(collectionName, "collectionName-------------------------------------
             royalties: 1,
             properties: 1,
             attributes: 1,
+            rarityScore: 1,
+            rarityRank:1,
             likes: 1,
             createdAt: 1 // Add createdAt here
           },
