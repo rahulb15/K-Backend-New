@@ -79,7 +79,7 @@ const corsOptions: CorsOptions = {
 app.use(morgan("dev"));
 app.use(helmet());
 app.use(cors({
-  origin: 'http://localhost:3000', // Change to your frontend URL
+  origin: process.env.CLIENT_URL,
   methods: ['GET', 'POST'],
   credentials: true
 }));

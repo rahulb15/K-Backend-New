@@ -19,7 +19,7 @@ const port = () => {
 const server = http.createServer(app);
 const io:any = new SocketIOServer(server, {
   cors: {
-    origin: "http://localhost:3000", // Update this to match your frontend URL
+    origin: process.env.CLIENT_URL,
     methods: ["GET", "POST"],
     credentials: true
   }
