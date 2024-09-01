@@ -33,14 +33,14 @@ connectToDatabase()
   .then(() => {
     console.log("Database connected successfully");
     // Start the notification system
-    // initializeNotificationSystem()
-    //   .then(() => {
-    //     console.log("Notification system initialized successfully");
-    //   })
-    //   .catch((error) => {
-    //     console.error("Error initializing notification system:", error);
-    //     process.exit(1);
-    //   });
+    initializeNotificationSystem()
+      .then(() => {
+        console.log("Notification system initialized successfully");
+      })
+      .catch((error) => {
+        console.error("Error initializing notification system:", error);
+        process.exit(1);
+      });
 
     // Start the server after successful database connection
     server.listen(port(), () => {

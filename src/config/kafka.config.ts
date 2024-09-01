@@ -1,6 +1,6 @@
 // src/config/kafka.ts
 
-import { Kafka, Producer, Consumer, KafkaConfig } from 'kafkajs';
+import { Kafka, Producer, Consumer, KafkaConfig, logLevel } from 'kafkajs';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -16,6 +16,7 @@ const kafkaConfig: KafkaConfig = {
         password: process.env.KAFKA_SASL_PASSWORD || '',
       }
     : undefined,
+    // logLevel: logLevel.DEBUG, // Enable debug logging
 };
 
 const kafka = new Kafka(kafkaConfig);

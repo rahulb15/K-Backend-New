@@ -1,7 +1,47 @@
+# FROM node:20.16.0-alpine3.20
+
+# # Install dependencies
+# RUN apk add --no-cache redis
+
+# # Set the working directory
+# WORKDIR /app
+
+# # Copy package.json and package-lock.json
+# COPY package.json package-lock.json ./
+
+# # Install Node.js dependencies
+# RUN npm ci
+
+# # Copy the rest of the application code
+# COPY . .
+
+
+# # Build the application
+# RUN npm run build
+
+# # Expose the ports for Node.js app and Redis
+# EXPOSE 5001 6379
+
+# # Copy the start script
+# COPY start.sh /start.sh
+# RUN chmod +x /start.sh
+
+# # Use the start script as the entry point
+# CMD ["/start.sh"]
+
+
 FROM node:20.16.0-alpine3.20
 
 # Install dependencies
-RUN apk add --no-cache redis
+RUN apk add --no-cache redis openjdk11-jre bash
+
+# Install Kafka
+ENV KAFKA_VERSION=3.8.0
+ENV SCALA_VERSION=2.13
+RUN wget https://downloads.apache.org/kafka/${KAFKA_VERSION}/kafka_${SCALA_VERSION}-${KAFKA_VERSION}.tgz \
+    && tar -xzf kafka_${SCALA_VERSION}-${KAFKA_VERSION}.tgz \
+    && mv kafka_${SCALA_VERSION}-${KAFKA_VERSION} /kafka \
+    && rm kafka_${SCALA_VERSION}-${KAFKA_VERSION}.tgz
 
 # Set the working directory
 WORKDIR /app
@@ -93,8 +133,8 @@ ENV NODE_ENV=$NODE_ENV \
 # Build the application
 RUN npm run build
 
-# Expose the ports for Node.js app and Redis
-EXPOSE 5001 6379
+# Expose the ports for Node.js app, Redis, and Kafka
+EXPOSE 5001 6379 9092
 
 # Copy the start script
 COPY start.sh /start.sh

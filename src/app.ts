@@ -155,22 +155,22 @@ app.get("/api/v1/logout", (req, res) => {
   });
 });
 
-// app.post("/api/notifications", async (req, res) => {
-//   try {
-//     const { userId, message } = req.body;
-//     const notification: any = {
-//       id: uuidv4(),
-//       userId,
-//       message,
-//       createdAt: new Date(),
-//     };
-//     await sendNotification(notification);
-//     res.status(201).json({ message: "Notification sent successfully" });
-//   } catch (error) {
-//     console.error("Error sending notification: ", error);
-//     res.status(500).json({ error: "Internal server error" });
-//   }
-// });
+app.post("/api/notifications", async (req, res) => {
+  try {
+    const { userId, message } = req.body;
+    const notification: any = {
+      id: uuidv4(),
+      userId,
+      message,
+      createdAt: new Date(),
+    };
+    await sendNotification(notification);
+    res.status(201).json({ message: "Notification sent successfully" });
+  } catch (error) {
+    console.error("Error sending notification: ", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
 
 // Routes
 app.use("/api/v1", api);
