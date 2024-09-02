@@ -80,7 +80,7 @@ app.use(morgan("dev"));
 app.use(helmet());
 app.use(cors({
   origin: process.env.CLIENT_URL,
-  methods: ['GET', 'POST'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   credentials: true
 }));
 app.use(cookieParser());
@@ -111,7 +111,7 @@ app.get(
 app.get(
   "/auth/google/callback",
   passport.authenticate("google", {
-    successRedirect: process.env.CLIENT_URL,
+    successRedirect: `${process.env.CLIENT_URL}/`,
     failureRedirect: "/auth/failure",
   })
 );
@@ -143,17 +143,38 @@ app.get("/api/v1/auth/login/success", (req: any, res: any) => {
   }
 });
 
-app.get("/api/v1/logout", (req, res) => {
-  // res.status(200).send({ message: "Logout Successfully" });
-  req.logout((err) => {
-    console.log("Logout");
-    if (err) {
-      console.error("Error during logout:", err);
-    }
-    res.clearCookie("connect.sid", { path: "/", httpOnly: true });
-    res.status(200).send({ message: "Logout Successfully" });
+// app.get("/api/v1/logout", (req, res) => {
+//   // res.status(200).send({ message: "Logout Successfully" });
+//   req.logout((err) => {
+//     console.log("Logout");
+//     if (err) {
+//       console.error("Error during logout:", err);
+//     }
+//     res.clearCookie("connect.sid", { path: "/", httpOnly: true });
+//     res.status(200).send({ message: "Logout Successfully" });
+//   });
+// });
+app.get("/api/v1/logout", (req: any, res: express.Response) => {
+  req.logout((err: any) => {
+      if (err) {
+          console.error("Error during logout:", err);
+          return res.status(500).send({ message: "Logout failed" });
+      }
+
+      req.session.destroy((err: any) => {
+          if (err) {
+              console.error("Session destruction failed:", err);
+              return res.status(500).send({ message: "Session destruction failed" });
+          }
+          console.log("Session destroyed--------------------------------------:");
+          res.clearCookie("connect.sid", { path: "/", httpOnly: true });
+          res.status(200).send({ message: "Logout Successfully" });
+      });
   });
 });
+
+
+
 
 app.post("/api/notifications", async (req, res) => {
   try {

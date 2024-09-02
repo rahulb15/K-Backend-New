@@ -20,7 +20,7 @@ const server = http.createServer(app);
 const io:any = new SocketIOServer(server, {
   cors: {
     origin: process.env.CLIENT_URL,
-    methods: ["GET", "POST"],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     credentials: true
   }
 });
