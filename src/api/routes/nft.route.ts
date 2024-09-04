@@ -19,6 +19,8 @@ router.post("/marketPlaceNfts", nftController.getMarketPlaceNfts);
 
 // updateNFT
 router.put("/update", adminMiddleware, nftController.update);
+router.put("/updatemynft", authMiddleware, nftController.update);
+
 // updateRevealedNFTs
 router.post("/owned", authMiddleware, nftController.updateRevealedNFTs);
 
@@ -30,6 +32,7 @@ router.get("ipfs", nftController.getIpfsJson);
 
 // const response = await axios.post(`${url}nft/collectionNfts?pageNo=${pageNo}&limit=${limit}`, data, {
 router.post("/collectionNfts", nftController.getCollectionNfts);
+router.post("/collectionNftsMarket", nftController.getCollectionNftsMarket);
 
 
 

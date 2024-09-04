@@ -26,6 +26,13 @@ router.post(
   launchCollectionController.uploadImage
 );
 
+router.post(
+  "/upload-image-data",
+  authMiddleware,
+  upload,
+  launchCollectionController.uploadImageOnCloudById
+);
+
 // upload-image
 router.post(
   "/upload-image-data",
@@ -72,6 +79,13 @@ router.put("/launch/:id", adminMiddleware, launchCollectionController.launch);
 
 //getbuId
 router.get("/getById/:id",adminMiddleware, launchCollectionController.getById);
+
+router.post(
+  "/getCreatedCollections",
+  authMiddleware,
+  launchCollectionController.getCreatedCollections
+);
+
 
 
 export default router;

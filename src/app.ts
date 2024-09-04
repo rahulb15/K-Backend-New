@@ -57,8 +57,7 @@ const app = express();
 
 // Define an array of allowed origins (domains)
 const allowedOrigins = [
-  "http://localhost:5000",
-  "http://localhost:3000",
+  process.env.CLIENT_URL || "http://localhost:3000",
   "http://localhost:3001",
 ];
 
@@ -73,16 +72,15 @@ const corsOptions: CorsOptions = {
       callback(new Error("Not allowed by CORS"));
     }
   },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+  credentials: true,
 };
 
-// Enable CORS
+// Enable CORS, morgan, and helmet
 app.use(morgan("dev"));
 app.use(helmet());
-app.use(cors({
-  origin: process.env.CLIENT_URL,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-  credentials: true
-}));
+app.use(cors(corsOptions));  // Use the custom corsOptions here
+
 app.use(cookieParser());
 app.use(express.json());
 // app.use(session({ secret: "cats" }));
@@ -176,20 +174,21 @@ app.get("/api/v1/logout", (req: any, res: express.Response) => {
 
 
 
-app.post("/api/notifications", async (req, res) => {
+app.post('/api/notifications', async (req, res) => {
   try {
-    const { userId, message } = req.body;
-    const notification: any = {
-      id: uuidv4(),
-      userId,
-      message,
-      createdAt: new Date(),
+    const testNotification = {
+      id: `test-${Date.now()}`,
+      userId: req.body.userId,
+      message: 'This is a test notification',
+      createdAt: new Date()
     };
-    await sendNotification(notification);
-    res.status(201).json({ message: "Notification sent successfully" });
+    console.log('Sending test notification:', testNotification);
+    
+    await sendNotification(testNotification);
+    res.status(200).json({ message: 'Test notification sent successfully' });
   } catch (error) {
-    console.error("Error sending notification: ", error);
-    res.status(500).json({ error: "Internal server error" });
+    console.error('Error sending test notification:', error);
+    res.status(500).json({ error: 'Failed to send test notification' });
   }
 });
 

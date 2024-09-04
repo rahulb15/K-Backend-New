@@ -6,6 +6,7 @@ const launchCollectionSchema = new Schema({
   collectionName: { type: String, index: true },
   creatorName: { type: String, index: true },
   creatorWallet: { type: String, index: true },
+  collectionType: { type: String, default: "launchpad" },
   creatorEmail: { type: String },
   projectDescription: { type: String },
   projectCategory: { type: String, index: true },

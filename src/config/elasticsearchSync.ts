@@ -7,7 +7,7 @@ import { INft } from '../interfaces/nft/nft.interface';
 
 // It's better to use environment variables for sensitive information
 const ELASTICSEARCH_USERNAME = process.env.ELASTICSEARCH_USERNAME || 'elastic';
-const ELASTICSEARCH_PASSWORD = process.env.ELASTICSEARCH_PASSWORD || 'hAolp41_VQfgZ5L2vj6j';
+const ELASTICSEARCH_PASSWORD = process.env.ELASTICSEARCH_PASSWORD || 'WPRN73f-i0**lF=Nz=PN';
 
 const ELASTICSEARCH_NODE = process.env.ELASTICSEARCH_NODE || 'https://172.18.0.2:9200/';
 

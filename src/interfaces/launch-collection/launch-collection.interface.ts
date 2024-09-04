@@ -5,6 +5,7 @@ export interface ILaunchCollection {
   creatorName: string;
   creatorWallet: string;
   creatorEmail: string;
+  collectionType : string;
   projectDescription: string;
   projectCategory: string;
   expectedLaunchDate: string;
@@ -58,6 +59,7 @@ export interface IUpdateLaunchCollection {
   creatorName?: string;
   creatorWallet?: string;
   creatorEmail?: string;
+  collectionType?: string;
   projectDescription?: string;
   projectCategory?: string;
   expectedLaunchDate?: string;

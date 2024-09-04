@@ -16,6 +16,9 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.20.6",
     "@elastic/elasticsearch": "^8.15.0",
+    "@huggingface/agents": "^0.0.5",
+    "@huggingface/hub": "^0.15.1",
+    "@huggingface/inference": "^2.8.0",
     "@kadena/client": "^1.13.0",
     "@stripe/stripe-js": "^3.0.7",
     "@sumsub/websdk": "^2.2.1",
@@ -45,6 +48,7 @@
     "node-cron": "^3.0.3",
     "nodemailer": "^6.9.2",
     "nodemailer-smtp-transport": "^2.7.4",
+    "openai": "^4.57.0",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
     "promise-deferred": "^2.0.4",

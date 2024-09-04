@@ -4,6 +4,8 @@ import http from 'http';
 import { Server as SocketIOServer } from 'socket.io';
 import { setupSocketIOServer } from "./helpers/websocket-server";
 import { initializeNotificationSystem } from "./services/notification.manager";
+import { initializeChatSystem } from './services/chat.manager';
+
 const port = () => {
   switch (process.env.NODE_ENV) {
     case "production":
@@ -17,13 +19,33 @@ const port = () => {
 
 // Initialize the HTTP server
 const server = http.createServer(app);
-const io:any = new SocketIOServer(server, {
+
+const allowedOrigins = [
+  process.env.CLIENT_URL || "http://localhost:3000",
+  "http://localhost:3001",
+];
+
+const io: any = new SocketIOServer(server, {
   cors: {
-    origin: process.env.CLIENT_URL,
+    origin: (origin, callback) => {
+      if (origin && allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     credentials: true
   }
 });
+
+// const io:any = new SocketIOServer(server, {
+//   cors: {
+//     origin: process.env.CLIENT_URL,
+//     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+//     credentials: true
+//   }
+// });
 
 setupSocketIOServer(io);
 (global as any).io = io;
@@ -41,6 +63,17 @@ connectToDatabase()
         console.error("Error initializing notification system:", error);
         process.exit(1);
       });
+
+    // Start the chat system
+    initializeChatSystem()
+      .then(() => {
+        console.log("Chat system initialized successfully");
+      })
+      .catch((error) => {
+        console.error("Error initializing chat system:", error);
+        process.exit(1);
+      });
+      
 
     // Start the server after successful database connection
     server.listen(port(), () => {

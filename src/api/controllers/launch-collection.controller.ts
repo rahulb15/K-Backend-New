@@ -57,7 +57,6 @@ export class LaunchCollectionController {
       const mintEndDateTime = new Date(req.body.mintEndDate);
       collection.mintStartDate = mintStartDateTime;
       collection.mintEndDate = mintEndDateTime;
-
       const newCollection = await LaunchCollectionManager.getInstance().create(
         collection
       );
@@ -531,6 +530,130 @@ export class LaunchCollectionController {
       });
     }
   }
+
+
+  // only upload image to clounary not update collection and find collection by id just take userId based on this upload on cloudnary and give url
+  public async uploadImageOnCloudById(req: any, res: Response): Promise<any> {
+    try {
+      console.log("Hello", req.files);
+      if (!req.files) {
+        const response: IResponseHandler = {
+          status: ResponseStatus.FAILED,
+          message: ResponseMessage.FAILED,
+          description: ResponseDescription.FAILED,
+          data: null,
+        };
+
+        return res.status(ResponseCode.BAD_REQUEST).json(response);
+      }
+
+      const userId = req.user._id;
+      const user: IUser = await userManager.getById(userId);
+      if (!user) {
+        const response: IResponseHandler = {
+          status: ResponseStatus.FAILED,
+          message: ResponseMessage.USER_NOT_FOUND,
+          description: ResponseDescription.USER_NOT_FOUND,
+          data: null,
+        };
+
+        return res.status(ResponseCode.NOT_FOUND).json(response);
+      }
+
+      const collection = {
+        collectionBannerImage: "",
+        collectionCoverImage: "",
+      };
+
+      const uploadToCloudinary = (buffer: Buffer, folder: string) => {
+        return new Promise((resolve, reject) => {
+          const stream = cloudinary.uploader.upload_stream(
+            { folder, use_filename: true, unique_filename: false },
+            (error: any, result: any) => {
+              if (error) {
+                reject(error);
+              } else {
+                resolve(result);
+              }
+            }
+          );
+          stream.end(buffer);
+        });
+      };
+
+      const collectionBannerImage = req.files.profileImage?.[0];
+      const collectionCoverImage = req.files.coverImage?.[0];
+
+      if (collectionBannerImage) {
+        const profileResult: any = await uploadToCloudinary(
+          collectionBannerImage.buffer,
+          "collectionBannerImage"
+        );
+        // user.profileImage = profileResult.secure_url;
+        collection.collectionBannerImage = profileResult.secure_url;
+      }
+      if (collectionCoverImage) {
+        const coverResult: any = await uploadToCloudinary(
+          collectionCoverImage.buffer,
+          "collectionCoverImage"
+        );
+        // user.coverImage = coverResult.secure_url;
+        collection.collectionCoverImage = coverResult.secure_url;
+      }
+
+      return res.status(ResponseCode.SUCCESS).json({
+        status: ResponseStatus.SUCCESS,
+        message: ResponseMessage.SUCCESS,
+        description: ResponseDescription.SUCCESS,
+        data: collection,
+      });
+    } catch (error) {
+      console.error("Error in uploadImage function:", error);
+      return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json({
+        status: ResponseStatus.INTERNAL_SERVER_ERROR,
+        message: ResponseMessage.FAILED,
+        description: ResponseDescription.INTERNAL_SERVER_ERROR,
+        data: null,
+      });
+
+    }
+  }
+
+  // const response = await collectionService.getCreatedCollections(account.user.walletAddress, pageNo, limit, search); from frontend use this in backend
+  public async getCreatedCollections(req: any, res: Response): Promise<Response> {
+    try {
+      const userId = req.user._id;
+      const { page, limit, search } = req.body;
+      console.log(userId, page, limit, search,"userId, page, limit, searchddddddddddddddddd");
+      const collections = await LaunchCollectionManager.getInstance().getCreatedCollections(
+        userId,
+        parseInt(page as string),
+        parseInt(limit as string),
+        search as string
+      );
+      return res.status(ResponseCode.SUCCESS).json({
+        status: ResponseStatus.SUCCESS,
+        message: ResponseMessage.SUCCESS,
+        description: ResponseDescription.SUCCESS,
+        data: collections,
+      });
+    } catch (error) {
+      return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json({
+        status: ResponseStatus.INTERNAL_SERVER_ERROR,
+        message: ResponseMessage.FAILED,
+        description: ResponseDescription.INTERNAL_SERVER_ERROR,
+        data: null,
+      });
+    }
+  }
+
+
+
+
+
+
+
+
 }
 
 export default LaunchCollectionController.getInstance();

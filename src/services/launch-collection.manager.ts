@@ -74,12 +74,27 @@ export class LaunchCollectionManager implements ILaunchCollectionManager {
     return LaunchCollectionManager.instance;
   }
 
+  // public async create(
+  //   collection: ILaunchCollection
+  // ): Promise<ILaunchCollection> {
+  //   console.log("collection", collection);
+  //   const newCollection = new LaunchCollection(collection);
+  //   return newCollection.save();
+  // }
+
   public async create(
     collection: ILaunchCollection
   ): Promise<ILaunchCollection> {
+    console.log("collection", collection);
     const newCollection = new LaunchCollection(collection);
-    return newCollection.save();
+    try {
+      return await newCollection.save();
+    } catch (error) {
+      console.error("Error saving collection:", error);
+      throw error;
+    }
   }
+  
 
   // update by id
   public async updateById(
@@ -287,4 +302,42 @@ export class LaunchCollectionManager implements ILaunchCollectionManager {
     }
     return collection;
   }
+
+  // // const response = await collectionService.getCreatedCollections(account.user.walletAddress, pageNo, limit, search); from frontend use this in backend
+  // public async getCreatedCollections(req: any, res: Response): Promise<Response> {
+
+  public async getCreatedCollections(
+    userId: string,
+    page: number,
+    limit: number,
+    search: string
+  ): Promise<ILaunchCollection[]> {
+    //using aggregation to search by collectionName and creatorName at the same time and also to paginate the results and return total count of documents
+    const collections = await LaunchCollection.aggregate([
+      {
+        $match: {
+          $or: [
+            { collectionName: { $regex: search, $options: "i" } },
+            { creatorName: { $regex: search, $options: "i" } },
+          ],
+          user: userId,
+          collectionType: "marketplace",
+        },
+      },
+      {
+        $facet: {
+          metadata: [{ $count: "total" }, { $addFields: { page, limit } }],
+          data: [{ $skip: (page - 1) * limit }, { $limit: limit }],
+        },
+      },
+    ]);
+
+    if (!collections) {
+      throw new Error("Collections not found");
+    }
+
+    return collections;
+  }
+
+
 }
