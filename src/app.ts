@@ -59,6 +59,7 @@ const app = express();
 const allowedOrigins = [
   process.env.CLIENT_URL || "http://localhost:3000",
   "http://localhost:3001",
+  "https://kryptomerchadmin.app.runonflux.io"
 ];
 
 // Configure CORS options

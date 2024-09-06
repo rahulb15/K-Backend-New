@@ -13,6 +13,7 @@ import userPointsRouter from "./routes/userpoints.route";
 import verificationRouter from "./routes/verification.route";
 import superAdminRouter from "./routes/superadmin.route";
 import elasticRouter from "./routes/elastic.route";
+import singleNftRouter from "./routes/singleNft.route";
 
 const router = express.Router();
 
@@ -22,6 +23,7 @@ router.use("/cart", cartRouter);
 router.use("/transaction", transactionRouter);
 router.use("/collection", collectionRouter);
 router.use("/nft", nftRouter);
+router.use("/single-nft", singleNftRouter);
 router.use("/config", configRouter);
 router.use("/userpoints", userPointsRouter);
 router.use("/claude", claudeRouter);
