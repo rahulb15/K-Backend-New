@@ -23,7 +23,8 @@ const server = http.createServer(app);
 const allowedOrigins = [
   process.env.CLIENT_URL || "http://localhost:3000",
   "http://localhost:3001",
-  "https://kryptomerchadmin.app.runonflux.io"
+  "https://kryptomerchadmin.app.runonflux.io",
+  "https://kryptomerchfrontend.app.runonflux.io"
 ];
 
 const io: any = new SocketIOServer(server, {
