@@ -8,6 +8,7 @@ export interface ISingleNft {
   nftPrice: number;
   unlockable: boolean;
   isRevealed: boolean;
+  isMinted: boolean;
   digitalCode: string;
   onMarketplace: boolean;
   onSale: boolean;

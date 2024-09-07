@@ -39,6 +39,7 @@ export class SingleNftController {
           attributes: [],
           bidInfo: [],
           isRevealed: false,
+          isMinted: false,
           unlockable: false,
           digitalCode: "",
           duration: "",
@@ -120,6 +121,38 @@ export class SingleNftController {
       return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(responseData);
     }
   }
+
+  // update
+  public async update(req: any, res: Response) {
+    try {
+      const body: any = req.body;
+      console.log(body, "body");
+      const singleNft: any = {
+        _id: body._id,
+        isMinted: body.isMinted,
+       
+      };
+      console.log(singleNft, "singleNft");
+      const updatedSingleNft: ISingleNft = await singleNftManager.update(singleNft);
+      const responseData: IResponseHandler = {
+        status: ResponseStatus.SUCCESS,
+        message: ResponseMessage.CREATED,
+        description: ResponseDescription.CREATED,
+        data: updatedSingleNft,
+      };
+
+      return res.status(ResponseCode.CREATED).json(responseData);
+    } catch (error) {
+      const responseData: IResponseHandler = {
+        status: ResponseStatus.FAILED,
+        message: ResponseMessage.FAILED,
+        description: ResponseDescription.FAILED,
+        data: null,
+      };
+      return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(responseData);
+    }
+  }
+
 }
 
 export default SingleNftController.getInstance();

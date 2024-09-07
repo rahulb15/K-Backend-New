@@ -11,6 +11,7 @@ const singleNftSchema = new mongoose.Schema({
   nftPrice: { type: Number },
   unlockable: { type: Boolean },
   isRevealed: { type: Boolean, default: false },
+  isMinted: { type: Boolean, default: false },
   digitalCode: { type: String },
   onMarketplace: { type: Boolean },
   onSale: { type: Boolean },

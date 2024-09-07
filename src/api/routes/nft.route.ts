@@ -7,6 +7,8 @@ import nftController from "../controllers/nft.controller";
 const router = Router();
 
 router.post("/create", adminMiddleware, nftController.create);
+// createOne
+router.post("/createOne", authMiddleware, nftController.createOne);
 router.post("/", authMiddleware, nftController.create);
 router.get("/", authMiddleware, nftController.getAll);
 router.get("/:id", authMiddleware, nftController.getById);

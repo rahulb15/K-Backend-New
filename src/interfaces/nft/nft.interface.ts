@@ -1,7 +1,7 @@
 export interface INft {
   _id?: string;
   user: string;
-  collectionId: string;
+  collectionId?: string;
   collectionType: string;
   collectionName: string;
   creator: string;
@@ -22,6 +22,8 @@ export interface INft {
   properties: string[];
   attributes: string[];
   likes: number;
+  policies?: string;
+  uri?: string;
 }
 
 export interface INfts {

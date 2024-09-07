@@ -347,6 +347,7 @@ export class NftManager implements INftManager {
     }
 
     // Ensure the number of token IDs matches the number of NFTs found
+    console.log(nftData.length < nft.tokenId.length, "nftData.length < nft.tokenId.length");
     if (nftData.length < nft.tokenId.length) {
         return { message: "Too many token IDs provided" };
     }
@@ -514,6 +515,7 @@ console.log(collectionName, "collectionName-------------------------------------
   // First, get the total count of matching documents
   const total = await Nft.countDocuments({
     collectionName: collectionName,
+    isRevealed: true,
   });
   console.log(total, "total");
 
@@ -521,6 +523,7 @@ console.log(collectionName, "collectionName-------------------------------------
     {
       $match: {
         collectionName: collectionName,
+        isRevealed: true,
       },
     },
     {

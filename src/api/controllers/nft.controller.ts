@@ -159,6 +159,69 @@ export class NftController {
     }
   }
 
+
+
+
+//   const body = {
+//     collectionName: uniqueCollectionName,
+//     nftPrice: data.nftPrice,
+//     unlockable: data.unlockable,
+//     creatorName: data.creatorName,
+//     duration: data.duration,
+//     isPlatform: true,
+//     uri: data.uri,
+//     policies: data.policies,
+//     royaltyAccount: data.royaltyAccount,
+//     royaltyPercentage: data.royaltyPercentage,
+// };
+  public async createOne(req: any, res: Response) {
+    try {
+      const body: any = req.body;
+      const nft: INft = {
+        user: req.user._id,
+        collectionType: "SingleNFT",
+        collectionName: body.collectionName,
+        creator: req.user._id,
+        creatorName: body.creatorName,
+        onMarketplace: false,
+        onSale: false,
+        onAuction: false,
+        sellingType: "All",
+        likes: 0,
+        properties: [],
+        attributes: [],
+        bidInfo: [],
+        isRevealed: false,
+        unlockable: false,
+        digitalCode: "",
+        duration: "",
+        roylaities: "",
+        tokenImage: "",
+        nftPrice: 0,
+        tokenId: "", // Make tokenId unique if needed
+        policies: body.policies,
+        uri: body.uri,
+      };
+
+      const createdNft: INft = await nftManager.create(nft);
+      const responseData: IResponseHandler = {
+        status: ResponseStatus.SUCCESS,
+        message: ResponseMessage.CREATED,
+        description: ResponseDescription.CREATED,
+        data: createdNft,
+      };
+      return res.status(ResponseCode.CREATED).json(responseData);
+    } catch (error) {
+      const responseData: IResponseHandler = {
+        status: ResponseStatus.FAILED,
+        message: ResponseMessage.FAILED,
+        description: ResponseDescription.FAILED,
+        data: null,
+      };
+      return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(responseData);
+    }
+  }
+
   public async getAll(req: any, res: Response) {
     try {
       // OPTIONS /api/v1/nft?pageNo=1&limit=10&search= 204 0.166 ms - 0

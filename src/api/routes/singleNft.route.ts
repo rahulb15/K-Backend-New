@@ -9,5 +9,7 @@ router.post("/create", adminMiddleware, singleNftController.create);
 router.post("/", authMiddleware, singleNftController.create);
 router.post("/getAll", authMiddleware, singleNftController.getAll);
 router.get("/:id", authMiddleware, singleNftController.getById);
+router.put("/", authMiddleware, singleNftController.update);
+
 
 export default router;

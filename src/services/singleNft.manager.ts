@@ -48,6 +48,24 @@ export class SingleNftManager implements ISingleNftManager {
     const singleNft: ISingleNft = (await SingleNft.findById(id)) as ISingleNft;
     return singleNft;
   }
+
+//update
+  public async update(nft: ISingleNft): Promise<ISingleNft> {
+    const updatedSingleNft: ISingleNft = await SingleNft.findByIdAndUpdate(
+      nft._id,
+      nft,
+      {
+        new: true,
+      }
+    ) as ISingleNft;
+    return updatedSingleNft;
+  }
+
+  public async getSingleNftByTokenId(tokenId: string): Promise<ISingleNft> {
+    const singleNft: ISingleNft = (await SingleNft.findOne({ tokenId })) as ISingleNft;
+    return singleNft;
+  }
+
 }
 
 export default SingleNftManager.getInstance();
