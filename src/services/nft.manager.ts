@@ -511,8 +511,6 @@ public async getCollectionNfts(
   search: string,
   collectionName: string
 ): Promise<{ nfts: INft[], total: number, currentPage: number }> {
-console.log(collectionName, "collectionName---------------------------------------------");
-  // First, get the total count of matching documents
   const total = await Nft.countDocuments({
     collectionName: collectionName,
     isRevealed: true,
@@ -596,8 +594,6 @@ public async getCollectionNftsMarket(
   search: string,
   collectionName: string
 ): Promise<{ nfts: INft[], total: number, currentPage: number }> {
-console.log(collectionName, "collectionName---------------------------------------------");
-  // First, get the total count of matching documents
   const total = await Nft.countDocuments({
     collectionName: collectionName,
   });
