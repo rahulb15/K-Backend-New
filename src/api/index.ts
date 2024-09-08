@@ -31,6 +31,6 @@ router.use("/verification", verificationRouter);
 router.use("/launch-collection", launchCollectionRouter);
 router.use("/blog", blogRouter);
 router.use("/superadmin", superAdminRouter);
-// router.use("/elastic", elasticRouter);
+router.use("/elastic", elasticRouter);
 
 export default router;
