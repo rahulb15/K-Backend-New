@@ -226,44 +226,44 @@ export class NftManager implements INftManager {
   public async getMarketPlaceNfts(
     pageNo: number,
     limit: number,
-    search: string
+    search: string,
+    onSale: boolean,
+    onAuction: boolean
   ): Promise<{ nfts: INft[], total: number, currentPage: number }> {
+  
+    const matchCondition: any = {
+      onMarketplace: true,
+    };
+  
+    // Handle cases where search is "undefined", null, or an empty string
+    if (search && search.trim() !== "" && search !== "undefined") {
+      matchCondition.collectionName = { $regex: search, $options: "i" };
+    }
+  
+    // Add filter conditions
+    if (onSale) {
+      matchCondition.onSale = true;
+    }
+    if (onAuction) {
+      matchCondition.onAuction = true;
+    }
 
-       // First, get the total count of matching documents
-       const total = await Nft.countDocuments({
-        onMarketplace: true,
-        // collectionName: { $regex: search, $options: "i" },
-      });
-      console.log(total, "total");
-
-
-
+    console.log(matchCondition, "matchCondition");
+  
+    // Get total count of matching documents
+    const total = await Nft.countDocuments(matchCondition);
+  
     const nfts: INft[] = await Nft.aggregate([
       {
-        $match: {
-          onMarketplace: true,
-          // collectionName: { $regex: search, $options: "i" },
-        },
+        $match: matchCondition,
       },
-      // {
-      //   $lookup: {
-      //     from: "users",
-      //     localField: "user",
-      //     foreignField: "_id",
-      //     as: "user",
-      //   },
-      // },
-      // {
-      //   $unwind: "$user",
-      // },
       {
         $project: {
           user: 1,
           collectionId: 1,
           collectionType: 1,
           collectionName: 1,
-          // creator: "$user.username",
-          creator:1,
+          creator: 1,
           tokenImage: 1,
           tokenId: 1,
           nftPrice: 1,
@@ -281,9 +281,28 @@ export class NftManager implements INftManager {
           properties: 1,
           attributes: 1,
           rarityScore: 1,
-          rarityRank:1,
+          rarityRank: 1,
           likes: 1,
-          createdAt: 1 // Add createdAt here
+          createdAt: 1,
+          // New fields
+          isPlatform: 1,
+          saleType: 1,
+          saleId: 1,
+          price: 1,
+          amount: 1,
+          timeout: 1,
+          currency: 1,
+          enabled: 1,
+          seller: 1,
+          recipient: 1,
+          escrowAccount: 1,
+          uri: 1,
+          supply: 1,
+          policies: 1,
+          collection: 1,
+          nftData: 1,
+          traitCount: 1,
+          lastUpdated: 1
         },
       },
       {
@@ -303,7 +322,7 @@ export class NftManager implements INftManager {
       currentPage: pageNo
     };
   }
-
+  
  
   
 
@@ -433,13 +452,85 @@ export class NftManager implements INftManager {
 //   return updatedNfts;
 // }
 
+// public async  updateRevealedNFTs(nftData: any, userId: mongoose.Types.ObjectId): Promise<any> {
+//   console.log("Updating revealed NFTs for user:", userId);
+  
+//   const updatePromises = nftData.reveledData.map(async (item: any) => {
+//     const tokenId = item['token-id'];
+//     const uri = item.uri;
+//     const collectionName = item.collection.name === "priority_pass_001" ? "Priority Pass" : item.collection.name;
+
+//     try {
+//       const metadata = await fetchMetadata(uri);
+//       console.log(metadata, "metadata",tokenId);
+      
+//       let imageUrl = '';
+//       if (typeof metadata === 'object' && metadata !== null && metadata.image) {
+//         imageUrl = metadata.image.startsWith('ipfs://') 
+//           ? convertToIPFSUrl(metadata.image)
+//           : metadata.image;
+//       }
+
+//       console.log(`Processing NFT: TokenID ${tokenId}, Collection ${collectionName}`);
+
+//       // Try to find an existing NFT for this user and token
+//       let existingNft = await Nft.findOne({ 
+//         user: userId, 
+//         tokenId: tokenId, 
+//         collectionName: collectionName 
+//       });
+
+//       if (existingNft) {
+//         // Update existing NFT
+//         console.log(`Updating existing NFT: ${tokenId}`);
+//         existingNft.isRevealed = true;
+//         existingNft.tokenImage = imageUrl;
+//         Object.assign(existingNft, metadata);
+//         await existingNft.save();
+//         return existingNft;
+//       } else {
+//         // Create new NFT
+//         console.log(`Creating new NFT: ${tokenId}`);
+//         const newNft = new Nft({
+//           user: userId,
+//           tokenId: tokenId,
+//           collectionName: collectionName,
+//           isRevealed: true,
+//           tokenImage: imageUrl,
+//           ...metadata,
+//           // Add other necessary fields from item or nftData
+//           creator: item.collection.creator,
+//           uri: uri,
+//           collection: item.collection,
+//           // You might want to add more fields here based on your Nft model
+//         });
+//         await newNft.save();
+//         return newNft;
+//       }
+//     } catch (error) {
+//       console.error(`Error processing NFT with tokenId ${tokenId}:`, error);
+//       return null;
+//     }
+//   });
+
+//   const results = await Promise.all(updatePromises);
+  
+//   // Filter out null results (failed updates/creations)
+//   const processedNfts = results.filter(result => result !== null);
+
+//   console.log(`Processed ${processedNfts.length} NFTs`);
+
+//   return processedNfts;
+// }
+
+
 public async  updateRevealedNFTs(nftData: any, userId: mongoose.Types.ObjectId): Promise<any> {
   console.log("Updating revealed NFTs for user:", userId);
   
   const updatePromises = nftData.reveledData.map(async (item: any) => {
     const tokenId = item['token-id'];
     const uri = item.uri;
-    const collectionName = item.collection.name === "priority_pass_001" ? "Priority Pass" : item.collection.name;
+    // const collectionName = item.collection.name === "priority_pass_001" ? "Priority Pass" : item.collection.name;
 
     try {
       const metadata = await fetchMetadata(uri);
@@ -452,13 +543,13 @@ public async  updateRevealedNFTs(nftData: any, userId: mongoose.Types.ObjectId):
           : metadata.image;
       }
 
-      console.log(`Processing NFT: TokenID ${tokenId}, Collection ${collectionName}`);
+      console.log(`Processing NFT: TokenID ${tokenId}`);
 
       // Try to find an existing NFT for this user and token
       let existingNft = await Nft.findOne({ 
         user: userId, 
         tokenId: tokenId, 
-        collectionName: collectionName 
+        // collectionName: collectionName 
       });
 
       if (existingNft) {
@@ -475,7 +566,7 @@ public async  updateRevealedNFTs(nftData: any, userId: mongoose.Types.ObjectId):
         const newNft = new Nft({
           user: userId,
           tokenId: tokenId,
-          collectionName: collectionName,
+          // collectionName: collectionName,
           isRevealed: true,
           tokenImage: imageUrl,
           ...metadata,
@@ -504,7 +595,6 @@ public async  updateRevealedNFTs(nftData: any, userId: mongoose.Types.ObjectId):
   return processedNfts;
 }
 
-
 public async getCollectionNfts(
   pageNo: number,
   limit: number,
@@ -530,7 +620,6 @@ public async getCollectionNfts(
         collectionId: 1,
         collectionType: 1,
         collectionName: 1,
-        AccountId: 1,
         creator: 1,
         tokenImage: 1,
         tokenId: 1,
@@ -548,7 +637,11 @@ public async getCollectionNfts(
         royalties: 1,
         properties: 1,
         attributes: 1,
+        rarityScore: 1,
+        rarityRank: 1,
         likes: 1,
+        createdAt: 1,
+        // New fields
         isPlatform: 1,
         saleType: 1,
         saleId: 1,
@@ -565,8 +658,8 @@ public async getCollectionNfts(
         policies: 1,
         collection: 1,
         nftData: 1,
-        lastUpdated: 1,
-        createdAt: 1
+        traitCount: 1,
+        lastUpdated: 1
       },
     },
     {
@@ -612,7 +705,6 @@ public async getCollectionNftsMarket(
         collectionId: 1,
         collectionType: 1,
         collectionName: 1,
-        AccountId: 1,
         creator: 1,
         tokenImage: 1,
         tokenId: 1,
@@ -630,7 +722,11 @@ public async getCollectionNftsMarket(
         royalties: 1,
         properties: 1,
         attributes: 1,
+        rarityScore: 1,
+        rarityRank: 1,
         likes: 1,
+        createdAt: 1,
+        // New fields
         isPlatform: 1,
         saleType: 1,
         saleId: 1,
@@ -647,8 +743,8 @@ public async getCollectionNftsMarket(
         policies: 1,
         collection: 1,
         nftData: 1,
-        lastUpdated: 1,
-        createdAt: 1
+        traitCount: 1,
+        lastUpdated: 1
       },
     },
     {
@@ -710,7 +806,7 @@ public async getCollectionNftsMarket(
           collectionId: 1,
           collectionType: 1,
           collectionName: 1,
-          creator: "$user.username",
+          creator: 1,
           tokenImage: 1,
           tokenId: 1,
           nftPrice: 1,
@@ -728,9 +824,28 @@ public async getCollectionNftsMarket(
           properties: 1,
           attributes: 1,
           rarityScore: 1,
-          rarityRank:1,
+          rarityRank: 1,
           likes: 1,
-          createdAt: 1 // Add createdAt here
+          createdAt: 1,
+          // New fields
+          isPlatform: 1,
+          saleType: 1,
+          saleId: 1,
+          price: 1,
+          amount: 1,
+          timeout: 1,
+          currency: 1,
+          enabled: 1,
+          seller: 1,
+          recipient: 1,
+          escrowAccount: 1,
+          uri: 1,
+          supply: 1,
+          policies: 1,
+          collection: 1,
+          nftData: 1,
+          traitCount: 1,
+          lastUpdated: 1
         },
       },
       {
@@ -794,7 +909,7 @@ public async getCollectionNftsMarket(
             collectionId: 1,
             collectionType: 1,
             collectionName: 1,
-            creator: "$user.username",
+            creator: 1,
             tokenImage: 1,
             tokenId: 1,
             nftPrice: 1,
@@ -812,9 +927,28 @@ public async getCollectionNftsMarket(
             properties: 1,
             attributes: 1,
             rarityScore: 1,
-            rarityRank:1,
+            rarityRank: 1,
             likes: 1,
-            createdAt: 1 // Add createdAt here
+            createdAt: 1,
+            // New fields
+            isPlatform: 1,
+            saleType: 1,
+            saleId: 1,
+            price: 1,
+            amount: 1,
+            timeout: 1,
+            currency: 1,
+            enabled: 1,
+            seller: 1,
+            recipient: 1,
+            escrowAccount: 1,
+            uri: 1,
+            supply: 1,
+            policies: 1,
+            collection: 1,
+            nftData: 1,
+            traitCount: 1,
+            lastUpdated: 1
           },
         },
         {

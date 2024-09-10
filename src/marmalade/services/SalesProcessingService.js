@@ -198,6 +198,7 @@ class SalesProcessingService {
       collectionName: sale.collection.c.name,
       nftPrice: sale.price,
       creator: sale.collection.c.creator,
+      isRevealed: true,
       // Map other fields as needed
     };
   }

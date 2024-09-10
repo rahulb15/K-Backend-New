@@ -384,16 +384,45 @@ export class NftController {
     }
   }
 
-  // getMarketPlaceNfts
+  // // getMarketPlaceNfts
+  // public async getMarketPlaceNfts(req: any, res: Response) {
+  //   try {
+  //     const pageNo: number = parseInt(req.query.pageNo as string);
+  //     const limit: number = parseInt(req.query.limit as string);
+  //     const search: string = req.query.search as string;
+  //     console.log(pageNo, limit, search);
+
+  //     const nfts: any = await nftManager.getMarketPlaceNfts( pageNo, limit, search);
+
+  //     const responseData: IResponseHandler = {
+  //       status: ResponseStatus.SUCCESS,
+  //       message: ResponseMessage.SUCCESS,
+  //       description: ResponseDescription.SUCCESS,
+  //       data: nfts,
+  //     };
+  //     return res.status(ResponseCode.SUCCESS).json(responseData);
+  //   } catch (error) {
+  //     const responseData: IResponseHandler = {
+  //       status: ResponseStatus.FAILED,
+  //       message: ResponseMessage.FAILED,
+  //       description: ResponseDescription.FAILED,
+  //       data: null,
+  //     };
+  //     return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(responseData);
+  //   }
+  // }
+
   public async getMarketPlaceNfts(req: any, res: Response) {
     try {
       const pageNo: number = parseInt(req.query.pageNo as string);
       const limit: number = parseInt(req.query.limit as string);
       const search: string = req.query.search as string;
-      console.log(pageNo, limit, search);
-
-      const nfts: any = await nftManager.getMarketPlaceNfts( pageNo, limit, search);
-
+      const onSale: boolean = req.body.onSale === true;
+      const onAuction: boolean = req.body.onAuction === true;
+      console.log(pageNo, limit, search, onSale, onAuction);
+  
+      const nfts: any = await nftManager.getMarketPlaceNfts(pageNo, limit, search, onSale, onAuction);
+  
       const responseData: IResponseHandler = {
         status: ResponseStatus.SUCCESS,
         message: ResponseMessage.SUCCESS,
@@ -411,7 +440,6 @@ export class NftController {
       return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(responseData);
     }
   }
-
 
   public async getCollectionNfts(req: any, res: Response) {
     try {
