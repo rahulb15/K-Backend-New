@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { authMiddleware } from "../../middlewares/auth.middleware";
+import { adminMiddleware } from "../../middlewares/admin.auth.middleware";
 import upload from "../../middlewares/multer.middleware";
 import userController from "../controllers/user.controller";
 
@@ -251,6 +252,16 @@ router.post(
   upload,
   userController.uploadImage
 );
+
+router.post(
+  "/upload-image-pinata",
+  authMiddleware,
+  upload,
+  userController.uploadImageForPinata.bind(userController)
+);
+
+router.get('/files/:folder', userController.getFilesByFolder);
+router.delete('/files/:ipfsHash', userController.deleteFile);
 
 // checkToken
 router.post("/check-auth", userController.checkToken);

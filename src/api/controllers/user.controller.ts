@@ -30,6 +30,9 @@ import qrcode from "qrcode";
 import speakeasy from "speakeasy";
 import cloudinary from "../../config/cloudinary.config";
 import { newUserEmail } from "../../mail/newUserEmail";
+import pinataSDK from "@pinata/sdk";
+import { Readable } from "stream";
+import pinataService from "../../services/pinata.service";
 
 export class UserController {
   /*
@@ -94,7 +97,7 @@ export class UserController {
       const newUser: IUser = {
         ...user,
         walletAddress: generateWalletAddress(user),
-        username: user.name
+        username: user.name,
       };
 
       console.log(newUser, "user");
@@ -875,90 +878,6 @@ export class UserController {
     }
   }
 
-  // public async uploadImage(req: any, res: Response) {
-  //   try {
-  //     console.log("Hello", req.files);
-  //     console.log(req.files.profile, "req.file");
-  //     if (!req.files) {
-  //       const response: IResponseHandler = {
-  //         status: ResponseStatus.FAILED,
-  //         message: ResponseMessage.FAILED,
-  //         description: ResponseDescription.FAILED,
-  //         data: null,
-  //       };
-
-  //       return res.status(ResponseCode.BAD_REQUEST).json(response);
-  //     }
-
-  //     const userId = req.user._id;
-  //     const user: IUser = await userManager.getById(userId);
-  //     if (!user) {
-  //       const response: IResponseHandler = {
-  //         status: ResponseStatus.FAILED,
-  //         message: ResponseMessage.USER_NOT_FOUND,
-  //         description: ResponseDescription.USER_NOT_FOUND,
-  //         data: null,
-  //       };
-
-  //       return res.status(ResponseCode.NOT_FOUND).json(response);
-  //     }
-
-  //     const profile = req.files.profileImage;
-  //     const cover = req.files.coverImage;
-
-  //     if (profile) {
-  //       cloudinary.uploader.upload(
-  //         profile[0].path,
-  //         {
-  //           folder: "profile",
-  //           use_filename: true,
-  //           unique_filename: false,
-  //         },
-  //         async (error: any, result: any) => {
-  //           if (error) {
-  //             console.log(error, "error");
-  //           }
-  //           console.log(result, "result");
-  //           user.profileImage = result.secure_url;
-  //           const updated = await userManager.updateById(userId, user);
-  //           const response: IResponseHandler = {
-  //             status: ResponseStatus.SUCCESS,
-  //             message: ResponseMessage.SUCCESS,
-  //             description: ResponseDescription.SUCCESS,
-  //             data: updated,
-  //           };
-  //           res.status(ResponseCode.SUCCESS).json(response);
-  //         }
-  //       );
-  //     } else {
-  //       cloudinary.uploader.upload(
-  //         cover[0].path,
-  //         {
-  //           folder: "cover",
-  //           use_filename: true,
-  //           unique_filename: false,
-  //         },
-  //         async (error: any, result: any) => {
-  //           if (error) {
-  //             console.log(error, "error");
-  //           }
-  //           console.log(result, "result");
-  //           user.coverImage = result.secure_url;
-  //           const updated = await userManager.updateById(userId, user);
-  //           const response: IResponseHandler = {
-  //             status: ResponseStatus.SUCCESS,
-  //             message: ResponseMessage.SUCCESS,
-  //             description: ResponseDescription.SUCCESS,
-  //             data: updated,
-  //           };
-  //           res.status(ResponseCode.SUCCESS).json(response);
-  //         }
-  //       );
-  //     }
-  //   } catch (error) {
-  //     res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(error);
-  //   }
-  // }
 
   public async uploadImage(req: any, res: Response): Promise<any> {
     try {
@@ -1032,6 +951,129 @@ export class UserController {
     } catch (error) {
       console.error("Error in uploadImage function:", error);
       return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json({
+        status: ResponseStatus.INTERNAL_SERVER_ERROR,
+        message: ResponseMessage.FAILED,
+        description: ResponseDescription.INTERNAL_SERVER_ERROR,
+        data: null,
+      });
+    }
+  }
+
+
+  public async uploadImageForPinata(req: any, res: Response): Promise<any> {
+    try {
+      if (!req.files) {
+        const response: IResponseHandler = {
+          status: ResponseStatus.FAILED,
+          message: ResponseMessage.FAILED,
+          description: ResponseDescription.FAILED,
+          data: null,
+        };
+  
+        return res.status(ResponseCode.BAD_REQUEST).json(response);
+      }
+  
+      const userId = req.user._id;
+      const user: IUser = await userManager.getById(userId);
+      if (!user) {
+        const response: IResponseHandler = {
+          status: ResponseStatus.FAILED,
+          message: ResponseMessage.USER_NOT_FOUND,
+          description: ResponseDescription.USER_NOT_FOUND,
+          data: null,
+        };
+  
+        return res.status(ResponseCode.NOT_FOUND).json(response);
+      }
+  
+      const profileImage = req.files.profileImage?.[0];
+      console.log(profileImage, "profileImage");
+      const coverImage = req.files.coverImage?.[0];
+
+  
+      if (profileImage) {
+        const fileName = `profile_${userId}_${Date.now()}.${profileImage.originalname.split('.').pop()}`;
+        const profileResult = await pinataService.uploadToPinata(
+          profileImage.buffer,
+          "profile",
+          fileName
+        );
+        user.profileImage = profileResult;
+      }
+
+      if (coverImage) {
+        const fileName = `cover_${userId}_${Date.now()}.${coverImage.originalname.split('.').pop()}`;
+        const coverResult = await pinataService.uploadToPinata(
+          coverImage.buffer,
+          "cover",
+          fileName
+        );
+        user.coverImage = coverResult;
+      }
+
+  
+      const updated = await userManager.updateById(userId, user);
+      const response: IResponseHandler = {
+        status: ResponseStatus.SUCCESS,
+        message: ResponseMessage.SUCCESS,
+        description: ResponseDescription.SUCCESS,
+        data: updated,
+      };
+      res.status(ResponseCode.SUCCESS).json(response);
+    } catch (error) {
+      console.error("Error in uploadImageForPinata function:", error);
+      return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json({
+        status: ResponseStatus.INTERNAL_SERVER_ERROR,
+        message: ResponseMessage.FAILED,
+        description: ResponseDescription.INTERNAL_SERVER_ERROR,
+        data: null,
+      });
+    }
+  }
+
+  public async getFilesByFolder(req: Request, res: Response) {
+    try {
+      const { folder } = req.params;
+
+      const files = await pinataService.getFilesByFolder(folder);
+
+      const response: IResponseHandler = {
+        status: ResponseStatus.SUCCESS,
+        message: ResponseMessage.SUCCESS,
+        description: ResponseDescription.SUCCESS,
+        data: files,
+      };
+
+      res.status(ResponseCode.SUCCESS).json(response);
+    } catch (error) {
+      console.error("Error in getFilesByFolder function:", error);
+      res.status(ResponseCode.INTERNAL_SERVER_ERROR).json({
+        status: ResponseStatus.INTERNAL_SERVER_ERROR,
+        message: ResponseMessage.FAILED,
+        description: ResponseDescription.INTERNAL_SERVER_ERROR,
+        data: null,
+      });
+    }
+  }
+
+  // Delete a file by its IPFS hash
+  public async deleteFile(req: Request, res: Response) {
+    try {
+      const { ipfsHash } = req.params;
+
+      await pinataService.deleteFile(ipfsHash);
+
+      const response: IResponseHandler = {
+        status: ResponseStatus.SUCCESS,
+        message: ResponseMessage.SUCCESS,
+        description: ResponseDescription.SUCCESS,
+        data: null,
+      };
+
+      res.status(ResponseCode.SUCCESS).json(response);
+    } catch (error) {
+      console.error("Error in deleteFile function:", error);
+      res.status(ResponseCode.INTERNAL_SERVER_ERROR).json({
         status: ResponseStatus.INTERNAL_SERVER_ERROR,
         message: ResponseMessage.FAILED,
         description: ResponseDescription.INTERNAL_SERVER_ERROR,

@@ -20,6 +20,7 @@
     "@huggingface/hub": "^0.15.1",
     "@huggingface/inference": "^2.8.0",
     "@kadena/client": "^1.13.0",
+    "@pinata/sdk": "^2.1.0",
     "@stripe/stripe-js": "^3.0.7",
     "@sumsub/websdk": "^2.2.1",
     "axios": "^1.7.2",
