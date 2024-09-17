@@ -131,6 +131,7 @@ class SalesProcessingService {
     });
     this.Nft = mongoose.model('Nft');
     this.User = mongoose.model('User');
+    this.CollectionMarketPlace = mongoose.model('CollectionMarketPlace');
   }
 
   async processSales() {
@@ -193,6 +194,9 @@ class SalesProcessingService {
     // Find the user based on the creator field
     const user = await this.User.findOne({ walletAddress: sale.collection.c.creator });
 
+    // Find the collection based on the collectionName
+    const collection = await this.CollectionMarketPlace.findOne({ collectionName: sale.collection.c.name });
+
     return {
       tokenId: sale['token-id'],
       saleType: sale.type,
@@ -222,6 +226,7 @@ class SalesProcessingService {
       creator: sale.collection.c.creator,
       isRevealed: true,
       user: user ? user._id : null, // Add the user's ObjectId if found
+      collectionId: collection ? collection._id : null, // Add the collection's ObjectId if found
       // Map other fields as needed
     };
   }

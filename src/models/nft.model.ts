@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { INft } from "../interfaces/nft/nft.interface";
+import { isValidKadenaAddress } from "../utils/addressValidator";
 
 const nftSchema = new mongoose.Schema({
   user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
@@ -45,6 +46,16 @@ const nftSchema = new mongoose.Schema({
   rarityScore: { type: Number },
   rarityRank: { type: Number },
   traitCount: { type: Number },
+  owner: { 
+    type: String, 
+    required: true,
+    validate: {
+      validator: function(v: string) {
+        return isValidKadenaAddress(v);
+      },
+      message: (props: any) => `${props.value} is not a valid Kadena address!`
+    }
+  },
   lastUpdated: { type: Date, default: Date.now }
 });
 

@@ -302,7 +302,8 @@ export class NftManager implements INftManager {
           collection: 1,
           nftData: 1,
           traitCount: 1,
-          lastUpdated: 1
+          lastUpdated: 1,
+          owner: 1
         },
       },
       {
@@ -967,6 +968,14 @@ public async getCollectionNftsMarket(
         total,
         currentPage: pageNo
       };
+    }
+
+    public async getNftById(id: string): Promise<INft | null> {
+      return Nft.findById(id);
+    }
+  
+    public async updateNft(nft: INft): Promise<INft | null> {
+      return Nft.findByIdAndUpdate(nft._id, nft, { new: true });
     }
 
 

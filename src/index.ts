@@ -5,6 +5,7 @@ import { Server as SocketIOServer } from 'socket.io';
 import { setupSocketIOServer } from "./helpers/websocket-server";
 import { initializeNotificationSystem } from "./services/notification.manager";
 import { initializeChatSystem } from './services/chat.manager';
+import realTimeActivityService from "./services/real-time-activity.service";
 
 const port = () => {
   switch (process.env.NODE_ENV) {
@@ -73,6 +74,16 @@ connectToDatabase()
       })
       .catch((error) => {
         console.error("Error initializing chat system:", error);
+        process.exit(1);
+      });
+
+    // Start the real-time activity service
+    realTimeActivityService.start()
+      .then(() => {
+        console.log("Real-time activity service started successfully");
+      })
+      .catch((error) => {
+        console.error("Error starting real-time activity service:", error);
         process.exit(1);
       });
       

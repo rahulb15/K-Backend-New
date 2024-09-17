@@ -5,12 +5,17 @@ import {
   ResponseMessage,
   ResponseStatus,
 } from "../../enum/response-message.enum";
-import { INft } from "../../interfaces/nft/nft.interface";
+import { INft, IBidInfo } from "../../interfaces/nft/nft.interface";
 import { IResponseHandler } from "../../interfaces/response-handler.interface";
 import nftManager from "../../services/nft.manager";
 import { ILaunchCollection } from "../../interfaces/launch-collection/launch-collection.interface";
 import { LaunchCollectionManager } from "../../services/launch-collection.manager";
-
+import { INftActivity } from "../../interfaces/activity/activity.interface";
+import NftActivity from "../../models/activity.model";
+import mongoose from "mongoose";
+import { isValidKadenaAddress } from "../../utils/addressValidator";
+import { broadcastCollectionActivity } from "../../helpers/websocket-server";
+import { activityResponseData } from "../../utils/userResponse/activity-response.utils";
 export class NftController {
   private static instance: NftController;
 
@@ -159,21 +164,18 @@ export class NftController {
     }
   }
 
-
-
-
-//   const body = {
-//     collectionName: uniqueCollectionName,
-//     nftPrice: data.nftPrice,
-//     unlockable: data.unlockable,
-//     creatorName: data.creatorName,
-//     duration: data.duration,
-//     isPlatform: true,
-//     uri: data.uri,
-//     policies: data.policies,
-//     royaltyAccount: data.royaltyAccount,
-//     royaltyPercentage: data.royaltyPercentage,
-// };
+  //   const body = {
+  //     collectionName: uniqueCollectionName,
+  //     nftPrice: data.nftPrice,
+  //     unlockable: data.unlockable,
+  //     creatorName: data.creatorName,
+  //     duration: data.duration,
+  //     isPlatform: true,
+  //     uri: data.uri,
+  //     policies: data.policies,
+  //     royaltyAccount: data.royaltyAccount,
+  //     royaltyPercentage: data.royaltyPercentage,
+  // };
   public async createOne(req: any, res: Response) {
     try {
       const body: any = req.body;
@@ -337,8 +339,11 @@ export class NftController {
     try {
       const body: any = req.body;
       const userId = req.user._id;
-      console.log(body,"ddddddddddddddddddddddddddddddd");
-      const updatedNft: INft = await nftManager.updateRevealedNFTs(body, userId);
+      console.log(body, "ddddddddddddddddddddddddddddddd");
+      const updatedNft: INft = await nftManager.updateRevealedNFTs(
+        body,
+        userId
+      );
       const responseData: IResponseHandler = {
         status: ResponseStatus.SUCCESS,
         message: ResponseMessage.UPDATED,
@@ -357,15 +362,10 @@ export class NftController {
     }
   }
 
-
-
-
-
-
-
   public async getIpfsJson(req: Request, res: Response) {
     try {
-      const ipfsHash: string = 'ipfs://bafkreicm7uen4kb3y7nwoexrsx7sre6ckfmtbfufslidbesfsbzfi2lguy';
+      const ipfsHash: string =
+        "ipfs://bafkreicm7uen4kb3y7nwoexrsx7sre6ckfmtbfufslidbesfsbzfi2lguy";
       const responseData: IResponseHandler = {
         status: ResponseStatus.SUCCESS,
         message: ResponseMessage.SUCCESS,
@@ -420,9 +420,15 @@ export class NftController {
       const onSale: boolean = req.body.onSale === true;
       const onAuction: boolean = req.body.onAuction === true;
       console.log(pageNo, limit, search, onSale, onAuction);
-  
-      const nfts: any = await nftManager.getMarketPlaceNfts(pageNo, limit, search, onSale, onAuction);
-  
+
+      const nfts: any = await nftManager.getMarketPlaceNfts(
+        pageNo,
+        limit,
+        search,
+        onSale,
+        onAuction
+      );
+
       const responseData: IResponseHandler = {
         status: ResponseStatus.SUCCESS,
         message: ResponseMessage.SUCCESS,
@@ -448,9 +454,17 @@ export class NftController {
       const search: string = req.query.search as string;
       console.log(pageNo, limit, search);
       const collectionName: string = req.body.collectionName;
-      console.log(collectionName,"dddddddddddddddddddddddddddddddddddddddddddddd");
+      console.log(
+        collectionName,
+        "dddddddddddddddddddddddddddddddddddddddddddddd"
+      );
 
-      const nfts: any = await nftManager.getCollectionNfts( pageNo, limit, search, collectionName);
+      const nfts: any = await nftManager.getCollectionNfts(
+        pageNo,
+        limit,
+        search,
+        collectionName
+      );
 
       const responseData: IResponseHandler = {
         status: ResponseStatus.SUCCESS,
@@ -477,9 +491,17 @@ export class NftController {
       const search: string = req.query.search as string;
       console.log(pageNo, limit, search);
       const collectionName: string = req.body.collectionName;
-      console.log(collectionName,"dddddddddddddddddddddddddddddddddddddddddddddd");
+      console.log(
+        collectionName,
+        "dddddddddddddddddddddddddddddddddddddddddddddd"
+      );
 
-      const nfts: any = await nftManager.getCollectionNftsMarket( pageNo, limit, search, collectionName);
+      const nfts: any = await nftManager.getCollectionNftsMarket(
+        pageNo,
+        limit,
+        search,
+        collectionName
+      );
 
       const responseData: IResponseHandler = {
         status: ResponseStatus.SUCCESS,
@@ -508,7 +530,12 @@ export class NftController {
       const search: string = req.body.search as string;
       console.log(pageNo, limit, search);
 
-      const nfts: any = await nftManager.getOwnedNfts(userId, pageNo, limit, search);
+      const nfts: any = await nftManager.getOwnedNfts(
+        userId,
+        pageNo,
+        limit,
+        search
+      );
 
       const responseData: IResponseHandler = {
         status: ResponseStatus.SUCCESS,
@@ -527,7 +554,6 @@ export class NftController {
       return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(responseData);
     }
   }
-
 
   public async getOwnSaleNfts(req: any, res: Response) {
     try {
@@ -537,7 +563,12 @@ export class NftController {
       const search: string = req.query.search as string;
       console.log(pageNo, limit, search);
 
-      const nfts: any = await nftManager.getOwnSaleNfts(userId, pageNo, limit, search);
+      const nfts: any = await nftManager.getOwnSaleNfts(
+        userId,
+        pageNo,
+        limit,
+        search
+      );
 
       const responseData: IResponseHandler = {
         status: ResponseStatus.SUCCESS,
@@ -557,10 +588,360 @@ export class NftController {
     }
   }
 
+  // public async placeBid(req: any, res: Response): Promise<void> {
+  //   try {
+  //     const { nftId, bidAmount } = req.body;
+  //     const userId = req.user._id; // Assuming you have user information in the request after authentication
+
+  //     console.log(nftId, bidAmount, userId);
+
+  //     if (!mongoose.Types.ObjectId.isValid(nftId)) {
+  //       res.status(400).json({ message: "Invalid NFT ID" });
+  //       return;
+  //     }
+
+  //     if (typeof bidAmount !== "number" || bidAmount <= 0) {
+  //       res.status(400).json({ message: "Invalid bid amount" });
+  //       return;
+  //     }
+
+  //     // 1. Validate the bid (e.g., check if the NFT exists, if it's on auction, if the bid amount is valid)
+  //     const nft = await nftManager.getNftById(nftId);
+  //     if (!nft) {
+  //       res.status(404).json({ message: "NFT not found" });
+  //       return;
+  //     }
+
+  //     if (!nft.onAuction) {
+  //       res.status(400).json({ message: "This NFT is not on auction" });
+  //       return;
+  //     }
+
+  //     // Add more validation as needed (e.g., check if bid amount is higher than current highest bid)
+  //     const highestBid = nft.bidInfo.reduce(
+  //       (max, bid) => (bid.amount > max ? bid.amount : max),
+  //       0
+  //     );
+  //     if (bidAmount <= highestBid) {
+  //       res
+  //         .status(400)
+  //         .json({
+  //           message: "Bid amount must be higher than the current highest bid",
+  //         });
+  //       return;
+  //     }
+
+  //     // 2. Process the bid (this would typically involve interacting with a smart contract)
+  //     const newBid: IBidInfo = {
+  //       userId: userId,
+  //       amount: bidAmount,
+  //       timestamp: new Date(),
+  //     };
+  //     nft.bidInfo.push(newBid);
+  //     await nftManager.updateNft(nft);
+
+  //     // 3. Record the bid activity
+  //     const activity = new NftActivity({
+  //       nft: nftId,
+  //       collectionId: nft.collectionId,
+  //       activityType: "bid",
+  //       fromUser: userId,
+  //       price: bidAmount,
+  //       currency: "KDA", // Assuming KDA is the default currency
+  //       timestamp: new Date(),
+  //     });
+  //     await activity.save();
+
+  //     const responseData: IResponseHandler = {
+  //       status: ResponseStatus.SUCCESS,
+  //       message: ResponseMessage.SUCCESS,
+  //       description: ResponseDescription.SUCCESS,
+  //       data: nft,
+  //     };
+  //     res.status(ResponseCode.SUCCESS).json(responseData);
+  //   } catch (error) {
+  //     console.error("Error placing bid:", error);
+  //     const responseData: IResponseHandler = {
+  //       status: ResponseStatus.FAILED,
+  //       message: ResponseMessage.FAILED,
+  //       description: ResponseDescription.FAILED,
+  //       data: null,
+  //     };
+  //     res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(responseData);
+  //   }
+  // }
 
 
+  // public async buyNft(req: any, res: Response): Promise<void> {
+  //   try {
+  //     const { nftId } = req.body;
+  //     const buyerId = req.user._id; // Assuming you have user information in the request after authentication
+
+  //     if (!mongoose.Types.ObjectId.isValid(nftId)) {
+  //       res.status(400).json({ message: "Invalid NFT ID" });
+  //       return;
+  //     }
+
+  //     // 1. Validate the purchase (e.g., check if the NFT exists, if it's on sale)
+  //     const nft = await nftManager.getNftById(nftId);
+  //     if (!nft) {
+  //       res.status(404).json({ message: "NFT not found" });
+  //       return;
+  //     }
+
+  //     if (!nft.onSale) {
+  //       res.status(400).json({ message: "This NFT is not for sale" });
+  //       return;
+  //     }
+
+  //     // 2. Process the purchase (this would typically involve interacting with a smart contract)
+  //     const oldOwnerId = nft.user || null;
+  //     nft.user = buyerId;
+  //     nft.onSale = false;
+  //     nft.onMarketplace = false;
+
+  //     // 3. Update the NFT ownership
+  //     const updatedNft = await nftManager.updateNft(nft);
+
+  //     if (!updatedNft) {
+  //       res.status(500).json({ message: "Failed to update NFT ownership" });
+  //       return;
+  //     }
+
+  //     // 4. Record the purchase activity as a transfer
+  //     const activity = new NftActivity({
+  //       nft: nftId,
+  //       collectionId: nft.collectionId,
+  //       activityType: "transfer", // Changed from "sale" to "transfer"
+  //       fromUser: oldOwnerId,
+  //       toUser: buyerId,
+  //       price: nft.nftPrice,
+  //       currency: "KDA", // Assuming KDA is the default currency
+  //       timestamp: new Date()
+  //     });
+  //     await activity.save();
+
+  //     const responseData: IResponseHandler = {
+  //       status: ResponseStatus.SUCCESS,
+  //       message: ResponseMessage.SUCCESS,
+  //       description: ResponseDescription.SUCCESS,
+  //       data: updatedNft,
+  //     };
+  //     res.status(ResponseCode.SUCCESS).json(responseData);
+
+  //   } catch (error) {
+  //     console.error("Error buying NFT:", error);
+  //     const responseData: IResponseHandler = {
+  //       status: ResponseStatus.FAILED,
+  //       message: ResponseMessage.FAILED,
+  //       description: ResponseDescription.FAILED,
+  //       data: null,
+  //     };
+  //     res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(responseData);
+  //   }
+  // }
 
 
+  public async placeBid(req: any, res: Response): Promise<void> {
+    try {
+      const { nftId, bidAmount, bidderAddress } = req.body;
+
+      console.log(nftId, bidAmount, bidderAddress);
+
+      if (!mongoose.Types.ObjectId.isValid(nftId)) {
+        res.status(400).json({ message: "Invalid NFT ID" });
+        return;
+      }
+
+      if (typeof bidAmount !== "number" || bidAmount <= 0) {
+        res.status(400).json({ message: "Invalid bid amount" });
+        return;
+      }
+
+      if (!isValidKadenaAddress(bidderAddress)) {
+        res.status(400).json({ message: "Invalid Kadena address" });
+        return;
+      }
+
+      // 1. Validate the bid (e.g., check if the NFT exists, if it's on auction, if the bid amount is valid)
+      const nft = await nftManager.getNftById(nftId);
+      if (!nft) {
+        res.status(404).json({ message: "NFT not found" });
+        return;
+      }
+
+      if (!nft.onAuction) {
+        res.status(400).json({ message: "This NFT is not on auction" });
+        return;
+      }
+
+      // Add more validation as needed (e.g., check if bid amount is higher than current highest bid)
+      const highestBid = nft.bidInfo.reduce(
+        (max, bid) => (bid.amount > max ? bid.amount : max),
+        0
+      );
+      if (bidAmount <= highestBid) {
+        res.status(400).json({
+          message: "Bid amount must be higher than the current highest bid",
+        });
+        return;
+      }
+
+      // 2. Process the bid (this would typically involve interacting with a smart contract)
+      const newBid: IBidInfo = {
+        bidderAddress: bidderAddress,
+        amount: bidAmount,
+        timestamp: new Date(),
+      };
+      nft.bidInfo.push(newBid);
+      await nftManager.updateNft(nft);
+
+      // 3. Record the bid activity
+      const activity = new NftActivity({
+        nft: nftId,
+        collectionId: nft.collectionId,
+        activityType: "bid",
+        fromAddress: bidderAddress,
+        toAddress: nft.owner, // The current owner's address
+        price: bidAmount,
+        currency: "KDA", // Assuming KDA is the default currency
+        timestamp: new Date(),
+      });
+      await activity.save();
+
+      broadcastCollectionActivity(activity.collectionId.toString(), activityResponseData(activity));
+
+
+      const responseData: IResponseHandler = {
+        status: ResponseStatus.SUCCESS,
+        message: ResponseMessage.SUCCESS,
+        description: ResponseDescription.SUCCESS,
+        data: nft,
+      };
+      res.status(ResponseCode.SUCCESS).json(responseData);
+    } catch (error) {
+      console.error("Error placing bid:", error);
+      const responseData: IResponseHandler = {
+        status: ResponseStatus.FAILED,
+        message: ResponseMessage.FAILED,
+        description: ResponseDescription.FAILED,
+        data: null,
+      };
+      res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(responseData);
+    }
+  }
+
+  public async buyNft(req: Request, res: Response): Promise<void> {
+    try {
+      const { nftId, buyerWalletAddress } = req.body;
+
+      if (!mongoose.Types.ObjectId.isValid(nftId)) {
+        res.status(400).json({ message: "Invalid NFT ID" });
+        return;
+      }
+
+      if (!isValidKadenaAddress(buyerWalletAddress)) {
+        res.status(400).json({ message: "Invalid buyer Kadena address" });
+        return;
+      }
+
+      // 1. Validate the purchase (e.g., check if the NFT exists, if it's on sale)
+      const nft:any = await nftManager.getNftById(nftId);
+      if (!nft) {
+        res.status(404).json({ message: "NFT not found" });
+        return;
+      }
+
+      if (!nft.onSale) {
+        res.status(400).json({ message: "This NFT is not for sale" });
+        return;
+      }
+
+      const oldOwnerAddress = nft.owner;
+
+      // 2. Process the purchase (this would typically involve interacting with a smart contract)
+      nft.owner = buyerWalletAddress;
+      nft.onSale = false;
+      nft.onMarketplace = false;
+
+      // 3. Update the NFT ownership
+      const updatedNft = await nftManager.updateNft(nft);
+
+      if (!updatedNft) {
+        res.status(500).json({ message: "Failed to update NFT ownership" });
+        return;
+      }
+
+      // 4. Record the purchase activity as a transfer
+      const activity = new NftActivity({
+        nft: nftId,
+        collectionId: nft.collectionId,
+        activityType: "transfer",
+        fromAddress: oldOwnerAddress,
+        toAddress: buyerWalletAddress,
+        price: nft.nftPrice,
+        currency: "KDA",
+        timestamp: new Date()
+      });
+
+      // Validate the activity document before saving
+      const validationError = activity.validateSync();
+      if (validationError) {
+        console.error("Validation error:", validationError);
+        res.status(400).json({ message: "Invalid activity data", errors: validationError.errors });
+        return;
+      }
+
+      await activity.save();
+
+      broadcastCollectionActivity(activity.collectionId.toString(), activityResponseData(activity));
+
+
+      const responseData: IResponseHandler = {
+        status: ResponseStatus.SUCCESS,
+        message: ResponseMessage.SUCCESS,
+        description: ResponseDescription.SUCCESS,
+        data: updatedNft,
+      };
+      res.status(ResponseCode.SUCCESS).json(responseData);
+
+
+   
+    } catch (error) {
+      console.error("Error buying NFT:", error);
+      if (error instanceof mongoose.Error.ValidationError) {
+        const validationErrors = Object.values(error.errors).map(err => err.message);
+        // res.status(400).json({ message: "Validation error", errors: validationErrors });
+
+        const responseData: IResponseHandler = {
+          status: ResponseStatus.FAILED,
+          message: ResponseMessage.FAILED,
+          description: ResponseDescription.FAILED,
+          data: validationErrors,
+        };
+        res.status(ResponseCode.BAD_REQUEST).json(responseData);
+
+      } else if (error instanceof mongoose.Error) {
+        // res.status(500).json({ message: "Database error", error: error.message });
+        const responseData: IResponseHandler = {
+          status: ResponseStatus.FAILED,
+          message: ResponseMessage.FAILED,
+          description: ResponseDescription.FAILED,
+          data: error.message,
+        };
+        res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(responseData);
+      } else {
+        // res.status(500).json({ message: "An unexpected error occurred while buying the NFT" });
+        const responseData: IResponseHandler = {
+          status: ResponseStatus.FAILED,
+          message: ResponseMessage.FAILED,
+          description: ResponseDescription.FAILED,
+          data: "An unexpected error occurred while buying the NFT",
+        };
+        res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(responseData);
+      }
+    }
+  }
 }
 
 export default NftController.getInstance();

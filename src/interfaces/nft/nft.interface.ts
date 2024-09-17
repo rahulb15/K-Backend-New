@@ -1,3 +1,16 @@
+import mongoose from "mongoose";
+
+// export interface IBidInfo {
+//   userId: mongoose.Types.ObjectId | string;
+//   amount: number;
+//   timestamp: Date;
+// }
+export interface IBidInfo {
+  bidderAddress: string; // Kadena address of the bidder
+  amount: number;
+  timestamp: Date;
+}
+
 export interface INft {
   _id?: string;
   user: string;
@@ -13,7 +26,7 @@ export interface INft {
   digitalCode: string;
   onMarketplace: boolean;
   onSale: boolean;
-  bidInfo: string[];
+  bidInfo: IBidInfo[];
   onAuction: boolean;
   sellingType: string;
   creatorName: string;
@@ -24,6 +37,7 @@ export interface INft {
   likes: number;
   policies?: string;
   uri?: string;
+  owner?: string; // Kadena address of the owner
 }
 
 export interface INfts {

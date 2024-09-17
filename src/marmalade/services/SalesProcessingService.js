@@ -115,7 +115,7 @@ class SalesProcessingService {
       isRevealed: true,
       user: user ? user._id : null, // Add the user's ObjectId if found
       collectionId: collection ? collection._id : null, // Add the collection's ObjectId if found
-      // Map other fields as needed
+      owner: sale.collection.c.creator,
     };
   }
 }

@@ -153,6 +153,30 @@ export class SingleNftController {
     }
   }
 
+  public async getTopCreators(req: Request, res: Response) {
+    try {
+      const { timeFrame = req.body.timeFrame, limit = 10, page = 1 } = req.query;
+      
+      const topCreators = await singleNftManager.getTopCreators(timeFrame as string, Number(limit), Number(page));
+
+      const responseData: IResponseHandler = {
+        status: ResponseStatus.SUCCESS,
+        message: ResponseMessage.SUCCESS,
+        description: ResponseDescription.SUCCESS,
+        data: topCreators,
+      };
+      return res.status(ResponseCode.SUCCESS).json(responseData);
+    } catch (error) {
+      const responseData: IResponseHandler = {
+        status: ResponseStatus.FAILED,
+        message: ResponseMessage.FAILED,
+        description: ResponseDescription.FAILED,
+        data: null,
+      };
+      return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(responseData);
+    }
+  }
+
 }
 
 export default SingleNftController.getInstance();

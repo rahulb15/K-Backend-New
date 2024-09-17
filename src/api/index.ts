@@ -14,6 +14,7 @@ import verificationRouter from "./routes/verification.route";
 import superAdminRouter from "./routes/superadmin.route";
 import elasticRouter from "./routes/elastic.route";
 import singleNftRouter from "./routes/singleNft.route";
+import activityRouter from "./routes/activity.route";
 
 const router = express.Router();
 
@@ -32,5 +33,6 @@ router.use("/launch-collection", launchCollectionRouter);
 router.use("/blog", blogRouter);
 router.use("/superadmin", superAdminRouter);
 router.use("/elastic", elasticRouter);
+router.use("/activity", activityRouter);
 
 export default router;
