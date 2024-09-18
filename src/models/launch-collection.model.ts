@@ -55,7 +55,7 @@ const launchCollectionSchema = new Schema({
   createdAt: { type: Date, default: Date.now, index: true },
   updatedAt: { type: Date, default: Date.now, index: true },
   // New fields from CollectionProcessingService
-  collectionId: { type: String, index: true, unique: true },
+  collectionId: { type: String, index: true},
   size: { type: String },
   maxSize: { type: String },
   creator: { type: String, index: true },

@@ -71,7 +71,7 @@ export class LaunchCollectionController {
         status: ResponseStatus.INTERNAL_SERVER_ERROR,
         message: ResponseMessage.FAILED,
         description: ResponseDescription.INTERNAL_SERVER_ERROR,
-        data: null,
+        data: error,
       });
     }
   }

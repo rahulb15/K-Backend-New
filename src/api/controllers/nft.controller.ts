@@ -109,6 +109,7 @@ export class NftController {
   public async create(req: any, res: Response) {
     try {
       const body: any = req.body;
+      console.log(body);
       const collection: ILaunchCollection =
         await LaunchCollectionManager.getInstance().getByName(
           body.collectionName
@@ -116,6 +117,7 @@ export class NftController {
 
       const nfts: INft[] = [];
       for (let i = 0; i < body.reserveTknAmount; i++) {
+        console.log("Iam here");
         const nft: INft = {
           user: req.user._id,
           collectionId: collection._id as any,
@@ -139,9 +141,12 @@ export class NftController {
           tokenImage: "",
           nftPrice: 0,
           tokenId: "", // Make tokenId unique if needed
+          owner: req.user.walletAddress,
         };
         nfts.push(nft);
       }
+
+      console.log(nfts);
 
       const createdNfts: INft[] = await Promise.all(
         nfts.map((nft) => nftManager.create(nft))
@@ -154,6 +159,7 @@ export class NftController {
       };
       return res.status(ResponseCode.CREATED).json(responseData);
     } catch (error) {
+      console.log(error);
       const responseData: IResponseHandler = {
         status: ResponseStatus.FAILED,
         message: ResponseMessage.FAILED,
