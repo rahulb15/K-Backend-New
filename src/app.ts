@@ -58,6 +58,7 @@ const app = express();
 // Define an array of allowed origins (domains)
 const allowedOrigins = [
   process.env.CLIENT_URL || "http://localhost:3000",
+  "http://localhost:3000",
   "http://localhost:3001",
   "https://kryptomerchadmin.app.runonflux.io",
   "https://kryptomerchfrontend.app.runonflux.io"
