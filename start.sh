@@ -22,4 +22,5 @@ redis-server --daemonize yes
 sleep 10
 
 # Start Node.js application
-npm run prod
+# npm run prod
+npm start
