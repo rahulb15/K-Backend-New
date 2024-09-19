@@ -55,29 +55,37 @@ set_client(client);
 
 const app = express();
 
-// Define an array of allowed origins (domains)
-const allowedOrigins = [
-  process.env.CLIENT_URL || "http://localhost:3000",
-  "http://localhost:3000",
-  "http://localhost:3001",
-  "https://kryptomerchadmin.app.runonflux.io",
-  "https://kryptomerchfrontend.app.runonflux.io"
-];
-
-// Configure CORS options
+// Allow all origins
 const corsOptions: CorsOptions = {
-  origin: (origin, callback) => {
-    if (allowedOrigins.indexOf(origin || "") !== -1 || !origin) {
-      // Allow the request if the origin is in the allowedOrigins array or if it's not provided (e.g., same-origin requests)
-      callback(null, true);
-    } else {
-      // Deny the request if the origin is not in the allowedOrigins array
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
+  origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   credentials: true,
 };
+
+
+// // Define an array of allowed origins (domains)
+// const allowedOrigins = [
+//   process.env.CLIENT_URL || "http://localhost:3000",
+//   "http://localhost:3000",
+//   "http://localhost:3001",
+//   "https://kryptomerchadmin.app.runonflux.io",
+//   "https://kryptomerchfrontend.app.runonflux.io"
+// ];
+
+// // Configure CORS options
+// const corsOptions: CorsOptions = {
+//   origin: (origin, callback) => {
+//     if (allowedOrigins.indexOf(origin || "") !== -1 || !origin) {
+//       // Allow the request if the origin is in the allowedOrigins array or if it's not provided (e.g., same-origin requests)
+//       callback(null, true);
+//     } else {
+//       // Deny the request if the origin is not in the allowedOrigins array
+//       callback(new Error("Not allowed by CORS"));
+//     }
+//   },
+//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+//   credentials: true,
+// };
 
 // Enable CORS, morgan, and helmet
 app.use(morgan("dev"));
