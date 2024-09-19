@@ -6,7 +6,8 @@
     "start": "ts-node src/index.ts",
     "dev": "nodemon src/index.ts",
     "prod": "tsc && node dist/src/index.js",
-    "build": "tsc",
+    "copy-views": "copyfiles -u 1 \"src/views/**/*\" dist/src/",
+    "build": "tsc && npm run copy-views",
     "lint": "eslint --fix src test",
     "test": "jest"
   },
@@ -87,6 +88,7 @@
     "@types/ws": "^8.5.12",
     "@typescript-eslint/eslint-plugin": "^5.59.1",
     "@typescript-eslint/parser": "^5.59.1",
+    "copyfiles": "^2.4.1",
     "eslint": "^8.39.0",
     "eslint-config-airbnb-typescript": "^17.0.0",
     "eslint-import-resolver-typescript": "^3.5.5",
