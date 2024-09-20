@@ -81,7 +81,7 @@ export class LaunchCollectionController {
       const collectionName = req.params.collectionName;
       console.log(collectionName);
       const collection: IUpdateLaunchCollection = req.body;
-      collection.user = req.user._id;
+      // collection.user = req.user._id;
       console.log(collection);
       console.log(req.user._id);
 

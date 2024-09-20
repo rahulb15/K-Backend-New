@@ -112,24 +112,61 @@ export class LaunchCollectionManager implements ILaunchCollectionManager {
     return updatedCollection;
   }
 
+  // public async update(
+  //   collectionName: string,
+  //   collection: IUpdateLaunchCollection
+  // ): Promise<ILaunchCollection> {
+  //   console.log("collection test 1", collection);
+  //   console.log("collection test 2", collectionName);
+  //   const updatedCollection = await LaunchCollection.findOneAndUpdate(
+  //     { collectionName },
+  //     collection,
+  //     { new: true }
+  //   );
+
+  //   console.log("updatedCollection", updatedCollection);
+  //   if (!updatedCollection) {
+  //     throw new Error("Collection not found");
+  //   }
+  //   return updatedCollection;
+  // }
+
+
   public async update(
     collectionName: string,
-    collection: IUpdateLaunchCollection
-  ): Promise<ILaunchCollection> {
-    console.log("collection test 1", collection);
-    console.log("collection test 2", collectionName);
-    const updatedCollection = await LaunchCollection.findOneAndUpdate(
-      { collectionName },
-      collection,
-      { new: true }
-    );
+    updateData: IUpdateLaunchCollection
+): Promise<ILaunchCollection> {
+    console.log("Update data:", updateData);
+    console.log("Collection name:", collectionName);
 
-    console.log("updatedCollection", updatedCollection);
-    if (!updatedCollection) {
-      throw new Error("Collection not found");
+    // If mintedAmount is provided, use it to increment reservePrice
+    if (updateData.reservePrice) {
+        const updatedCollection = await LaunchCollection.findOneAndUpdate(
+            { collectionName },
+            { $inc: { reservePrice: updateData.reservePrice } },
+            { new: true }
+        );
+
+        console.log("Updated collection:", updatedCollection);
+        if (!updatedCollection) {
+            throw new Error("Collection not found");
+        }
+        return updatedCollection;
+    } else {
+        // Handle other updates as before
+        const updatedCollection = await LaunchCollection.findOneAndUpdate(
+            { collectionName },
+            updateData,
+            { new: true }
+        );
+
+        console.log("Updated collection:", updatedCollection);
+        if (!updatedCollection) {
+            throw new Error("Collection not found");
+        }
+        return updatedCollection;
     }
-    return updatedCollection;
-  }
+}
 
   public async getByUserId(userId: string): Promise<ILaunchCollection> {
     const collection = await LaunchCollection.findOne({
@@ -178,8 +215,6 @@ export class LaunchCollectionManager implements ILaunchCollectionManager {
     search: string,
     userId: string
   ): Promise<ILaunchCollection[]> {
-    // using aggregation to search by collectionName and creatorName at the same time
-    // and also to paginate the results and return total count of documents
     const collections = await LaunchCollection.aggregate([
       {
         $match: {
