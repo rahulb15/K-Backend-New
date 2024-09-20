@@ -43,4 +43,19 @@ router.get('/by-token/:token', async (req, res) => {
   }
 });
 
+// New route for getting collection by token ID
+router.get('/collection/:tokenId', async (req, res) => {
+  try {
+    console.log(req.params)
+    const collection = await salesService.getCollectionByTokenId(req.params.tokenId);
+    if (collection) {
+      res.json(collection);
+    } else {
+      res.status(404).json({ message: "Collection not found for the given token ID" });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 module.exports = router;

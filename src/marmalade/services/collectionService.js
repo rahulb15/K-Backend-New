@@ -109,10 +109,10 @@ class CollectionService {
             // console.log('NFT data successfully fetched and validated:', result);
             return result;
           } else {
-            console.warn(`Invalid metadata structure for URI ${uri}`);
+            // console.warn(`Invalid metadata structure for URI ${uri}`);
           }
         } catch (error) {
-          console.warn(`Attempt ${retries + 1} failed for URI ${uri} with gateway ${gateway}:`, error.message);
+          // console.warn(`Attempt ${retries + 1} failed for URI ${uri} with gateway ${gateway}:`, error.message);
         }
       }
 
@@ -120,7 +120,7 @@ class CollectionService {
       timeout = Math.min(timeout * 2, MAX_TIMEOUT);
 
       if (retries >= MAX_RETRIES) {
-        console.error(`Failed to fetch valid NFT data for URI ${uri} after ${MAX_RETRIES} attempts with all gateways`);
+        // console.error(`Failed to fetch valid NFT data for URI ${uri} after ${MAX_RETRIES} attempts with all gateways`);
         return null;
       }
     }

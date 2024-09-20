@@ -48,7 +48,7 @@ async function syncCollectionsToElasticsearch(): Promise<void> {
 
 async function indexNft(nft: INft & mongoose.Document): Promise<void> {
   if (!nft._id) {
-    console.error('Attempted to index NFT without _id');
+    // console.error('Attempted to index NFT without _id');
     return;
   }
   try {
@@ -71,7 +71,7 @@ async function indexNft(nft: INft & mongoose.Document): Promise<void> {
 
 async function indexCollection(collection: ICollection & mongoose.Document): Promise<void> {
   if (!collection._id) {
-    console.error('Attempted to index Collection without _id');
+    // console.error('Attempted to index Collection without _id');
     return;
   }
   try {

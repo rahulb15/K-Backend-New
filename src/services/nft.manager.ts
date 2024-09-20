@@ -2,6 +2,13 @@ import { INft } from "../interfaces/nft/nft.interface";
 import { INftManager } from "../interfaces/nft/nft.manager.interface";
 import Nft from "../models/nft.model";
 import mongoose from "mongoose";
+import User from "../models/user.model";
+import { IUser } from "../interfaces/user/user.interface";
+const SalesService = require('../marmalade/services/salesService');
+
+// Instantiate SalesService once
+const salesService = new SalesService();
+
 
 const PREFERED_GATEWAY = "ipfs.io";
 
@@ -525,17 +532,111 @@ export class NftManager implements INftManager {
 // }
 
 
-public async  updateRevealedNFTs(nftData: any, userId: mongoose.Types.ObjectId): Promise<any> {
+// public async  updateRevealedNFTs(nftData: any, userId: mongoose.Types.ObjectId): Promise<any> {
+//   console.log("Updating revealed NFTs for user:", userId);
+//   console.log(nftData, "nftData+++++++++++++++++++++++++++++");
+
+
+//   //get use by id
+//   const user: IUser = await User.findById(userId) as IUser;
+//   console.log(user, "user+++++++++++++++++++++++++++++");
+  
+//   const updatePromises = nftData.reveledData.map(async (item: any) => {
+//     const tokenId = item['token-id'];
+//     const collection = await salesService.getCollectionByTokenId(tokenId);
+//     console.log(collection, "collection+++++++++++++++++++++++++++++");
+//     const uri = item.uri;
+//     // const collectionName = item.collection.name === "priority_pass_001" ? "Priority Pass" : item.collection.name;
+
+//     try {
+//       const metadata = await fetchMetadata(uri);
+//       console.log(metadata, "metadata",tokenId);
+      
+//       let imageUrl = '';
+//       if (typeof metadata === 'object' && metadata !== null && metadata.image) {
+//         imageUrl = metadata.image.startsWith('ipfs://') 
+//           ? convertToIPFSUrl(metadata.image)
+//           : metadata.image;
+//       }
+
+//       console.log(`Processing NFT: TokenID ${tokenId}`);
+
+//       // Try to find an existing NFT for this user and token
+//       let existingNft = await Nft.findOne({ 
+//         user: userId, 
+//         tokenId: tokenId, 
+//         // collectionName: collectionName 
+//       });
+
+//       if (existingNft) {
+//         // Update existing NFT
+//         console.log(`Updating existing NFT: ${tokenId}`);
+//         existingNft.isRevealed = true;
+//         existingNft.tokenImage = imageUrl;
+//         Object.assign(existingNft, metadata);
+//         await existingNft.save();
+//         return existingNft;
+//       } else {
+//         // Create new NFT
+//         console.log(`Creating new NFT: ${tokenId}`);
+//         const newNft = new Nft({
+//           user: userId,
+//           tokenId: tokenId,
+//           // collectionName: collectionName,
+//           isRevealed: true,
+//           tokenImage: imageUrl,
+//           ...metadata,
+//           // Add other necessary fields from item or nftData
+//           creator: user.walletAddress,
+//           uri: uri,
+//           collection: item.collection,
+//           // You might want to add more fields here based on your Nft model
+//         });
+//         await newNft.save();
+//         return newNft;
+//       }
+//     } catch (error) {
+//       console.error(`Error processing NFT with tokenId ${tokenId}:`, error);
+//       return null;
+//     }
+//   });
+
+//   const results = await Promise.all(updatePromises);
+  
+//   // Filter out null results (failed updates/creations)
+//   const processedNfts = results.filter(result => result !== null);
+
+//   console.log(`Processed ${processedNfts.length} NFTs`);
+
+//   return processedNfts;
+// }
+
+
+public async updateRevealedNFTs(nftData: any, userId: mongoose.Types.ObjectId): Promise<any> {
   console.log("Updating revealed NFTs for user:", userId);
+  console.log(nftData, "nftData+++++++++++++++++++++++++++++");
+
+  const user: IUser = await User.findById(userId) as IUser;
+  console.log(user, "user+++++++++++++++++++++++++++++");
   
   const updatePromises = nftData.reveledData.map(async (item: any) => {
     const tokenId = item['token-id'];
+    const collection = await salesService.getCollectionByTokenId(tokenId);
+    console.log(collection, "collection+++++++++++++++++++++++++++++");
     const uri = item.uri;
-    // const collectionName = item.collection.name === "priority_pass_001" ? "Priority Pass" : item.collection.name;
+
+    let collectionName = '';
+    if (collection && collection.c && collection.c.name) {
+      if (/^priority_pass_\d+$/.test(collection.c.name)) {
+        collectionName = 'Priority Pass';
+      } else {
+        collectionName = collection.c.name;
+      }
+    }
 
     try {
       const metadata = await fetchMetadata(uri);
-      console.log(metadata, "metadata",tokenId);
+      console.log(metadata, "metadata", tokenId);
       
       let imageUrl = '';
       if (typeof metadata === 'object' && metadata !== null && metadata.image) {
@@ -550,7 +651,6 @@ public async  updateRevealedNFTs(nftData: any, userId: mongoose.Types.ObjectId):
       let existingNft = await Nft.findOne({ 
         user: userId, 
         tokenId: tokenId, 
-        // collectionName: collectionName 
       });
 
       if (existingNft) {
@@ -558,25 +658,32 @@ public async  updateRevealedNFTs(nftData: any, userId: mongoose.Types.ObjectId):
         console.log(`Updating existing NFT: ${tokenId}`);
         existingNft.isRevealed = true;
         existingNft.tokenImage = imageUrl;
+        if (collectionName) {
+          existingNft.collectionName = collectionName;
+        }
         Object.assign(existingNft, metadata);
         await existingNft.save();
         return existingNft;
       } else {
         // Create new NFT
         console.log(`Creating new NFT: ${tokenId}`);
-        const newNft = new Nft({
+        const newNftData: any = {
           user: userId,
           tokenId: tokenId,
-          // collectionName: collectionName,
           isRevealed: true,
           tokenImage: imageUrl,
           ...metadata,
-          // Add other necessary fields from item or nftData
-          creator: item.collection.creator,
+          creator: user.walletAddress,
+          owner: user.walletAddress,
           uri: uri,
-          collection: item.collection,
-          // You might want to add more fields here based on your Nft model
-        });
+          collection: collection,
+        };
+        
+        if (collectionName) {
+          newNftData.collectionName = collectionName;
+        }
+
+        const newNft = new Nft(newNftData);
         await newNft.save();
         return newNft;
       }

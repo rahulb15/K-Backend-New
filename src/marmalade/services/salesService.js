@@ -109,7 +109,7 @@ class SalesService {
       const response = await axios.get(fetchUrl);
       return response.data;
     } catch (error) {
-      console.error('Error fetching NFT data:', error);
+      // console.error('Error fetching NFT data:', error);
       return null;
     }
   }
@@ -150,6 +150,20 @@ class SalesService {
   async getSalesForToken(token) {
     const allSales = await this.getAllSales();
     return allSales.filter(sale => sale['token-id'] === token);
+  }
+
+  async getCollectionByTokenId(tokenId) {
+    const m_client = get_client();
+    if (!m_client) {
+      throw new Error('Client not initialized');
+    }
+
+    const policies = await m_client.batch(['/policies', tokenId]);
+    if (policies.includes('COLLECTION')) {
+      const collection = await m_client.batch(['/tokenCollection', tokenId]);
+      return this.convertBigIntToString(collection);
+    }
+    return null;
   }
 }
 
