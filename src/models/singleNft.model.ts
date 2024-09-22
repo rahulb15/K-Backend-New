@@ -17,6 +17,7 @@ const singleNftSchema = new mongoose.Schema({
   onSale: { type: Boolean },
   bidInfo: { type: Array },
   onAuction: { type: Boolean },
+  onDutchAuction: { type: Boolean },
   sellingType: { type: String, default: "All" },
   creatorName: { type: String },
   duration: { type: String },

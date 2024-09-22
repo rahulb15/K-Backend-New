@@ -27,8 +27,20 @@ router.put("/updatemynft", authMiddleware, nftController.update);
 router.post("/owned", authMiddleware, nftController.updateRevealedNFTs);
 
 router.post("/ownedNfts", authMiddleware, nftController.getOwnedNfts);
+
+// getOwnedPriorityPassNfts
+router.post("/ownedPriorityPassNfts", authMiddleware, nftController.getOwnedPriorityPassNfts);
+
+
 // getOwnSaleNfts
 router.post("/ownSaleNfts", authMiddleware, nftController.getOwnSaleNfts);
+// `${url}nft/ownAuctionNfts?pageNo=${pageNo}&limit=${limit}&search=${search}`,
+router.post("/ownAuctionNfts", authMiddleware, nftController.getOwnAuctionNfts);
+// `${url}nft/ownDutchAuctionNfts?pageNo=${pageNo}&limit=${limit}&search=${search}`,
+
+router.post("/ownDutchAuctionNfts", authMiddleware, nftController.getOwnDutchAuctionNfts);
+
+
 
 router.get("ipfs", nftController.getIpfsJson);
 

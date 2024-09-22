@@ -4,15 +4,14 @@ import Nft from "../models/nft.model";
 import mongoose from "mongoose";
 import User from "../models/user.model";
 import { IUser } from "../interfaces/user/user.interface";
-const SalesService = require('../marmalade/services/salesService');
+const SalesService = require("../marmalade/services/salesService");
 
 // Instantiate SalesService once
 const salesService = new SalesService();
 
-
 const PREFERED_GATEWAY = "ipfs.io";
 
-function ipfsResolution(cid:any) {
+function ipfsResolution(cid: any) {
   return `https://${PREFERED_GATEWAY}/ipfs/${cid}`;
 }
 
@@ -32,28 +31,30 @@ function ipfsResolution(cid:any) {
 //   }
 // }
 
-
-async function fetchIPFSData(uri:any) {
+async function fetchIPFSData(uri: any) {
   const [protocol, cid] = uri.split("//");
-  console.log("🚀 ~ file: index.jsx ~ line 38 ~ fetchIPFSData ~ protocol", protocol);
-    console.log("🚀 ~ file: index.jsx ~ line 38 ~ fetchIPFSData ~ cid", cid);
-  
+  console.log(
+    "🚀 ~ file: index.jsx ~ line 38 ~ fetchIPFSData ~ protocol",
+    protocol
+  );
+  console.log("🚀 ~ file: index.jsx ~ line 38 ~ fetchIPFSData ~ cid", cid);
+
   if (protocol !== "ipfs:") {
     throw new Error("Invalid protocol. Expected IPFS URI.");
   }
 
   const url = ipfsResolution(cid);
   console.log("🚀 ~ file: index.jsx ~ line 38 ~ fetchIPFSData ~ url", url);
-  
+
   try {
     const response = await fetch(url);
-    
+
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    
-    const contentType:any = response.headers.get("content-type");
-    
+
+    const contentType: any = response.headers.get("content-type");
+
     if (contentType.startsWith("application/json")) {
       const data = await response.json();
       console.log("Metadata:", data);
@@ -80,11 +81,11 @@ async function fetchIPFSData(uri:any) {
 //     } else {
 //       response = await fetch(uri);
 //     }
-    
+
 //     if (!response.ok) {
 //       throw new Error(`HTTP error! status: ${response.status}`);
 //     }
-    
+
 //     const data = await response.json();
 //     return data;
 //   } catch (error) {
@@ -100,36 +101,33 @@ async function fetchIPFSData(uri:any) {
 //   return ipfsUri;
 // }
 
-
-
 async function fetchMetadata(uri: string): Promise<any> {
   try {
     let response;
-    if (uri.startsWith('ipfs://')) {
+    if (uri.startsWith("ipfs://")) {
       response = await fetch(convertToIPFSUrl(uri));
     } else {
       response = await fetch(uri);
     }
-    
+
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    
+
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error('Error fetching metadata:', error);
+    console.error("Error fetching metadata:", error);
     throw error;
   }
 }
 
 function convertToIPFSUrl(ipfsUri: string): string {
-  if (ipfsUri.startsWith('ipfs://')) {
+  if (ipfsUri.startsWith("ipfs://")) {
     return `https://ipfs.io/ipfs/${ipfsUri.slice(7)}`;
   }
   return ipfsUri;
 }
-
 
 export class NftManager implements INftManager {
   private static instance: NftManager;
@@ -156,15 +154,12 @@ export class NftManager implements INftManager {
     pageNo: number,
     limit: number,
     search: string
-  ): Promise<{ nfts: INft[], total: number, currentPage: number }> {
-
-       // First, get the total count of matching documents
-       const total = await Nft.countDocuments({
-        user: new mongoose.Types.ObjectId(userId),
-        collectionName: { $regex: search, $options: "i" },
-      });
-
-
+  ): Promise<{ nfts: INft[]; total: number; currentPage: number }> {
+    // First, get the total count of matching documents
+    const total = await Nft.countDocuments({
+      user: new mongoose.Types.ObjectId(userId),
+      collectionName: { $regex: search, $options: "i" },
+    });
 
     const nfts: INft[] = await Nft.aggregate([
       {
@@ -208,7 +203,7 @@ export class NftManager implements INftManager {
           properties: 1,
           attributes: 1,
           likes: 1,
-          createdAt: 1 // Add createdAt here
+          createdAt: 1, // Add createdAt here
         },
       },
       {
@@ -221,14 +216,13 @@ export class NftManager implements INftManager {
         $limit: limit,
       },
     ]);
-  
+
     return {
       nfts,
       total,
-      currentPage: pageNo
+      currentPage: pageNo,
     };
   }
-
 
   public async getMarketPlaceNfts(
     pageNo: number,
@@ -236,17 +230,16 @@ export class NftManager implements INftManager {
     search: string,
     onSale: boolean,
     onAuction: boolean
-  ): Promise<{ nfts: INft[], total: number, currentPage: number }> {
-  
+  ): Promise<{ nfts: INft[]; total: number; currentPage: number }> {
     const matchCondition: any = {
       onMarketplace: true,
     };
-  
+
     // Handle cases where search is "undefined", null, or an empty string
     if (search && search.trim() !== "" && search !== "undefined") {
       matchCondition.collectionName = { $regex: search, $options: "i" };
     }
-  
+
     // Add filter conditions
     if (onSale) {
       matchCondition.onSale = true;
@@ -256,10 +249,10 @@ export class NftManager implements INftManager {
     }
 
     console.log(matchCondition, "matchCondition");
-  
+
     // Get total count of matching documents
     const total = await Nft.countDocuments(matchCondition);
-  
+
     const nfts: INft[] = await Nft.aggregate([
       {
         $match: matchCondition,
@@ -281,6 +274,7 @@ export class NftManager implements INftManager {
           onSale: 1,
           bidInfo: 1,
           onAuction: 1,
+          onDutchAuction: 1,
           sellingType: 1,
           creatorName: 1,
           duration: 1,
@@ -310,7 +304,7 @@ export class NftManager implements INftManager {
           nftData: 1,
           traitCount: 1,
           lastUpdated: 1,
-          owner: 1
+          owner: 1,
         },
       },
       {
@@ -323,16 +317,13 @@ export class NftManager implements INftManager {
         $limit: limit,
       },
     ]);
-  
+
     return {
       nfts,
       total,
-      currentPage: pageNo
+      currentPage: pageNo,
     };
   }
-  
- 
-  
 
   public async getById(id: string): Promise<INft> {
     const nft: INft = (await Nft.findById(id)) as INft;
@@ -345,9 +336,9 @@ export class NftManager implements INftManager {
 
     // Find and update the NFT by token ID
     const updatedNft = await Nft.findOneAndUpdate(
-      { tokenId: tokenId },       
-      { $set: { onSale: true, onMarketplace: true } },            
-      { new: true, runValidators: true } 
+      { tokenId: tokenId },
+      { $set: { onSale: true, onMarketplace: true } },
+      { new: true, runValidators: true }
     );
 
     // Check if the NFT was found and updated
@@ -357,26 +348,31 @@ export class NftManager implements INftManager {
 
     return updatedNft;
   }
-    
 
   public async update(nft: any): Promise<any> {
     console.log(nft, "nftaaa");
     console.log(nft.tokenId.length, "nft.tokenId.length");
 
     // Fetch NFTs with the specified collection name and empty token ID
-    const nftData = await Nft.find({ collectionName: nft.collectionName, tokenId: "" });
+    const nftData = await Nft.find({
+      collectionName: nft.collectionName,
+      tokenId: "",
+    });
     console.log(nftData, "nftData");
     console.log(nftData.length, "nftData.length");
 
     // Check if there are NFTs to update
     if (nftData.length === 0) {
-        return { message: "No NFTs found to update" };
+      return { message: "No NFTs found to update" };
     }
 
     // Ensure the number of token IDs matches the number of NFTs found
-    console.log(nftData.length < nft.tokenId.length, "nftData.length < nft.tokenId.length");
+    console.log(
+      nftData.length < nft.tokenId.length,
+      "nftData.length < nft.tokenId.length"
+    );
     if (nftData.length < nft.tokenId.length) {
-        return { message: "Too many token IDs provided" };
+      return { message: "Too many token IDs provided" };
     }
 
     console.log("continue");
@@ -385,10 +381,10 @@ export class NftManager implements INftManager {
     const updatePromises = nftData.map((item, index) => {
       console.log(index, "index");
       console.log(nft.tokenId[index], "nft.tokenId[index]");
-        return Nft.updateOne(
-            { _id: item._id },
-            { $set: { tokenId: nft.tokenId[index], isRevealed: true } }
-        );
+      return Nft.updateOne(
+        { _id: item._id },
+        { $set: { tokenId: nft.tokenId[index], isRevealed: true } }
+      );
     });
 
     // Wait for all updates to complete
@@ -396,496 +392,500 @@ export class NftManager implements INftManager {
     console.log(nftUpdateResults, "nftUpdateResults");
 
     return nftUpdateResults;
-}
+  }
 
+  // public async updateRevealedNFTs(nft: any): Promise<any> {
+  //   console.log(nft, "nftaaazzzzz");
+  //   const updatePromises = nft.reveledData.map(async (item: any, index: number) => {
+  //     console.log(item.collection, "item.collection");
+  //     const tokenId = item['token-id'];
+  //     console.log(tokenId, "tokenId " + index);
+  //     const uri = item.uri;
+  //     console.log(uri, "uri");
 
+  //     try {
+  //       // Fetch metadata (works for both IPFS and HTTP URLs)
+  //       const metadata = await fetchMetadata(uri);
+  //       console.log(metadata, "metadata" + index);
 
+  //       let imageUrl = '';
 
-// public async updateRevealedNFTs(nft: any): Promise<any> {
-//   console.log(nft, "nftaaazzzzz");
-//   const updatePromises = nft.reveledData.map(async (item: any, index: number) => {
-//     console.log(item.collection, "item.collection");
-//     const tokenId = item['token-id'];
-//     console.log(tokenId, "tokenId " + index);
-//     const uri = item.uri;
-//     console.log(uri, "uri");
+  //       if (typeof metadata === 'object' && metadata !== null && metadata.image) {
+  //         imageUrl = metadata.image.startsWith('ipfs://')
+  //           ? convertToIPFSUrl(metadata.image)
+  //           : metadata.image;
+  //       }
 
-//     try {
-//       // Fetch metadata (works for both IPFS and HTTP URLs)
-//       const metadata = await fetchMetadata(uri);
-//       console.log(metadata, "metadata" + index);
+  //       console.log("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+  //       console.log(tokenId, "tokenId " + index);
+  //       console.log(metadata, "metadata" + index);
+  //       console.log(imageUrl, "imageUrl" + index);
+  //       console.log(item.collection.name, "item.collection.name" + index);
+  //       console.log("=========================================================================");
 
-//       let imageUrl = '';
+  //       // Find the NFT in the database and update it
+  //       const updatedNft = await Nft.findOneAndUpdate(
+  //         { tokenId: tokenId, collectionName: item.collection.name === "priority_pass_001" ? "Priority Pass" : item.collection.name },
+  //         {
+  //           $set: {
+  //             isRevealed: true,
+  //             tokenImage: imageUrl,
+  //             ...metadata, // Spread the metadata to update other fields
+  //           }
+  //         },
+  //         { new: true }
+  //       );
 
-//       if (typeof metadata === 'object' && metadata !== null && metadata.image) {
-//         imageUrl = metadata.image.startsWith('ipfs://') 
-//           ? convertToIPFSUrl(metadata.image)
-//           : metadata.image;
-//       }
+  //       return updatedNft;
+  //     } catch (error) {
+  //       console.error(`Error updating NFT with tokenId ${tokenId}:`, error);
+  //       return null;
+  //     }
+  //   });
 
-//       console.log("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-//       console.log(tokenId, "tokenId " + index);
-//       console.log(metadata, "metadata" + index);
-//       console.log(imageUrl, "imageUrl" + index);
-//       console.log(item.collection.name, "item.collection.name" + index);
-//       console.log("=========================================================================");
+  //   const results = await Promise.all(updatePromises);
 
-//       // Find the NFT in the database and update it
-//       const updatedNft = await Nft.findOneAndUpdate(
-//         { tokenId: tokenId, collectionName: item.collection.name === "priority_pass_001" ? "Priority Pass" : item.collection.name },
-//         {
-//           $set: {
-//             isRevealed: true,
-//             tokenImage: imageUrl,
-//             ...metadata, // Spread the metadata to update other fields
-//           }
-//         },
-//         { new: true }
-//       );
+  //   // Filter out null results (failed updates)
+  //   const updatedNfts = results.filter(result => result !== null);
 
-//       return updatedNft;
-//     } catch (error) {
-//       console.error(`Error updating NFT with tokenId ${tokenId}:`, error);
-//       return null;
-//     }
-//   });
+  //   console.log(`Updated ${updatedNfts.length} NFTs`);
 
-//   const results = await Promise.all(updatePromises);
-  
-//   // Filter out null results (failed updates)
-//   const updatedNfts = results.filter(result => result !== null);
+  //   return updatedNfts;
+  // }
 
-//   console.log(`Updated ${updatedNfts.length} NFTs`);
+  // public async  updateRevealedNFTs(nftData: any, userId: mongoose.Types.ObjectId): Promise<any> {
+  //   console.log("Updating revealed NFTs for user:", userId);
 
-//   return updatedNfts;
-// }
+  //   const updatePromises = nftData.reveledData.map(async (item: any) => {
+  //     const tokenId = item['token-id'];
+  //     const uri = item.uri;
+  //     const collectionName = item.collection.name === "priority_pass_001" ? "Priority Pass" : item.collection.name;
 
-// public async  updateRevealedNFTs(nftData: any, userId: mongoose.Types.ObjectId): Promise<any> {
-//   console.log("Updating revealed NFTs for user:", userId);
-  
-//   const updatePromises = nftData.reveledData.map(async (item: any) => {
-//     const tokenId = item['token-id'];
-//     const uri = item.uri;
-//     const collectionName = item.collection.name === "priority_pass_001" ? "Priority Pass" : item.collection.name;
+  //     try {
+  //       const metadata = await fetchMetadata(uri);
+  //       console.log(metadata, "metadata",tokenId);
 
-//     try {
-//       const metadata = await fetchMetadata(uri);
-//       console.log(metadata, "metadata",tokenId);
-      
-//       let imageUrl = '';
-//       if (typeof metadata === 'object' && metadata !== null && metadata.image) {
-//         imageUrl = metadata.image.startsWith('ipfs://') 
-//           ? convertToIPFSUrl(metadata.image)
-//           : metadata.image;
-//       }
+  //       let imageUrl = '';
+  //       if (typeof metadata === 'object' && metadata !== null && metadata.image) {
+  //         imageUrl = metadata.image.startsWith('ipfs://')
+  //           ? convertToIPFSUrl(metadata.image)
+  //           : metadata.image;
+  //       }
 
-//       console.log(`Processing NFT: TokenID ${tokenId}, Collection ${collectionName}`);
+  //       console.log(`Processing NFT: TokenID ${tokenId}, Collection ${collectionName}`);
 
-//       // Try to find an existing NFT for this user and token
-//       let existingNft = await Nft.findOne({ 
-//         user: userId, 
-//         tokenId: tokenId, 
-//         collectionName: collectionName 
-//       });
+  //       // Try to find an existing NFT for this user and token
+  //       let existingNft = await Nft.findOne({
+  //         user: userId,
+  //         tokenId: tokenId,
+  //         collectionName: collectionName
+  //       });
 
-//       if (existingNft) {
-//         // Update existing NFT
-//         console.log(`Updating existing NFT: ${tokenId}`);
-//         existingNft.isRevealed = true;
-//         existingNft.tokenImage = imageUrl;
-//         Object.assign(existingNft, metadata);
-//         await existingNft.save();
-//         return existingNft;
-//       } else {
-//         // Create new NFT
-//         console.log(`Creating new NFT: ${tokenId}`);
-//         const newNft = new Nft({
-//           user: userId,
-//           tokenId: tokenId,
-//           collectionName: collectionName,
-//           isRevealed: true,
-//           tokenImage: imageUrl,
-//           ...metadata,
-//           // Add other necessary fields from item or nftData
-//           creator: item.collection.creator,
-//           uri: uri,
-//           collection: item.collection,
-//           // You might want to add more fields here based on your Nft model
-//         });
-//         await newNft.save();
-//         return newNft;
-//       }
-//     } catch (error) {
-//       console.error(`Error processing NFT with tokenId ${tokenId}:`, error);
-//       return null;
-//     }
-//   });
+  //       if (existingNft) {
+  //         // Update existing NFT
+  //         console.log(`Updating existing NFT: ${tokenId}`);
+  //         existingNft.isRevealed = true;
+  //         existingNft.tokenImage = imageUrl;
+  //         Object.assign(existingNft, metadata);
+  //         await existingNft.save();
+  //         return existingNft;
+  //       } else {
+  //         // Create new NFT
+  //         console.log(`Creating new NFT: ${tokenId}`);
+  //         const newNft = new Nft({
+  //           user: userId,
+  //           tokenId: tokenId,
+  //           collectionName: collectionName,
+  //           isRevealed: true,
+  //           tokenImage: imageUrl,
+  //           ...metadata,
+  //           // Add other necessary fields from item or nftData
+  //           creator: item.collection.creator,
+  //           uri: uri,
+  //           collection: item.collection,
+  //           // You might want to add more fields here based on your Nft model
+  //         });
+  //         await newNft.save();
+  //         return newNft;
+  //       }
+  //     } catch (error) {
+  //       console.error(`Error processing NFT with tokenId ${tokenId}:`, error);
+  //       return null;
+  //     }
+  //   });
 
-//   const results = await Promise.all(updatePromises);
-  
-//   // Filter out null results (failed updates/creations)
-//   const processedNfts = results.filter(result => result !== null);
+  //   const results = await Promise.all(updatePromises);
 
-//   console.log(`Processed ${processedNfts.length} NFTs`);
+  //   // Filter out null results (failed updates/creations)
+  //   const processedNfts = results.filter(result => result !== null);
 
-//   return processedNfts;
-// }
+  //   console.log(`Processed ${processedNfts.length} NFTs`);
 
+  //   return processedNfts;
+  // }
 
-// public async  updateRevealedNFTs(nftData: any, userId: mongoose.Types.ObjectId): Promise<any> {
-//   console.log("Updating revealed NFTs for user:", userId);
-//   console.log(nftData, "nftData+++++++++++++++++++++++++++++");
+  // public async  updateRevealedNFTs(nftData: any, userId: mongoose.Types.ObjectId): Promise<any> {
+  //   console.log("Updating revealed NFTs for user:", userId);
+  //   console.log(nftData, "nftData+++++++++++++++++++++++++++++");
 
+  //   //get use by id
+  //   const user: IUser = await User.findById(userId) as IUser;
+  //   console.log(user, "user+++++++++++++++++++++++++++++");
 
-//   //get use by id
-//   const user: IUser = await User.findById(userId) as IUser;
-//   console.log(user, "user+++++++++++++++++++++++++++++");
-  
-//   const updatePromises = nftData.reveledData.map(async (item: any) => {
-//     const tokenId = item['token-id'];
-//     const collection = await salesService.getCollectionByTokenId(tokenId);
-//     console.log(collection, "collection+++++++++++++++++++++++++++++");
-//     const uri = item.uri;
-//     // const collectionName = item.collection.name === "priority_pass_001" ? "Priority Pass" : item.collection.name;
+  //   const updatePromises = nftData.reveledData.map(async (item: any) => {
+  //     const tokenId = item['token-id'];
+  //     const collection = await salesService.getCollectionByTokenId(tokenId);
+  //     console.log(collection, "collection+++++++++++++++++++++++++++++");
+  //     const uri = item.uri;
+  //     // const collectionName = item.collection.name === "priority_pass_001" ? "Priority Pass" : item.collection.name;
 
-//     try {
-//       const metadata = await fetchMetadata(uri);
-//       console.log(metadata, "metadata",tokenId);
-      
-//       let imageUrl = '';
-//       if (typeof metadata === 'object' && metadata !== null && metadata.image) {
-//         imageUrl = metadata.image.startsWith('ipfs://') 
-//           ? convertToIPFSUrl(metadata.image)
-//           : metadata.image;
-//       }
+  //     try {
+  //       const metadata = await fetchMetadata(uri);
+  //       console.log(metadata, "metadata",tokenId);
 
-//       console.log(`Processing NFT: TokenID ${tokenId}`);
+  //       let imageUrl = '';
+  //       if (typeof metadata === 'object' && metadata !== null && metadata.image) {
+  //         imageUrl = metadata.image.startsWith('ipfs://')
+  //           ? convertToIPFSUrl(metadata.image)
+  //           : metadata.image;
+  //       }
 
-//       // Try to find an existing NFT for this user and token
-//       let existingNft = await Nft.findOne({ 
-//         user: userId, 
-//         tokenId: tokenId, 
-//         // collectionName: collectionName 
-//       });
+  //       console.log(`Processing NFT: TokenID ${tokenId}`);
 
-//       if (existingNft) {
-//         // Update existing NFT
-//         console.log(`Updating existing NFT: ${tokenId}`);
-//         existingNft.isRevealed = true;
-//         existingNft.tokenImage = imageUrl;
-//         Object.assign(existingNft, metadata);
-//         await existingNft.save();
-//         return existingNft;
-//       } else {
-//         // Create new NFT
-//         console.log(`Creating new NFT: ${tokenId}`);
-//         const newNft = new Nft({
-//           user: userId,
-//           tokenId: tokenId,
-//           // collectionName: collectionName,
-//           isRevealed: true,
-//           tokenImage: imageUrl,
-//           ...metadata,
-//           // Add other necessary fields from item or nftData
-//           creator: user.walletAddress,
-//           uri: uri,
-//           collection: item.collection,
-//           // You might want to add more fields here based on your Nft model
-//         });
-//         await newNft.save();
-//         return newNft;
-//       }
-//     } catch (error) {
-//       console.error(`Error processing NFT with tokenId ${tokenId}:`, error);
-//       return null;
-//     }
-//   });
+  //       // Try to find an existing NFT for this user and token
+  //       let existingNft = await Nft.findOne({
+  //         user: userId,
+  //         tokenId: tokenId,
+  //         // collectionName: collectionName
+  //       });
 
-//   const results = await Promise.all(updatePromises);
-  
-//   // Filter out null results (failed updates/creations)
-//   const processedNfts = results.filter(result => result !== null);
+  //       if (existingNft) {
+  //         // Update existing NFT
+  //         console.log(`Updating existing NFT: ${tokenId}`);
+  //         existingNft.isRevealed = true;
+  //         existingNft.tokenImage = imageUrl;
+  //         Object.assign(existingNft, metadata);
+  //         await existingNft.save();
+  //         return existingNft;
+  //       } else {
+  //         // Create new NFT
+  //         console.log(`Creating new NFT: ${tokenId}`);
+  //         const newNft = new Nft({
+  //           user: userId,
+  //           tokenId: tokenId,
+  //           // collectionName: collectionName,
+  //           isRevealed: true,
+  //           tokenImage: imageUrl,
+  //           ...metadata,
+  //           // Add other necessary fields from item or nftData
+  //           creator: user.walletAddress,
+  //           uri: uri,
+  //           collection: item.collection,
+  //           // You might want to add more fields here based on your Nft model
+  //         });
+  //         await newNft.save();
+  //         return newNft;
+  //       }
+  //     } catch (error) {
+  //       console.error(`Error processing NFT with tokenId ${tokenId}:`, error);
+  //       return null;
+  //     }
+  //   });
 
-//   console.log(`Processed ${processedNfts.length} NFTs`);
+  //   const results = await Promise.all(updatePromises);
 
-//   return processedNfts;
-// }
+  //   // Filter out null results (failed updates/creations)
+  //   const processedNfts = results.filter(result => result !== null);
 
+  //   console.log(`Processed ${processedNfts.length} NFTs`);
 
-public async updateRevealedNFTs(nftData: any, userId: mongoose.Types.ObjectId): Promise<any> {
-  console.log("Updating revealed NFTs for user:", userId);
-  console.log(nftData, "nftData+++++++++++++++++++++++++++++");
+  //   return processedNfts;
+  // }
 
-  const user: IUser = await User.findById(userId) as IUser;
-  console.log(user, "user+++++++++++++++++++++++++++++");
-  
-  const updatePromises = nftData.reveledData.map(async (item: any) => {
-    const tokenId = item['token-id'];
-    const collection = await salesService.getCollectionByTokenId(tokenId);
-    console.log(collection, "collection+++++++++++++++++++++++++++++");
-    const uri = item.uri;
+  public async updateRevealedNFTs(
+    nftData: any,
+    userId: mongoose.Types.ObjectId
+  ): Promise<any> {
+    console.log("Updating revealed NFTs for user:", userId);
+    console.log(nftData, "nftData+++++++++++++++++++++++++++++");
 
-    let collectionName = '';
-    if (collection && collection.c && collection.c.name) {
-      if (/^priority_pass_\d+$/.test(collection.c.name)) {
-        collectionName = 'Priority Pass';
-      } else {
-        collectionName = collection.c.name;
-      }
-    }
+    const user: IUser = (await User.findById(userId)) as IUser;
+    console.log(user, "user+++++++++++++++++++++++++++++");
 
-    try {
-      const metadata = await fetchMetadata(uri);
-      console.log(metadata, "metadata", tokenId);
-      
-      let imageUrl = '';
-      if (typeof metadata === 'object' && metadata !== null && metadata.image) {
-        imageUrl = metadata.image.startsWith('ipfs://') 
-          ? convertToIPFSUrl(metadata.image)
-          : metadata.image;
-      }
+    const updatePromises = nftData.reveledData.map(async (item: any) => {
+      const tokenId = item["token-id"];
+      const collection = await salesService.getCollectionByTokenId(tokenId);
+      console.log(collection, "collection+++++++++++++++++++++++++++++");
+      const uri = item.uri;
 
-      console.log(`Processing NFT: TokenID ${tokenId}`);
-
-      // Try to find an existing NFT for this user and token
-      let existingNft = await Nft.findOne({ 
-        user: userId, 
-        tokenId: tokenId, 
-      });
-
-      if (existingNft) {
-        // Update existing NFT
-        console.log(`Updating existing NFT: ${tokenId}`);
-        existingNft.isRevealed = true;
-        existingNft.tokenImage = imageUrl;
-        if (collectionName) {
-          existingNft.collectionName = collectionName;
+      let collectionName = "";
+      if (collection && collection.c && collection.c.name) {
+        if (/^priority_pass_\d+$/.test(collection.c.name)) {
+          collectionName = "Priority Pass";
+        } else {
+          collectionName = collection.c.name;
         }
-        Object.assign(existingNft, metadata);
-        await existingNft.save();
-        return existingNft;
-      } else {
-        // Create new NFT
-        console.log(`Creating new NFT: ${tokenId}`);
-        const newNftData: any = {
+      }
+
+      try {
+        const metadata = await fetchMetadata(uri);
+        console.log(metadata, "metadata", tokenId);
+
+        let imageUrl = "";
+        if (
+          typeof metadata === "object" &&
+          metadata !== null &&
+          metadata.image
+        ) {
+          imageUrl = metadata.image.startsWith("ipfs://")
+            ? convertToIPFSUrl(metadata.image)
+            : metadata.image;
+        }
+
+        console.log(`Processing NFT: TokenID ${tokenId}`);
+
+        // Try to find an existing NFT for this user and token
+        let existingNft = await Nft.findOne({
           user: userId,
           tokenId: tokenId,
-          isRevealed: true,
-          tokenImage: imageUrl,
-          ...metadata,
-          creator: user.walletAddress,
-          owner: user.walletAddress,
-          uri: uri,
-          collection: collection,
-        };
-        
-        if (collectionName) {
-          newNftData.collectionName = collectionName;
+        });
+
+        if (existingNft) {
+          // Update existing NFT
+          console.log(`Updating existing NFT: ${tokenId}`);
+          existingNft.isRevealed = true;
+          existingNft.tokenImage = imageUrl;
+          if (collectionName) {
+            existingNft.collectionName = collectionName;
+          }
+          Object.assign(existingNft, metadata);
+          await existingNft.save();
+          return existingNft;
+        } else {
+          // Create new NFT
+          console.log(`Creating new NFT: ${tokenId}`);
+          const newNftData: any = {
+            user: userId,
+            tokenId: tokenId,
+            isRevealed: true,
+            tokenImage: imageUrl,
+            ...metadata,
+            creator: user.walletAddress,
+            owner: user.walletAddress,
+            uri: uri,
+            collection: collection,
+          };
+
+          if (collectionName) {
+            newNftData.collectionName = collectionName;
+          }
+
+          const newNft = new Nft(newNftData);
+          await newNft.save();
+          return newNft;
         }
-
-        const newNft = new Nft(newNftData);
-        await newNft.save();
-        return newNft;
+      } catch (error) {
+        console.error(`Error processing NFT with tokenId ${tokenId}:`, error);
+        return null;
       }
-    } catch (error) {
-      console.error(`Error processing NFT with tokenId ${tokenId}:`, error);
-      return null;
-    }
-  });
+    });
 
-  const results = await Promise.all(updatePromises);
-  
-  // Filter out null results (failed updates/creations)
-  const processedNfts = results.filter(result => result !== null);
+    const results = await Promise.all(updatePromises);
 
-  console.log(`Processed ${processedNfts.length} NFTs`);
+    // Filter out null results (failed updates/creations)
+    const processedNfts = results.filter((result) => result !== null);
 
-  return processedNfts;
-}
+    console.log(`Processed ${processedNfts.length} NFTs`);
 
-public async getCollectionNfts(
-  pageNo: number,
-  limit: number,
-  search: string,
-  collectionName: string
-): Promise<{ nfts: INft[], total: number, currentPage: number }> {
-  const total = await Nft.countDocuments({
-    collectionName: collectionName,
-    isRevealed: true,
-  });
-  console.log(total, "total");
+    return processedNfts;
+  }
 
-  const nfts: INft[] = await Nft.aggregate([
-    {
-      $match: {
-        collectionName: collectionName,
-        isRevealed: true,
+  public async getCollectionNfts(
+    pageNo: number,
+    limit: number,
+    search: string,
+    collectionName: string
+  ): Promise<{ nfts: INft[]; total: number; currentPage: number }> {
+    const total = await Nft.countDocuments({
+      collectionName: collectionName,
+      isRevealed: true,
+    });
+    console.log(total, "total");
+
+    const nfts: INft[] = await Nft.aggregate([
+      {
+        $match: {
+          collectionName: collectionName,
+          isRevealed: true,
+        },
       },
-    },
-    {
-      $project: {
-        user: 1,
-        collectionId: 1,
-        collectionType: 1,
-        collectionName: 1,
-        creator: 1,
-        tokenImage: 1,
-        tokenId: 1,
-        nftPrice: 1,
-        unlockable: 1,
-        isRevealed: 1,
-        digitalCode: 1,
-        onMarketplace: 1,
-        onSale: 1,
-        bidInfo: 1,
-        onAuction: 1,
-        sellingType: 1,
-        creatorName: 1,
-        duration: 1,
-        royalties: 1,
-        properties: 1,
-        attributes: 1,
-        rarityScore: 1,
-        rarityRank: 1,
-        likes: 1,
-        createdAt: 1,
-        // New fields
-        isPlatform: 1,
-        saleType: 1,
-        saleId: 1,
-        price: 1,
-        amount: 1,
-        timeout: 1,
-        currency: 1,
-        enabled: 1,
-        seller: 1,
-        recipient: 1,
-        escrowAccount: 1,
-        uri: 1,
-        supply: 1,
-        policies: 1,
-        collection: 1,
-        nftData: 1,
-        traitCount: 1,
-        lastUpdated: 1
+      {
+        $project: {
+          user: 1,
+          collectionId: 1,
+          collectionType: 1,
+          collectionName: 1,
+          creator: 1,
+          tokenImage: 1,
+          tokenId: 1,
+          nftPrice: 1,
+          unlockable: 1,
+          isRevealed: 1,
+          digitalCode: 1,
+          onMarketplace: 1,
+          onSale: 1,
+          bidInfo: 1,
+          onAuction: 1,
+          onDutchAuction: 1,
+          sellingType: 1,
+          creatorName: 1,
+          duration: 1,
+          royalties: 1,
+          properties: 1,
+          attributes: 1,
+          rarityScore: 1,
+          rarityRank: 1,
+          likes: 1,
+          createdAt: 1,
+          // New fields
+          isPlatform: 1,
+          saleType: 1,
+          saleId: 1,
+          price: 1,
+          amount: 1,
+          timeout: 1,
+          currency: 1,
+          enabled: 1,
+          seller: 1,
+          recipient: 1,
+          escrowAccount: 1,
+          uri: 1,
+          supply: 1,
+          policies: 1,
+          collection: 1,
+          nftData: 1,
+          traitCount: 1,
+          lastUpdated: 1,
+        },
       },
-    },
-    {
-      $sort: { createdAt: -1 },
-    },
-    {
-      $skip: (pageNo - 1) * limit,
-    },
-    {
-      $limit: limit,
-    },
-  ]);
-
-  return {
-    nfts,
-    total,
-    currentPage: pageNo
-  };
-}
-
-
-public async getCollectionNftsMarket(
-  pageNo: number,
-  limit: number,
-  search: string,
-  collectionName: string
-): Promise<{ nfts: INft[], total: number, currentPage: number }> {
-  const total = await Nft.countDocuments({
-    collectionName: collectionName,
-  });
-  console.log(total, "total");
-
-  const nfts: INft[] = await Nft.aggregate([
-    {
-      $match: {
-        collectionName: collectionName,
-        onMarketplace: true,
+      {
+        $sort: { createdAt: -1 },
       },
-    },
-    {
-      $project: {
-        user: 1,
-        collectionId: 1,
-        collectionType: 1,
-        collectionName: 1,
-        creator: 1,
-        tokenImage: 1,
-        tokenId: 1,
-        nftPrice: 1,
-        unlockable: 1,
-        isRevealed: 1,
-        digitalCode: 1,
-        onMarketplace: 1,
-        onSale: 1,
-        bidInfo: 1,
-        onAuction: 1,
-        sellingType: 1,
-        creatorName: 1,
-        duration: 1,
-        royalties: 1,
-        properties: 1,
-        attributes: 1,
-        rarityScore: 1,
-        rarityRank: 1,
-        likes: 1,
-        createdAt: 1,
-        // New fields
-        isPlatform: 1,
-        saleType: 1,
-        saleId: 1,
-        price: 1,
-        amount: 1,
-        timeout: 1,
-        currency: 1,
-        enabled: 1,
-        seller: 1,
-        recipient: 1,
-        escrowAccount: 1,
-        uri: 1,
-        supply: 1,
-        policies: 1,
-        collection: 1,
-        nftData: 1,
-        traitCount: 1,
-        lastUpdated: 1
+      {
+        $skip: (pageNo - 1) * limit,
       },
-    },
-    {
-      $sort: { createdAt: -1 },
-    },
-    {
-      $skip: (pageNo - 1) * limit,
-    },
-    {
-      $limit: limit,
-    },
-  ]);
+      {
+        $limit: limit,
+      },
+    ]);
 
-  return {
-    nfts,
-    total,
-    currentPage: pageNo
-  };
-}
+    return {
+      nfts,
+      total,
+      currentPage: pageNo,
+    };
+  }
 
+  public async getCollectionNftsMarket(
+    pageNo: number,
+    limit: number,
+    search: string,
+    collectionName: string
+  ): Promise<{ nfts: INft[]; total: number; currentPage: number }> {
+    const total = await Nft.countDocuments({
+      collectionName: collectionName,
+    });
+    console.log(total, "total");
 
-  // getOwnedNfts page limit search
+    const nfts: INft[] = await Nft.aggregate([
+      {
+        $match: {
+          collectionName: collectionName,
+          onMarketplace: true,
+        },
+      },
+      {
+        $project: {
+          user: 1,
+          collectionId: 1,
+          collectionType: 1,
+          collectionName: 1,
+          creator: 1,
+          tokenImage: 1,
+          tokenId: 1,
+          nftPrice: 1,
+          unlockable: 1,
+          isRevealed: 1,
+          digitalCode: 1,
+          onMarketplace: 1,
+          onSale: 1,
+          bidInfo: 1,
+          onAuction: 1,
+          onDutchAuction: 1,
+          sellingType: 1,
+          creatorName: 1,
+          duration: 1,
+          royalties: 1,
+          properties: 1,
+          attributes: 1,
+          rarityScore: 1,
+          rarityRank: 1,
+          likes: 1,
+          createdAt: 1,
+          // New fields
+          isPlatform: 1,
+          saleType: 1,
+          saleId: 1,
+          price: 1,
+          amount: 1,
+          timeout: 1,
+          currency: 1,
+          enabled: 1,
+          seller: 1,
+          recipient: 1,
+          escrowAccount: 1,
+          uri: 1,
+          supply: 1,
+          policies: 1,
+          collection: 1,
+          nftData: 1,
+          traitCount: 1,
+          lastUpdated: 1,
+        },
+      },
+      {
+        $sort: { createdAt: -1 },
+      },
+      {
+        $skip: (pageNo - 1) * limit,
+      },
+      {
+        $limit: limit,
+      },
+    ]);
+
+    return {
+      nfts,
+      total,
+      currentPage: pageNo,
+    };
+  }
+
   public async getOwnedNfts(
     userId: string,
     pageNo: number,
     limit: number,
     search: string
-  ): Promise<{ nfts: INft[], total: number, currentPage: number }> {
-
+  ): Promise<{ nfts: INft[]; total: number; currentPage: number }> {
     // First, get the total count of matching documents
     const total = await Nft.countDocuments({
       user: new mongoose.Types.ObjectId(userId),
-      collectionName: { $regex: search, $options: "i" },
+      // collectionName: { $regex: search, $options: "i" },
+      collectionName: {
+        $regex: search,
+        $options: "i",
+        $ne: "Priority Pass", // Exclude "Priority Pass"
+      },
       onMarketplace: false,
     });
 
@@ -893,7 +893,12 @@ public async getCollectionNftsMarket(
       {
         $match: {
           user: new mongoose.Types.ObjectId(userId),
-          collectionName: { $regex: search, $options: "i" },
+          // collectionName: { $regex: search, $options: "i" },
+          collectionName: {
+            $regex: search,
+            $options: "i",
+            $ne: "Priority Pass", // Exclude "Priority Pass"
+          },
           onMarketplace: false,
         },
       },
@@ -925,6 +930,7 @@ public async getCollectionNftsMarket(
           onSale: 1,
           bidInfo: 1,
           onAuction: 1,
+          onDutchAuction: 1,
           sellingType: 1,
           creatorName: 1,
           duration: 1,
@@ -953,7 +959,7 @@ public async getCollectionNftsMarket(
           collection: 1,
           nftData: 1,
           traitCount: 1,
-          lastUpdated: 1
+          lastUpdated: 1,
         },
       },
       {
@@ -970,125 +976,422 @@ public async getCollectionNftsMarket(
     return {
       nfts,
       total,
-      currentPage: pageNo
+      currentPage: pageNo,
     };
   }
 
+  public async getOwnedPriorityPassNfts(
+    userId: string,
+    pageNo: number,
+    limit: number,
+    search: string
+  ): Promise<{ nfts: INft[]; total: number; currentPage: number }> {
+    // First, get the total count of matching documents
+    const total = await Nft.countDocuments({
+      user: new mongoose.Types.ObjectId(userId),
+      collectionName: "Priority Pass",
+      onMarketplace: false,
+    });
 
-    // getOwnedNfts page limit search
-    public async getOwnSaleNfts(
-      userId: string,
-      pageNo: number,
-      limit: number,
-      search: string
-    ): Promise<{ nfts: INft[], total: number, currentPage: number }> {
-  
-      // First, get the total count of matching documents
-      const total = await Nft.countDocuments({
-        user: new mongoose.Types.ObjectId(userId),
-        collectionName: { $regex: search, $options: "i" },
-        onMarketplace: true,
-        onSale: true,
-      });
-  
-      const nfts: INft[] = await Nft.aggregate([
-        {
-          $match: {
-            user: new mongoose.Types.ObjectId(userId),
-            collectionName: { $regex: search, $options: "i" },
-            onMarketplace: true,
-            onSale: true,
-          },
+    const nfts: INft[] = await Nft.aggregate([
+      {
+        $match: {
+          user: new mongoose.Types.ObjectId(userId),
+          collectionName: "Priority Pass",
+          onMarketplace: false,
         },
-        {
-          $lookup: {
-            from: "users",
-            localField: "user",
-            foreignField: "_id",
-            as: "user",
-          },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "user",
+          foreignField: "_id",
+          as: "user",
         },
-        {
-          $unwind: "$user",
+      },
+      {
+        $unwind: "$user",
+      },
+      {
+        $project: {
+          user: 1,
+          collectionId: 1,
+          collectionType: 1,
+          collectionName: 1,
+          creator: 1,
+          tokenImage: 1,
+          tokenId: 1,
+          nftPrice: 1,
+          unlockable: 1,
+          isRevealed: 1,
+          digitalCode: 1,
+          onMarketplace: 1,
+          onSale: 1,
+          bidInfo: 1,
+          onAuction: 1,
+          onDutchAuction: 1,
+          sellingType: 1,
+          creatorName: 1,
+          duration: 1,
+          royalties: 1,
+          properties: 1,
+          attributes: 1,
+          rarityScore: 1,
+          rarityRank: 1,
+          likes: 1,
+          createdAt: 1,
+          // New fields
+          isPlatform: 1,
+          saleType: 1,
+          saleId: 1,
+          price: 1,
+          amount: 1,
+          timeout: 1,
+          currency: 1,
+          enabled: 1,
+          seller: 1,
+          recipient: 1,
+          escrowAccount: 1,
+          uri: 1,
+          supply: 1,
+          policies: 1,
+          collection: 1,
+          nftData: 1,
+          traitCount: 1,
+          lastUpdated: 1,
         },
-        {
-          $project: {
-            user: 1,
-            collectionId: 1,
-            collectionType: 1,
-            collectionName: 1,
-            creator: 1,
-            tokenImage: 1,
-            tokenId: 1,
-            nftPrice: 1,
-            unlockable: 1,
-            isRevealed: 1,
-            digitalCode: 1,
-            onMarketplace: 1,
-            onSale: 1,
-            bidInfo: 1,
-            onAuction: 1,
-            sellingType: 1,
-            creatorName: 1,
-            duration: 1,
-            royalties: 1,
-            properties: 1,
-            attributes: 1,
-            rarityScore: 1,
-            rarityRank: 1,
-            likes: 1,
-            createdAt: 1,
-            // New fields
-            isPlatform: 1,
-            saleType: 1,
-            saleId: 1,
-            price: 1,
-            amount: 1,
-            timeout: 1,
-            currency: 1,
-            enabled: 1,
-            seller: 1,
-            recipient: 1,
-            escrowAccount: 1,
-            uri: 1,
-            supply: 1,
-            policies: 1,
-            collection: 1,
-            nftData: 1,
-            traitCount: 1,
-            lastUpdated: 1
-          },
-        },
-        {
-          $sort: { createdAt: -1 },
-        },
-        {
-          $skip: (pageNo - 1) * limit,
-        },
-        {
-          $limit: limit,
-        },
-      ]);
-  
-      return {
-        nfts,
-        total,
-        currentPage: pageNo
-      };
-    }
+      },
+      {
+        $sort: { createdAt: -1 },
+      },
+      {
+        $skip: (pageNo - 1) * limit,
+      },
+      {
+        $limit: limit,
+      },
+    ]);
 
-    public async getNftById(id: string): Promise<INft | null> {
-      return Nft.findById(id);
-    }
-  
-    public async updateNft(nft: INft): Promise<INft | null> {
-      return Nft.findByIdAndUpdate(nft._id, nft, { new: true });
-    }
+    return {
+      nfts,
+      total,
+      currentPage: pageNo,
+    };
+  }
 
+  // getOwnedNfts page limit search
+  public async getOwnSaleNfts(
+    userId: string,
+    pageNo: number,
+    limit: number,
+    search: string
+  ): Promise<{ nfts: INft[]; total: number; currentPage: number }> {
+    // First, get the total count of matching documents
+    const total = await Nft.countDocuments({
+      user: new mongoose.Types.ObjectId(userId),
+      collectionName: { $regex: search, $options: "i" },
+      onMarketplace: true,
+      onSale: true,
+    });
 
+    const nfts: INft[] = await Nft.aggregate([
+      {
+        $match: {
+          user: new mongoose.Types.ObjectId(userId),
+          collectionName: { $regex: search, $options: "i" },
+          onMarketplace: true,
+          onSale: true,
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "user",
+          foreignField: "_id",
+          as: "user",
+        },
+      },
+      {
+        $unwind: "$user",
+      },
+      {
+        $project: {
+          user: 1,
+          collectionId: 1,
+          collectionType: 1,
+          collectionName: 1,
+          creator: 1,
+          tokenImage: 1,
+          tokenId: 1,
+          nftPrice: 1,
+          unlockable: 1,
+          isRevealed: 1,
+          digitalCode: 1,
+          onMarketplace: 1,
+          onSale: 1,
+          bidInfo: 1,
+          onAuction: 1,
+          onDutchAuction: 1,
+          sellingType: 1,
+          creatorName: 1,
+          duration: 1,
+          royalties: 1,
+          properties: 1,
+          attributes: 1,
+          rarityScore: 1,
+          rarityRank: 1,
+          likes: 1,
+          createdAt: 1,
+          // New fields
+          isPlatform: 1,
+          saleType: 1,
+          saleId: 1,
+          price: 1,
+          amount: 1,
+          timeout: 1,
+          currency: 1,
+          enabled: 1,
+          seller: 1,
+          recipient: 1,
+          escrowAccount: 1,
+          uri: 1,
+          supply: 1,
+          policies: 1,
+          collection: 1,
+          nftData: 1,
+          traitCount: 1,
+          lastUpdated: 1,
+        },
+      },
+      {
+        $sort: { createdAt: -1 },
+      },
+      {
+        $skip: (pageNo - 1) * limit,
+      },
+      {
+        $limit: limit,
+      },
+    ]);
 
+    return {
+      nfts,
+      total,
+      currentPage: pageNo,
+    };
+  }
 
+  // getOwnAuctionNfts
+  public async getOwnAuctionNfts(
+    userId: string,
+    pageNo: number,
+    limit: number,
+    search: string
+  ): Promise<{ nfts: INft[]; total: number; currentPage: number }> {
+    // First, get the total count of matching documents
+    const total = await Nft.countDocuments({
+      user: new mongoose.Types.ObjectId(userId),
+      collectionName: { $regex: search, $options: "i" },
+      onMarketplace: true,
+      onAuction: true,
+    });
 
+    const nfts: INft[] = await Nft.aggregate([
+      {
+        $match: {
+          user: new mongoose.Types.ObjectId(userId),
+          collectionName: { $regex: search, $options: "i" },
+          onMarketplace: true,
+          onAuction: true,
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "user",
+          foreignField: "_id",
+          as: "user",
+        },
+      },
+      {
+        $unwind: "$user",
+      },
+      {
+        $project: {
+          user: 1,
+          collectionId: 1,
+          collectionType: 1,
+          collectionName: 1,
+          creator: 1,
+          tokenImage: 1,
+          tokenId: 1,
+          nftPrice: 1,
+          unlockable: 1,
+          isRevealed: 1,
+          digitalCode: 1,
+          onMarketplace: 1,
+          onSale: 1,
+          bidInfo: 1,
+          onAuction: 1,
+          onDutchAuction: 1,
+          sellingType: 1,
+          creatorName: 1,
+          duration: 1,
+          royalties: 1,
+          properties: 1,
+          attributes: 1,
+          rarityScore: 1,
+          rarityRank: 1,
+          likes: 1,
+          createdAt: 1,
+          // New fields
+          isPlatform: 1,
+          saleType: 1,
+          saleId: 1,
+          price: 1,
+          amount: 1,
+          timeout: 1,
+          currency: 1,
+          enabled: 1,
+          seller: 1,
+          recipient: 1,
+          escrowAccount: 1,
+          uri: 1,
+          supply: 1,
+          policies: 1,
+          collection: 1,
+          nftData: 1,
+          traitCount: 1,
+          lastUpdated: 1,
+        },
+      },
+      {
+        $sort: { createdAt: -1 },
+      },
+      {
+        $skip: (pageNo - 1) * limit,
+      },
+      {
+        $limit: limit,
+      },
+    ]);
+
+    return {
+      nfts,
+      total,
+      currentPage: pageNo,
+    };
+  }
+
+  // getOwnDutchAuctionNfts
+  public async getOwnDutchAuctionNfts(
+    userId: string,
+    pageNo: number,
+    limit: number,
+    search: string
+  ): Promise<{ nfts: INft[]; total: number; currentPage: number }> {
+    // First, get the total count of matching documents
+    const total = await Nft.countDocuments({
+      user: new mongoose.Types.ObjectId(userId),
+      collectionName: { $regex: search, $options: "i" },
+      onMarketplace: true,
+      onDutchAuction: true,
+    });
+
+    const nfts: INft[] = await Nft.aggregate([
+      {
+        $match: {
+          user: new mongoose.Types.ObjectId(userId),
+          collectionName: { $regex: search, $options: "i" },
+          onMarketplace: true,
+          onDutchAuction: true,
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "user",
+          foreignField: "_id",
+          as: "user",
+        },
+      },
+      {
+        $unwind: "$user",
+      },
+      {
+        $project: {
+          user: 1,
+          collectionId: 1,
+          collectionType: 1,
+          collectionName: 1,
+          creator: 1,
+          tokenImage: 1,
+          tokenId: 1,
+          nftPrice: 1,
+          unlockable: 1,
+          isRevealed: 1,
+          digitalCode: 1,
+          onMarketplace: 1,
+          onSale: 1,
+          bidInfo: 1,
+          onAuction: 1,
+          onDutchAuction: 1,
+          sellingType: 1,
+          creatorName: 1,
+          duration: 1,
+          royalties: 1,
+          properties: 1,
+          attributes: 1,
+          rarityScore: 1,
+          rarityRank: 1,
+          likes: 1,
+          createdAt: 1,
+          // New fields
+          isPlatform: 1,
+          saleType: 1,
+          saleId: 1,
+          price: 1,
+          amount: 1,
+          timeout: 1,
+          currency: 1,
+          enabled: 1,
+          seller: 1,
+          recipient: 1,
+          escrowAccount: 1,
+          uri: 1,
+          supply: 1,
+          policies: 1,
+          collection: 1,
+          nftData: 1,
+          traitCount: 1,
+          lastUpdated: 1,
+        },
+      },
+      {
+        $sort: { createdAt: -1 },
+      },
+      {
+        $skip: (pageNo - 1) * limit,
+      },
+      {
+        $limit: limit,
+      },
+    ]);
+
+    return {
+      nfts,
+      total,
+      currentPage: pageNo,
+    };
+  }
+
+  public async getNftById(id: string): Promise<INft | null> {
+    return Nft.findById(id);
+  }
+
+  public async updateNft(nft: INft): Promise<INft | null> {
+    return Nft.findByIdAndUpdate(nft._id, nft, { new: true });
+  }
 }
 
 export default NftManager.getInstance();
