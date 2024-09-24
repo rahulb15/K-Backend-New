@@ -49,7 +49,6 @@ const nftSchema = new mongoose.Schema({
   traitCount: { type: Number },
   owner: { 
     type: String, 
-    required: true,
     validate: {
       validator: function(v: string) {
         return isValidKadenaAddress(v);

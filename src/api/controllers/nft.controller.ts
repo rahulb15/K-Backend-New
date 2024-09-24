@@ -284,6 +284,31 @@ export class NftController {
     }
   }
 
+  // getByTokenId
+  public async getByTokenId(req: Request, res: Response) {
+    try {
+      const tokenId: string = req.params.tokenId;
+      const nft: INft = await nftManager.getByTokenId(tokenId);
+      const responseData: IResponseHandler = {
+        status: ResponseStatus.SUCCESS,
+        message: ResponseMessage.SUCCESS,
+        description: ResponseDescription.SUCCESS,
+        data: nft,
+      };
+      return res.status(ResponseCode.SUCCESS).json(responseData);
+    } catch (error) {
+      console.log(error);
+      const responseData: IResponseHandler = {
+        status: ResponseStatus.FAILED,
+        message: ResponseMessage.FAILED,
+        description: ResponseDescription.FAILED,
+        data: null,
+      };
+      return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(responseData);
+    }
+  }
+  
+
   public async onSale(req: any, res: Response) {
     try {
       const body: any = req.body;
@@ -594,7 +619,7 @@ export class NftController {
       return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(responseData);
     }
   }
-  
+
 
 
 

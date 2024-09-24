@@ -43,6 +43,14 @@ router.post(
 
 // upload-image
 router.post(
+  "/upload-image-data-ipfs",
+  authMiddleware,
+  upload,
+  launchCollectionController.uploadImageOnIpfs
+);
+
+// upload-image
+router.post(
   "/upload-image-data-admin",
   adminMiddleware,
   upload,

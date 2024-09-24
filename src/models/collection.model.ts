@@ -27,7 +27,7 @@ const collectionMarketPlaceSchema = new mongoose.Schema({
   totalNftUser: { type: Number },
   createdAt: { type: Date, default: Date.now, index: true },
   updatedAt: { type: Date, default: Date.now, index: true },
-  collectionId: { type: String, required: true, unique: true, index: true },
+  collectionId: { type: String, required: true, index: true },
   size: { type: String },
   maxSize: { type: String },
   creator: { type: String, index: true },

@@ -254,6 +254,13 @@ router.post(
 );
 
 router.post(
+  "/upload-image-user",
+  authMiddleware,
+  upload,
+  userController.uploadToFilebaseIPFS
+);
+
+router.post(
   "/upload-image-pinata",
   authMiddleware,
   upload,

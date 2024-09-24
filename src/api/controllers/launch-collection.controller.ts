@@ -21,6 +21,22 @@ import userManager from "../../services/user.manager";
 import cloudinary from "../../config/cloudinary.config";
 // import { newUserEmail } from "../../mail/newUserEmail";
 import { approveLaunchpadEmail } from "../../mail/approveLaunchpadEmail.mail";
+import { S3Client, PutObjectCommand, HeadObjectCommand } from "@aws-sdk/client-s3";
+import { Readable } from "stream";
+import path from "path";
+
+// Configure AWS SDK v3 for Filebase
+const s3Client = new S3Client({
+  endpoint: "https://s3.filebase.com",
+  region: "us-east-1",
+  credentials: {
+    accessKeyId: process.env.FILEBASE_ACCESS_KEY_ID as string,
+    secretAccessKey: process.env.FILEBASE_SECRET_ACCESS_KEY as string,
+  },
+  forcePathStyle: true,
+});
+
+const bucketName = process.env.FILEBASE_BUCKET_NAME as string;
 
 export class LaunchCollectionController {
   private static instance: LaunchCollectionController;
@@ -530,6 +546,112 @@ export class LaunchCollectionController {
       });
     }
   }
+
+
+  private async getFileCID(key: string): Promise<string> {
+    try {
+      const command = new HeadObjectCommand({ Bucket: bucketName, Key: key });
+      const response = await s3Client.send(command);
+      const cid = response.Metadata?.["cid"];
+      if (!cid) {
+        throw new Error("CID not found in object metadata");
+      }
+      return cid;
+    } catch (error) {
+      console.error("Error retrieving CID from Filebase:", error);
+      throw new Error("Failed to retrieve CID");
+    }
+  }
+
+  private uploadToFilebase = async (file: Express.Multer.File, folder: string) => {
+    const fileStream = Readable.from(file.buffer);
+    const key = `${folder}/${Date.now()}-${path.basename(file.originalname)}`;
+    const params = {
+      Bucket: bucketName,
+      Key: key,
+      Body: fileStream,
+      ContentType: file.mimetype,
+    };
+
+    const command = new PutObjectCommand(params);
+    await s3Client.send(command);
+
+    // Retrieve the CID using Filebase's API
+    const cid = await this.getFileCID(key);
+
+    return {
+      cid: cid,
+      filebaseUrl: `https://${bucketName}.s3.filebase.com/${key}`,
+      ipfsUrl: `https://ipfs.filebase.io/ipfs/${cid}`,
+    };
+  };
+
+  public uploadImageOnIpfs = async (req: any, res: Response): Promise<any> => {
+    try {
+      console.log("Hello", req.files);
+      if (!req.files) {
+        const response: IResponseHandler = {
+          status: ResponseStatus.FAILED,
+          message: ResponseMessage.FAILED,
+          description: ResponseDescription.FAILED,
+          data: null,
+        };
+
+        return res.status(ResponseCode.BAD_REQUEST).json(response);
+      }
+
+      const userId = req.user._id;
+      const user: IUser = await userManager.getById(userId);
+      if (!user) {
+        const response: IResponseHandler = {
+          status: ResponseStatus.FAILED,
+          message: ResponseMessage.USER_NOT_FOUND,
+          description: ResponseDescription.USER_NOT_FOUND,
+          data: null,
+        };
+
+        return res.status(ResponseCode.NOT_FOUND).json(response);
+      }
+
+      const collection = {
+        collectionBannerImage: "",
+        collectionCoverImage: "",
+      };
+
+      const collectionBannerImage = req.files.profileImage?.[0];
+      const collectionCoverImage = req.files.coverImage?.[0];
+
+      if (collectionBannerImage) {
+        const bannerResult = await this.uploadToFilebase(
+          collectionBannerImage,
+          "collectionBannerImage"
+        );
+        collection.collectionBannerImage = bannerResult.ipfsUrl;
+      }
+      if (collectionCoverImage) {
+        const coverResult = await this.uploadToFilebase(
+          collectionCoverImage,
+          "collectionCoverImage"
+        );
+        collection.collectionCoverImage = coverResult.ipfsUrl;
+      }
+
+      return res.status(ResponseCode.SUCCESS).json({
+        status: ResponseStatus.SUCCESS,
+        message: ResponseMessage.SUCCESS,
+        description: ResponseDescription.SUCCESS,
+        data: collection,
+      });
+    } catch (error) {
+      console.error("Error in uploadImageOnCloud function:", error);
+      return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json({
+        status: ResponseStatus.INTERNAL_SERVER_ERROR,
+        message: ResponseMessage.FAILED,
+        description: ResponseDescription.INTERNAL_SERVER_ERROR,
+        data: null,
+      });
+    }
+  };
 
 
   // only upload image to clounary not update collection and find collection by id just take userId based on this upload on cloudnary and give url

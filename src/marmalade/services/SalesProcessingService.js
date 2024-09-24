@@ -78,45 +78,99 @@ class SalesProcessingService {
     }
   }
 
+  // async mapSaleToNftData(sale) {
+  //   console.log('Mapping sale to NFT data:', sale);
+  //   // Find the user based on the creator field
+  //   const user = await this.User.findOne({ walletAddress: sale.collection.c.creator });
+
+  //   // Find the collection based on the collectionName
+  //   const collection = await this.CollectionMarketPlace.findOne({ collectionName: sale.collection.c.name });
+
+  //   return {
+  //     tokenId: sale['token-id'],
+  //     saleType: sale.type,
+  //     saleId: sale['sale-id'],
+  //     price: sale.price,
+  //     amount: sale.amount,
+  //     timeout: new Date(sale.timeout),
+  //     currency: sale.currency,
+  //     enabled: sale.enabled,
+  //     seller: sale.seller,
+  //     recipient: sale.recipient,
+  //     escrowAccount: sale['escrow-account'],
+  //     uri: sale.uri,
+  //     supply: sale.supply,
+  //     policies: sale.policies,
+  //     collection: sale.collection,
+  //     nftData: sale.nftData,
+  //     tokenImage: sale.image,
+  //     lastUpdated: new Date(),
+  //     isPlatform: false,
+  //     onMarketplace: sale.type === 'f' || sale.type === 'a',
+  //     onSale: sale.type === 'f',
+  //     onAuction: sale.type === 'a',
+  //     attributes: sale.nftData.attributes,
+  //     collectionName: sale.collection.c.name,
+  //     nftPrice: sale.price,
+  //     creator: sale.collection.c.creator,
+  //     isRevealed: true,
+  //     user: user ? user._id : null, // Add the user's ObjectId if found
+  //     collectionId: collection ? collection._id : null, // Add the collection's ObjectId if found
+  //     owner: sale.collection.c.creator,
+  //   };
+  // }
   async mapSaleToNftData(sale) {
+    // console.log('Mapping sale to NFT data:', sale);
+    
     // Find the user based on the creator field
-    const user = await this.User.findOne({ walletAddress: sale.collection.c.creator });
-
+    const user = await this.User.findOne({ walletAddress: sale.collection?.c?.creator });
+  
     // Find the collection based on the collectionName
-    const collection = await this.CollectionMarketPlace.findOne({ collectionName: sale.collection.c.name });
-
-    return {
-      tokenId: sale['token-id'],
-      saleType: sale.type,
-      saleId: sale['sale-id'],
-      price: sale.price,
-      amount: sale.amount,
-      timeout: new Date(sale.timeout),
-      currency: sale.currency,
-      enabled: sale.enabled,
-      seller: sale.seller,
-      recipient: sale.recipient,
-      escrowAccount: sale['escrow-account'],
-      uri: sale.uri,
-      supply: sale.supply,
-      policies: sale.policies,
-      collection: sale.collection,
-      nftData: sale.nftData,
-      tokenImage: sale.image,
+    const collection = await this.CollectionMarketPlace.findOne({ collectionName: sale.collection?.c?.name });
+  
+    // Create a base object with only the fields that are always required
+    const baseNftData = {
       lastUpdated: new Date(),
       isPlatform: false,
-      onMarketplace: sale.type === 'f' || sale.type === 'a',
-      onSale: sale.type === 'f',
-      onAuction: sale.type === 'a',
-      attributes: sale.nftData.attributes,
-      collectionName: sale.collection.c.name,
-      nftPrice: sale.price,
-      creator: sale.collection.c.creator,
       isRevealed: true,
-      user: user ? user._id : null, // Add the user's ObjectId if found
-      collectionId: collection ? collection._id : null, // Add the collection's ObjectId if found
-      owner: sale.collection.c.creator,
     };
+  
+    // Add optional fields only if they exist in the sale object
+    if (sale['token-id']) baseNftData.tokenId = sale['token-id'];
+    if (sale.type) {
+      baseNftData.saleType = sale.type;
+      baseNftData.onMarketplace = sale.type === 'f' || sale.type === 'a';
+      baseNftData.onSale = sale.type === 'f';
+      baseNftData.onAuction = sale.type === 'a';
+    }
+    if (sale['sale-id']) baseNftData.saleId = sale['sale-id'];
+    if (sale.price) {
+      baseNftData.price = sale.price;
+      baseNftData.nftPrice = sale.price;
+    }
+    if (sale.amount) baseNftData.amount = sale.amount;
+    if (sale.timeout) baseNftData.timeout = new Date(sale.timeout);
+    if (sale.currency) baseNftData.currency = sale.currency;
+    if (sale.enabled !== undefined) baseNftData.enabled = sale.enabled;
+    if (sale.seller) baseNftData.seller = sale.seller;
+    if (sale.recipient) baseNftData.recipient = sale.recipient;
+    if (sale['escrow-account']) baseNftData.escrowAccount = sale['escrow-account'];
+    if (sale.uri) baseNftData.uri = sale.uri;
+    if (sale.supply) baseNftData.supply = sale.supply;
+    if (sale.policies) baseNftData.policies = sale.policies;
+    if (sale.collection) baseNftData.collection = sale.collection;
+    if (sale.nftData) baseNftData.nftData = sale.nftData;
+    if (sale.image && sale.image.length > 0) baseNftData.tokenImage = sale.image;
+    if (sale.nftData?.attributes) baseNftData.attributes = sale.nftData.attributes;
+    if (sale.collection?.c?.name) baseNftData.collectionName = sale.collection.c.name;
+    if (sale.collection?.c?.creator) {
+      baseNftData.creator = sale.collection.c.creator;
+      baseNftData.owner = sale.collection.c.creator;
+    }
+    if (user) baseNftData.user = user._id;
+    if (collection) baseNftData.collectionId = collection._id;
+  
+    return baseNftData;
   }
 }
 

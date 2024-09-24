@@ -12,6 +12,8 @@ router.post("/createOne", authMiddleware, nftController.createOne);
 router.post("/", authMiddleware, nftController.create);
 router.get("/", authMiddleware, nftController.getAll);
 router.get("/:id", authMiddleware, nftController.getById);
+// getByTokenId
+router.get("/token/:tokenId", nftController.getByTokenId);
 // updateByTokenId
 // router.put("/updateToken/:tokenId", adminMiddleware, nftController.updateByTokenId);
 // onSale

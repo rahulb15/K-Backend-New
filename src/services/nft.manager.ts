@@ -101,6 +101,27 @@ async function fetchIPFSData(uri: any) {
 //   return ipfsUri;
 // }
 
+// async function fetchMetadata(uri: string): Promise<any> {
+//   try {
+//     let response;
+//     if (uri.startsWith("ipfs://")) {
+//       response = await fetch(convertToIPFSUrl(uri));
+//     } else {
+//       response = await fetch(uri);
+//     }
+
+//     if (!response.ok) {
+//       throw new Error(`HTTP error! status: ${response.status}`);
+//     }
+
+//     const data = await response.json();
+//     return data;
+//   } catch (error) {
+//     console.error("Error fetching metadata:", error);
+//     throw error;
+//   }
+// }
+
 async function fetchMetadata(uri: string): Promise<any> {
   try {
     let response;
@@ -114,11 +135,26 @@ async function fetchMetadata(uri: string): Promise<any> {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const data = await response.json();
-    return data;
-  } catch (error) {
+    const contentType = response.headers.get("content-type");
+
+    if (contentType && contentType.includes("application/json")) {
+      // If it's JSON, parse it
+      const data = await response.json();
+      return data;
+    } else if (contentType && contentType.includes("image/")) {
+      // If it's an image, return an object with the image URL
+      return {
+        image: uri
+      };
+    } else {
+      // For other types, return the raw text
+      const text = await response.text();
+      return { rawData: text };
+    }
+  } catch (error:any) {
     console.error("Error fetching metadata:", error);
-    throw error;
+    // Instead of throwing, return an object indicating the error
+    return { error: error.message };
   }
 }
 
@@ -329,6 +365,13 @@ export class NftManager implements INftManager {
     const nft: INft = (await Nft.findById(id)) as INft;
     return nft;
   }
+
+  //get nft by tokenId
+  public async getByTokenId(tokenId: string): Promise<INft> {
+    const nft: INft = (await Nft.findOne({ tokenId: tokenId, onMarketplace: true })) as INft;
+    return nft;
+  }
+
 
   //updatebytokenid
   public async onSale(nft: any): Promise<any> {
@@ -615,7 +658,7 @@ export class NftManager implements INftManager {
     const updatePromises = nftData.reveledData.map(async (item: any) => {
       const tokenId = item["token-id"];
       const collection = await salesService.getCollectionByTokenId(tokenId);
-      console.log(collection, "collection+++++++++++++++++++++++++++++");
+      console.log(collection, "collection+++++++++++++++++++++++++++++",tokenId);
       const uri = item.uri;
 
       let collectionName = "";
@@ -633,13 +676,16 @@ export class NftManager implements INftManager {
 
         let imageUrl = "";
         if (
-          typeof metadata === "object" &&
-          metadata !== null &&
+          // typeof metadata === "object" &&
+          // metadata !== null &&
           metadata.image
         ) {
           imageUrl = metadata.image.startsWith("ipfs://")
             ? convertToIPFSUrl(metadata.image)
             : metadata.image;
+        }  else if (metadata.error) {
+          console.error(`Error fetching metadata for token ${tokenId}: ${metadata.error}`);
+          return null; // Return null for failed items
         }
 
         console.log(`Processing NFT: TokenID ${tokenId}`);
@@ -658,6 +704,7 @@ export class NftManager implements INftManager {
           if (collectionName) {
             existingNft.collectionName = collectionName;
           }
+          existingNft.owner = user.walletAddress; // Add this line
           Object.assign(existingNft, metadata);
           await existingNft.save();
           return existingNft;
