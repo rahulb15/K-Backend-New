@@ -33,7 +33,11 @@ import { newUserEmail } from "../../mail/newUserEmail";
 import pinataSDK from "@pinata/sdk";
 import { Readable } from "stream";
 import pinataService from "../../services/pinata.service";
-import { S3Client, PutObjectCommand, HeadObjectCommand } from "@aws-sdk/client-s3";
+import {
+  S3Client,
+  PutObjectCommand,
+  HeadObjectCommand,
+} from "@aws-sdk/client-s3";
 import fs from "fs";
 import path from "path";
 
@@ -43,15 +47,17 @@ const s3Client = new S3Client({
   region: "us-east-1",
   credentials: {
     accessKeyId: process.env.FILEBASE_ACCESS_KEY_ID || "3D62255A7DD6669639B2",
-    secretAccessKey: process.env.FILEBASE_SECRET_ACCESS_KEY || "UKlommt0R1PRHvYaVLaZB8xXG6Chj3TmghLYmEOp",
+    secretAccessKey:
+      process.env.FILEBASE_SECRET_ACCESS_KEY ||
+      "UKlommt0R1PRHvYaVLaZB8xXG6Chj3TmghLYmEOp",
   },
   forcePathStyle: true,
 });
 
 const bucketName = process.env.FILEBASE_BUCKET_NAME || "kryptomerch";
-console.log(bucketName, "bucketName");
-console.log(process.env.FILEBASE_ACCESS_KEY_ID, "process.env.FILEBASE_ACCESS_KEY_ID");
-console.log(process.env.FILEBASE_SECRET_ACCESS_KEY, "process.env.FILEBASE_SECRET_ACCESS_KEY");
+// console.log(bucketName, "bucketName");
+// console.log(process.env.FILEBASE_ACCESS_KEY_ID, "process.env.FILEBASE_ACCESS_KEY_ID");
+// console.log(process.env.FILEBASE_SECRET_ACCESS_KEY, "process.env.FILEBASE_SECRET_ACCESS_KEY");
 
 export class UserController {
   /*
@@ -897,7 +903,6 @@ export class UserController {
     }
   }
 
-
   public async uploadImage(req: any, res: Response): Promise<any> {
     try {
       console.log("Hello", req.files);
@@ -978,7 +983,6 @@ export class UserController {
     }
   }
 
-
   private async getFileCID(key: string): Promise<string> {
     try {
       const command = new HeadObjectCommand({ Bucket: bucketName, Key: key });
@@ -994,7 +998,10 @@ export class UserController {
     }
   }
 
-  private uploadToFilebase = async (file: Express.Multer.File, folder: string) => {
+  private uploadToFilebase = async (
+    file: Express.Multer.File,
+    folder: string
+  ) => {
     const fileStream = Readable.from(file.buffer);
     const key = `${folder}/${Date.now()}-${path.basename(file.originalname)}`;
     const params = {
@@ -1017,7 +1024,10 @@ export class UserController {
     };
   };
 
-  public uploadToFilebaseIPFS = async (req: any, res: Response): Promise<any> => {
+  public uploadToFilebaseIPFS = async (
+    req: any,
+    res: Response
+  ): Promise<any> => {
     try {
       if (!req.files) {
         const response: IResponseHandler = {
@@ -1083,7 +1093,6 @@ export class UserController {
     }
   };
 
-
   public async uploadImageForPinata(req: any, res: Response): Promise<any> {
     try {
       if (!req.files) {
@@ -1093,10 +1102,10 @@ export class UserController {
           description: ResponseDescription.FAILED,
           data: null,
         };
-  
+
         return res.status(ResponseCode.BAD_REQUEST).json(response);
       }
-  
+
       const userId = req.user._id;
       const user: IUser = await userManager.getById(userId);
       if (!user) {
@@ -1106,17 +1115,18 @@ export class UserController {
           description: ResponseDescription.USER_NOT_FOUND,
           data: null,
         };
-  
+
         return res.status(ResponseCode.NOT_FOUND).json(response);
       }
-  
+
       const profileImage = req.files.profileImage?.[0];
       console.log(profileImage, "profileImage");
       const coverImage = req.files.coverImage?.[0];
 
-  
       if (profileImage) {
-        const fileName = `profile_${userId}_${Date.now()}.${profileImage.originalname.split('.').pop()}`;
+        const fileName = `profile_${userId}_${Date.now()}.${profileImage.originalname
+          .split(".")
+          .pop()}`;
         const profileResult = await pinataService.uploadToPinata(
           profileImage.buffer,
           "profile",
@@ -1126,7 +1136,9 @@ export class UserController {
       }
 
       if (coverImage) {
-        const fileName = `cover_${userId}_${Date.now()}.${coverImage.originalname.split('.').pop()}`;
+        const fileName = `cover_${userId}_${Date.now()}.${coverImage.originalname
+          .split(".")
+          .pop()}`;
         const coverResult = await pinataService.uploadToPinata(
           coverImage.buffer,
           "cover",
@@ -1135,7 +1147,6 @@ export class UserController {
         user.coverImage = coverResult;
       }
 
-  
       const updated = await userManager.updateById(userId, user);
       const response: IResponseHandler = {
         status: ResponseStatus.SUCCESS,
