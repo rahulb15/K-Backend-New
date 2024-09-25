@@ -49,6 +49,9 @@ const s3Client = new S3Client({
 });
 
 const bucketName = process.env.FILEBASE_BUCKET_NAME as string;
+console.log(bucketName, "bucketName");
+console.log(process.env.FILEBASE_ACCESS_KEY_ID, "process.env.FILEBASE_ACCESS_KEY_ID");
+console.log(process.env.FILEBASE_SECRET_ACCESS_KEY, "process.env.FILEBASE_SECRET_ACCESS_KEY");
 
 export class UserController {
   /*
