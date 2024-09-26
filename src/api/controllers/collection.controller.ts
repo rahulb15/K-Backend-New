@@ -261,12 +261,15 @@ export class CollectionController {
       const page = parseInt(req.body.page as string) || 1;
       const limit = parseInt(req.body.limit as string) || 10;
       const search = req.body.search as string || '';
+      const timeRange = req.body.timeRange as { value: string; text: string };
+      console.log(timeRange, "timeRange",req.body);
       console.log(page, limit, "page, limit");
   
       const { data: collections, totalCount } = await collectionManager.getAllPaginationData(
         page,
         limit,
-        search
+        search,
+        timeRange
       );
   
       const responseData: IResponseHandler = {
@@ -274,9 +277,10 @@ export class CollectionController {
         message: ResponseMessage.SUCCESS,
         description: ResponseDescription.SUCCESS,
         data: {
-          collections: collections.map((collection: any) =>
-            collectionResponseData(collection)
-          ),
+          // collections: collections.map((collection: any) =>
+          //   collectionResponseData(collection)
+          // ),
+          collections: collections,
           pagination: {
             currentPage: page,
             limit: limit,
