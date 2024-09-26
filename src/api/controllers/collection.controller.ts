@@ -229,32 +229,42 @@ export class CollectionController {
   }
 
   // getAllPaginationData
-  // public async getAllPaginationData(req: Request, res: Response) {
-  //   try {
-  //     const { page, limit } = req.body;
-  //     const collections: ICollection[] = await collectionManager.getAllPaginationData(
-  //       page,
-  //       limit
-  //     );
-  //     const responseData: IResponseHandler = {
-  //       status: ResponseStatus.SUCCESS,
-  //       message: ResponseMessage.SUCCESS,
-  //       description: ResponseDescription.SUCCESS,
-  //       data: collections.map((collection) =>
-  //         collectionResponseData(collection)
-  //       ),
-  //     };
-  //     return res.status(ResponseCode.SUCCESS).json(responseData);
-  //   } catch (error) {
-  //     const responseData: IResponseHandler = {
-  //       status: ResponseStatus.FAILED,
-  //       message: ResponseMessage.FAILED,
-  //       description: ResponseDescription.FAILED,
-  //       data: null,
-  //     };
-  //     return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(responseData);
-  //   }
-  // }
+  public async getAllCollectionPaginationData(req: Request, res: Response) {
+    try {
+      const { page, limit,search } = req.body;
+      const { data: collections, totalCount } = await collectionManager.getAllCollectionPaginationData(
+        page,
+        limit,
+        search
+      );
+      const responseData: IResponseHandler = {
+        status: ResponseStatus.SUCCESS,
+        message: ResponseMessage.SUCCESS,
+        description: ResponseDescription.SUCCESS,
+        data: {
+          // collections: collections.map((collection: any) =>
+          //   collectionResponseData(collection)
+          // ),
+          collections: collections,
+          pagination: {
+            currentPage: page,
+            limit: limit,
+            totalItems: totalCount,
+            totalPages: Math.ceil(totalCount / limit)
+          }
+        },
+      };
+      return res.status(ResponseCode.SUCCESS).json(responseData);
+    } catch (error) {
+      const responseData: IResponseHandler = {
+        status: ResponseStatus.FAILED,
+        message: ResponseMessage.FAILED,
+        description: ResponseDescription.FAILED,
+        data: null,
+      };
+      return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(responseData);
+    }
+  }
 
   public async getAllPaginationData(req: Request, res: Response) {
     try {

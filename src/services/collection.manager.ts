@@ -53,35 +53,35 @@ export class CollectionManager implements ICollectionManager {
 
 
   // }
-  // public async getAllPaginationData(
-  //   page: number,
-  //   limit: number,
-  //   search: string
-  // ): Promise<{ data: ICollection[]; totalCount: number }> {
-  //   const query = search
-  //   ? { collectionName: { $regex: search, $options: 'i' } }
-  //   : {};
+  public async getAllCollectionPaginationData(
+    page: number,
+    limit: number,
+    search: string
+  ): Promise<{ data: any[]; totalCount: number }> {
+    const query = search
+    ? { collectionName: { $regex: search, $options: 'i' } }
+    : {};
 
-  // const result = await Collection.aggregate([
-  //   { $match: query },
-  //   {
-  //     $facet: {
-  //       data: [
-  //         { $skip: (page - 1) * limit },
-  //         { $limit: limit }
-  //       ],
-  //       totalCount: [
-  //         { $count: 'count' }
-  //       ]
-  //     }
-  //   }
-  // ]);
+  const result = await Collection.aggregate([
+    { $match: query },
+    {
+      $facet: {
+        data: [
+          { $skip: (page - 1) * limit },
+          { $limit: limit }
+        ],
+        totalCount: [
+          { $count: 'count' }
+        ]
+      }
+    }
+  ]);
 
-  // const data = result[0].data;
-  // const totalCount = result[0].totalCount[0]?.count || 0;
+  const data = result[0].data;
+  const totalCount = result[0].totalCount[0]?.count || 0;
   
-  //   return { data, totalCount };
-  // }
+    return { data, totalCount };
+  }
 
   // public async getAllPaginationData(
   //   page: number,
