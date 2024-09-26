@@ -784,6 +784,27 @@ export class LaunchCollectionController {
   }
 
 
+  public async getCategoryWiseCollections(req: Request, res: Response): Promise<Response> {
+    try {
+      const collections = await LaunchCollectionManager.getInstance().getCategoryWiseCollections();
+      return res.status(ResponseCode.SUCCESS).json({
+        status: ResponseStatus.SUCCESS,
+        message: ResponseMessage.SUCCESS,
+        description: ResponseDescription.SUCCESS,
+        data: collections,
+      });
+    } catch (error) {
+      console.error("Error in getCategoryWiseCollections:", error);
+      return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json({
+        status: ResponseStatus.INTERNAL_SERVER_ERROR,
+        message: ResponseMessage.FAILED,
+        description: ResponseDescription.INTERNAL_SERVER_ERROR,
+        data: null,
+      });
+    }
+  }
+
+
 
 
 

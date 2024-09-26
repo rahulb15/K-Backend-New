@@ -22,7 +22,7 @@ router.put("/onSale", authMiddleware, nftController.onSale);
 router.post("/marketPlaceNfts", nftController.getMarketPlaceNfts);
 
 // updateNFT
-router.put("/update", adminMiddleware, nftController.update);
+router.put("/update", adminMiddleware, nftController.updateByAdmin);
 router.put("/updatemynft", authMiddleware, nftController.update);
 
 // updateRevealedNFTs

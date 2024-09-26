@@ -94,7 +94,6 @@ export class LaunchCollectionManager implements ILaunchCollectionManager {
       throw error;
     }
   }
-  
 
   // update by id
   public async updateById(
@@ -131,42 +130,41 @@ export class LaunchCollectionManager implements ILaunchCollectionManager {
   //   return updatedCollection;
   // }
 
-
   public async update(
     collectionName: string,
     updateData: IUpdateLaunchCollection
-): Promise<ILaunchCollection> {
+  ): Promise<ILaunchCollection> {
     console.log("Update data:", updateData);
     console.log("Collection name:", collectionName);
 
     // If mintedAmount is provided, use it to increment reservePrice
     if (updateData.reservePrice) {
-        const updatedCollection = await LaunchCollection.findOneAndUpdate(
-            { collectionName },
-            { $inc: { reservePrice: updateData.reservePrice } },
-            { new: true }
-        );
+      const updatedCollection = await LaunchCollection.findOneAndUpdate(
+        { collectionName },
+        { $inc: { reservePrice: updateData.reservePrice } },
+        { new: true }
+      );
 
-        console.log("Updated collection:", updatedCollection);
-        if (!updatedCollection) {
-            throw new Error("Collection not found");
-        }
-        return updatedCollection;
+      console.log("Updated collection:", updatedCollection);
+      if (!updatedCollection) {
+        throw new Error("Collection not found");
+      }
+      return updatedCollection;
     } else {
-        // Handle other updates as before
-        const updatedCollection = await LaunchCollection.findOneAndUpdate(
-            { collectionName },
-            updateData,
-            { new: true }
-        );
+      // Handle other updates as before
+      const updatedCollection = await LaunchCollection.findOneAndUpdate(
+        { collectionName },
+        updateData,
+        { new: true }
+      );
 
-        console.log("Updated collection:", updatedCollection);
-        if (!updatedCollection) {
-            throw new Error("Collection not found");
-        }
-        return updatedCollection;
+      console.log("Updated collection:", updatedCollection);
+      if (!updatedCollection) {
+        throw new Error("Collection not found");
+      }
+      return updatedCollection;
     }
-}
+  }
 
   public async getByUserId(userId: string): Promise<ILaunchCollection> {
     const collection = await LaunchCollection.findOne({
@@ -224,7 +222,7 @@ export class LaunchCollectionManager implements ILaunchCollectionManager {
           ],
           isApproved: true,
           user: userId,
-          collectionName: { $ne: "Priority Pass" }  // Exclude collectionName "Priority Pass"
+          collectionName: { $ne: "Priority Pass" }, // Exclude collectionName "Priority Pass"
         },
       },
       {
@@ -234,14 +232,13 @@ export class LaunchCollectionManager implements ILaunchCollectionManager {
         },
       },
     ]);
-  
+
     if (!collections) {
       throw new Error("Collections not found");
     }
-  
+
     return collections;
   }
-  
 
   public async getAllLaunched(
     page: number,
@@ -374,5 +371,54 @@ export class LaunchCollectionManager implements ILaunchCollectionManager {
     return collections;
   }
 
+  public async getCategoryWiseCollections(): Promise<any> {
+    const categories = [
+      { value: "art", name: "Art & Collectibles" },
+      { value: "photography", name: "Photography" },
+      { value: "gaming", name: "Gaming" },
+      { value: "music", name: "Music & Audio" },
+      { value: "virtual", name: "Virtual Real Estate" },
+      { value: "fashion", name: "Fashion & Accessories" },
+      { value: "sports", name: "Sports" },
+      { value: "utility", name: "Utility & Memberships" },
+      { value: "domains", name: "Domains & Virtual Assets" },
+      { value: "real", name: "Real World Assets" },
+    ];
 
+    const categoryWiseCollections = await Promise.all(
+      categories.map(async (category) => {
+        console.log("category", category.value.toUpperCase());
+        const collections = await LaunchCollection.aggregate([
+          {
+            $match: {
+              projectCategory: category.value.toUpperCase(),
+              isApproved: true,
+              isLaunched: true,
+            },
+          },
+          {
+            $project: {
+              _id: 1,
+              collectionName: 1,
+              creatorName: 1,
+              collectionCoverImage: 1,
+              mintPrice: 1,
+              totalSupply: 1,
+            },
+          },
+          {
+            $limit: 10, // Limit to 10 collections per category
+          },
+        ]);
+
+        return {
+          category: category.value,
+          categoryName: category.name,
+          collections,
+        };
+      })
+    );
+
+    return categoryWiseCollections;
+  }
 }

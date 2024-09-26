@@ -123,7 +123,7 @@ class SalesProcessingService {
     // console.log('Mapping sale to NFT data:', sale);
     
     // Find the user based on the creator field
-    const user = await this.User.findOne({ walletAddress: sale.collection?.c?.creator });
+    const user = await this.User.findOne({ walletAddress: sale.seller});
   
     // Find the collection based on the collectionName
     const collection = await this.CollectionMarketPlace.findOne({ collectionName: sale.collection?.c?.name });
@@ -165,7 +165,7 @@ class SalesProcessingService {
     if (sale.collection?.c?.name) baseNftData.collectionName = sale.collection.c.name;
     if (sale.collection?.c?.creator) {
       baseNftData.creator = sale.collection.c.creator;
-      baseNftData.owner = sale.collection.c.creator;
+      baseNftData.owner = sale.seller;
     }
     if (user) baseNftData.user = user._id;
     if (collection) baseNftData.collectionId = collection._id;

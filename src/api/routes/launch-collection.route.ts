@@ -95,5 +95,8 @@ router.post(
 );
 
 
+router.post("/category-wise", launchCollectionController.getCategoryWiseCollections);
+
+
 
 export default router;
