@@ -45,11 +45,25 @@ class SalesProcessingService {
     }
   }
 
+  async deleteNonSaleNfts(allSales) {
+    try {
+      const saleTokenIds = allSales.map(sale => sale['token-id']);
+      const result = await this.Nft.deleteMany({
+        tokenId: { $in: saleTokenIds }, // Use $in to match tokenIds in saleTokenIds
+        onSale: false,
+        onMarketplace: false
+      });
+      this.logger.info(`Deleted ${result.deletedCount} NFTs that are not on sale or marketplace`);
+    } catch (error) {
+      this.logger.error('Error deleting non-sale NFTs:', error);
+    }
+  }
+
   async updateAllNftsToFalse() {
     try {
       const result = await this.Nft.updateMany(
         {},
-        { $set: { onMarketplace: false, onSale: false, onAuction: false } }
+        { $set: { onMarketplace: false, onSale: false, onAuction: false,onDutchAuction: false } }
       );
       this.logger.info(`Updated ${result.modifiedCount} NFTs to set marketplace flags to false`);
     } catch (error) {
@@ -120,7 +134,7 @@ class SalesProcessingService {
   //   };
   // }
   async mapSaleToNftData(sale) {
-    // console.log('Mapping sale to NFT data:', sale);
+    console.log('Mapping sale to NFT data:', sale);
     
     // Find the user based on the creator field
     const user = await this.User.findOne({ walletAddress: sale.seller});
@@ -139,9 +153,10 @@ class SalesProcessingService {
     if (sale['token-id']) baseNftData.tokenId = sale['token-id'];
     if (sale.type) {
       baseNftData.saleType = sale.type;
-      baseNftData.onMarketplace = sale.type === 'f' || sale.type === 'a';
+      baseNftData.onMarketplace = sale.type === 'f' || sale.type === 'a' || sale.type === 'd';
       baseNftData.onSale = sale.type === 'f';
       baseNftData.onAuction = sale.type === 'a';
+      baseNftData.onDutchAuction = sale.type === 'd';
     }
     if (sale['sale-id']) baseNftData.saleId = sale['sale-id'];
     if (sale.price) {

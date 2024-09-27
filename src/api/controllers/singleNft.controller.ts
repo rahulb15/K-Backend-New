@@ -33,6 +33,7 @@ export class SingleNftController {
           onMarketplace: false,
           onSale: false,
           onAuction: false,
+          onDutchAuction: false,
           sellingType: "All",
           likes: 0,
           properties: [],

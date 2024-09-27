@@ -57,6 +57,7 @@ singleNftSchema.index({ creator: 1 });
 singleNftSchema.index({ onMarketplace: 1 });
 singleNftSchema.index({ onSale: 1 });
 singleNftSchema.index({ onAuction: 1 });
+singleNftSchema.index({ onDutchAuction: 1 });
 singleNftSchema.index({ saleType: 1 });
 singleNftSchema.index({ saleId: 1 });
 singleNftSchema.index({ seller: 1 });

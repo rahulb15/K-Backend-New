@@ -28,6 +28,7 @@ export interface INft {
   onSale: boolean;
   bidInfo: IBidInfo[];
   onAuction: boolean;
+  onDutchAuction: boolean;
   sellingType: string;
   creatorName: string;
   duration: string;

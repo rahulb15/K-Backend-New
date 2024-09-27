@@ -14,6 +14,7 @@ export interface ISingleNft {
   onSale: boolean;
   bidInfo: string[];
   onAuction: boolean;
+  onDutchAuction: boolean;
   sellingType: string;
   creatorName: string;
   duration: string;
