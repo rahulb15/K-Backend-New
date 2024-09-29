@@ -40,17 +40,16 @@ import path from "path";
 
 const s3Client = new S3Client({
   endpoint: "https://s3.filebase.com",
-  region: "us-east-1",
+  region: process.env.FILEBASE_REGION as string || "us-east-1",
   credentials: {
-    accessKeyId: process.env.FILEBASE_ACCESS_KEY_ID || "3D62255A7DD6669639B2",
+    accessKeyId: process.env.FILEBASE_ACCESS_KEY_ID as string,
     secretAccessKey:
-      process.env.FILEBASE_SECRET_ACCESS_KEY ||
-      "UKlommt0R1PRHvYaVLaZB8xXG6Chj3TmghLYmEOp",
+      process.env.FILEBASE_SECRET_ACCESS_KEY as string,
   },
   forcePathStyle: true,
 });
 
-const bucketName = process.env.FILEBASE_BUCKET_NAME || "kryptomerch";
+const bucketName = process.env.FILEBASE_BUCKET_NAME as string;
 
 export class LaunchCollectionController {
   private static instance: LaunchCollectionController;

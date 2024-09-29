@@ -91,6 +91,7 @@ jobs:
             GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
             GOOGLE_CALLBACK_URL=${{ secrets.GOOGLE_CALLBACK_URL }}
             CLAUDE_SECRET=${{ secrets.CLAUDE_SECRET }}
+            ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }}
             CLAUDE_MODEL=${{ secrets.CLAUDE_MODEL }}
             CLAUDE_MAX_TOKENS=${{ secrets.CLAUDE_MAX_TOKENS }}
             CLOUDINARY_CLOUD_NAME=${{ secrets.CLOUDINARY_CLOUD_NAME }}
@@ -104,3 +105,14 @@ jobs:
             MAIL_PORT=${{ secrets.MAIL_PORT }}
             MAIL_USER=${{ secrets.MAIL_USER }}
             MAIL_PASS=${{ secrets.MAIL_PASS }}
+            OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
+            ACTIVE_AI_MODEL=${{ secrets.ACTIVE_AI_MODEL }}
+            HUGGINGFACE_API_KEY=${{ secrets.HUGGINGFACE_API_KEY }}
+            PINATA_API_KEY=${{ secrets.PINATA_API_KEY }}
+            PINATA_API_SECRET=${{ secrets.PINATA_API_SECRET }}
+            PINATA_JWT=${{ secrets.PINATA_JWT }}
+            PINATA_GATEWAY_KEY=${{ secrets.PINATA_GATEWAY_KEY }}
+            FILEBASE_ACCESS_KEY_ID=${{ secrets.FILEBASE_ACCESS_KEY_ID }}
+            FILEBASE_SECRET_ACCESS_KEY=${{ secrets.FILEBASE_SECRET_ACCESS_KEY }}
+            FILEBASE_BUCKET_NAME=${{ secrets.FILEBASE_BUCKET_NAME }}
+            FILEBASE_REGION=${{ secrets.FILEBASE_REGION }}
