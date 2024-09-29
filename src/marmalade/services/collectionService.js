@@ -208,7 +208,52 @@ class CollectionService {
       throw error;
     }
   }
+  async getAllCollectionsWithNFTDetails(limit = 5) {
+    console.log('getAllCollectionsWithNFTDetails, limit:', limit);
+    try {
+      const m_client = get_client();
+      if (!m_client) {
+        throw new Error('Client not initialized');
+      }
 
+      // Get all collections
+      const collections = await this.getAllCollections();
+      const filteredCollections = collections.filter(enabled_collection);
+
+      const detailedCollections = await Promise.all(filteredCollections.map(async (collectionId) => {
+        // Get collection data
+        const collectionData = await this.getCollection(collectionId);
+        
+        // Get tokens for the collection
+        const tokens = await this.getTokensFromCollection(collectionId);
+        
+        // Fetch NFT data for tokens (up to the specified limit)
+        const nftDataPromises = tokens.slice(0, limit).map(async (tokenId) => {
+          const uri = await m_client.batch(['/uri', tokenId]);
+          const nftData = await this.getNFTData(uri);
+          return {
+            tokenId,
+            uri,
+            ...nftData
+          };
+        });
+
+        const nftsData = await Promise.all(nftDataPromises);
+
+        return {
+          collection_id: collectionId,
+          collection_data: collectionData,
+          tokens: tokens,
+          nfts_data: nftsData.filter(nft => nft !== null) // Filter out any null results
+        };
+      }));
+
+      return serializeBigInt(detailedCollections);
+    } catch (error) {
+      console.error('Error fetching all collections with NFT details:', error);
+      throw error;
+    }
+  }
  
 
   convertToIPFSUrl(uri) {

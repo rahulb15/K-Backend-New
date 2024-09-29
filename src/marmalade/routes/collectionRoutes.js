@@ -44,4 +44,17 @@ router.post('/detailed', async (req, res) => {
     }
   });
 
+  router.post('/detailedCollection', async (req, res) => {
+    try {
+        console.log('GET /detailedCollection');
+      const detailedCollection = await collectionService.getAllCollectionsWithNFTDetails(10);
+      console.log('detailedCollection:', detailedCollection);
+      res.json(detailedCollection);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+    
+    );
+
 module.exports = router;
