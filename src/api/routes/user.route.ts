@@ -217,6 +217,7 @@ const router = Router();
 
 router.post("/register", userController.create);
 router.post("/login", userController.login);
+router.post("/check-user-auth", userController.checkUserAuth);
 router.get("/getUsers", authMiddleware, userController.getAll);
 router.get("/", authMiddleware, userController.getUserDetail);
 router.get("/:id", authMiddleware, userController.getById);

@@ -258,6 +258,7 @@ export class UserController {
   public async login(req: Request, res: Response) {
     try {
       const user: IUser = req.body;
+      console.log(user, "user");
       //validate email
       const isEmailValid = emailValidator(user.email);
       if (!isEmailValid) {
@@ -325,6 +326,71 @@ export class UserController {
       console.log(error);
 
       res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(error);
+    }
+  }
+
+  public async checkUserAuth(req: Request, res: Response) {
+    try {
+      const { username, password } = req.body;
+
+      // Get user by username
+      const existingUser = await userManager.getByUsername(username);
+      if (!existingUser) {
+        return res.status(ResponseCode.NOT_FOUND).json({
+          status: ResponseStatus.FAILED,
+          message: ResponseMessage.USER_NOT_FOUND,
+          description: ResponseDescription.USER_NOT_FOUND,
+          data: null,
+        });
+      }
+
+      // Check if user has admin access
+      if (!existingUser.isAdminAccess) {
+        return res.status(ResponseCode.UNAUTHORIZED).json({
+          status: ResponseStatus.FAILED,
+          message: ResponseMessage.UNAUTHORIZED,
+          description: ResponseDescription.UNAUTHORIZED,
+          data: null,
+        });
+      }
+
+      // Check password
+      const isPasswordMatch = await comparePassword(password, existingUser.adminPassword as string);
+      console.log(isPasswordMatch, 'isPasswordMatch');
+      if (!isPasswordMatch) {
+        return res.status(ResponseCode.UNAUTHORIZED).json({
+          status: ResponseStatus.FAILED,
+          message: ResponseMessage.PASSWORD_NOT_MATCH,
+          description: ResponseDescription.PASSWORD_NOT_MATCH,
+          data: null,
+        });
+      }
+
+      // Generate token
+      const token = jwtSign(existingUser, true);
+
+      // Prepare response data
+      const data = userResponseDataForAdmin(existingUser);
+      
+      const response: IResponseHandler = {
+        status: ResponseStatus.SUCCESS,
+        message: ResponseMessage.SUCCESS,
+        description: ResponseDescription.SUCCESS,
+        data: {
+          walletName: existingUser.walletName || null,
+        },
+        // token: token,
+      };
+
+      res.status(ResponseCode.SUCCESS).json(response);
+    } catch (error) {
+      console.error(error);
+      res.status(ResponseCode.INTERNAL_SERVER_ERROR).json({
+        status: ResponseStatus.FAILED,
+        message: ResponseMessage.INTERNAL_SERVER_ERROR,
+        description: ResponseDescription.INTERNAL_SERVER_ERROR,
+        data: null,
+      });
     }
   }
 

@@ -25,7 +25,7 @@ class SalesProcessingService {
   async processSales() {
     try {
       const allSales = await this.salesService.getAllSales();
-      console.log("allSales",allSales);
+      // console.log("allSales",allSales);
       
       // First, update all NFTs to set onMarketplace, onSale, and onAuction to false
       await this.updateAllNftsToFalse();
