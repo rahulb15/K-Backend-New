@@ -25,6 +25,7 @@ class SalesProcessingService {
   async processSales() {
     try {
       const allSales = await this.salesService.getAllSales();
+      console.log("allSales",allSales);
       
       // First, update all NFTs to set onMarketplace, onSale, and onAuction to false
       await this.updateAllNftsToFalse();
@@ -134,7 +135,7 @@ class SalesProcessingService {
   //   };
   // }
   async mapSaleToNftData(sale) {
-    console.log('Mapping sale to NFT data:', sale);
+    // console.log('Mapping sale to NFT data:', sale);
     
     // Find the user based on the creator field
     const user = await this.User.findOne({ walletAddress: sale.seller});
@@ -170,6 +171,11 @@ class SalesProcessingService {
     if (sale.seller) baseNftData.seller = sale.seller;
     if (sale.recipient) baseNftData.recipient = sale.recipient;
     if (sale['escrow-account']) baseNftData.escrowAccount = sale['escrow-account'];
+    if (sale['start-price']) baseNftData.startPrice = sale['start-price'];
+    if (sale['increment-ratio']) baseNftData.incrementRatio = sale['increment-ratio'];
+    if (sale['current-price']) baseNftData.currentPrice = sale['current-price'];
+    if (sale['current-buyer']) baseNftData.currentBuyer = sale['current-buyer'];
+
     if (sale.uri) baseNftData.uri = sale.uri;
     if (sale.supply) baseNftData.supply = sale.supply;
     if (sale.policies) baseNftData.policies = sale.policies;

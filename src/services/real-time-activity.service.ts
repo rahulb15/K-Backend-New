@@ -47,6 +47,8 @@ export class RealTimeActivityService {
             })
             .lean();
 
+            console.log('initialActivities:', initialActivities);
+
           const formattedActivities = initialActivities.map((activity:any) => ({
             id: activity._id,
             collectionName: activity.collectionId.collectionName,
