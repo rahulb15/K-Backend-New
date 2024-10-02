@@ -14,6 +14,25 @@ import { IUser } from "../../interfaces/user/user.interface";
 import blogManager from "../../services/blog.manager";
 import userManager from "../../services/user.manager";
 import { blogResponseData } from "../../utils/userResponse/blog-response.utils";
+const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
+
+
+async function sendTelegramMessage(blogTitle: string, blogUrl: string) {
+  const telegramUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+  const message = `New blog post: ${blogTitle}\n${blogUrl}`;
+
+  axios.post(telegramUrl, {
+    chat_id: TELEGRAM_CHAT_ID,
+    text: message,
+  })
+    .then(() => {
+      console.log("Blog shared to Telegram successfully");
+    })
+    .catch((error) => {
+      console.error("Error sharing to Telegram:", error);
+    });
+}
 
 export class CartController {
   private static instance: CartController;
@@ -27,6 +46,8 @@ export class CartController {
 
     return CartController.instance;
   }
+
+
 
   public async create(req: any, res: Response): Promise<any> {
     try {
@@ -63,6 +84,7 @@ export class CartController {
       };
 
       const thumbnail = req.files?.thumbnail?.[0];
+      console.log("thumbnail", thumbnail);
       if (thumbnail) {
         // Create a Promise to handle the Cloudinary upload
         const uploadToCloudinary = () => {
@@ -96,9 +118,16 @@ export class CartController {
           const created = await blogManager.create(blog);
 
           //update url in blog
-          await blogManager.updateById(created._id as string, {
-            url: `${process.env.BASE_URL}/blog/${created.slug}`,
-          });
+          const updatedBlog: any = await blogManager.updateById(
+            created._id as string,
+            {
+              url: `${process.env.BASE_URL}/blog/${created.slug}`,
+            }
+          );
+
+          console.log("updatedBlog", updatedBlog);
+          // Send message to Telegram
+          await sendTelegramMessage(created.title, updatedBlog.url);
 
           const response: IResponseHandler = {
             status: ResponseStatus.SUCCESS,
@@ -284,8 +313,6 @@ export class CartController {
       });
     }
   }
-  
-
 
   public async getAll(req: Request, res: Response) {
     try {
