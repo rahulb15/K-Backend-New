@@ -32,6 +32,8 @@ export interface ILaunchCollection {
   whitelistStartDate: string;
   whitelistStartTime: string;
   whitelistStartDateAndTime: Date;
+  presaleStartDateAndTime: Date;
+  presaleEndDateAndTime: Date;
   whitelistPrice: string;
   reservePrice: number;
   enablePresale: boolean;
@@ -86,6 +88,8 @@ export interface IUpdateLaunchCollection {
   whitelistStartDate?: string;
   whitelistStartTime?: string;
   whitelistStartDateAndTime?: Date;
+  presaleStartDateAndTime?: Date;
+  presaleEndDateAndTime?: Date;
   whitelistPrice?: string;
   reservePrice?: number;
   enablePresale?: boolean;
