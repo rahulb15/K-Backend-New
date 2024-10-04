@@ -5,7 +5,8 @@ import mongoose from "mongoose";
 import User from "../models/user.model";
 import { IUser } from "../interfaces/user/user.interface";
 const SalesService = require("../marmalade/services/salesService");
-
+import { ICollection } from "../interfaces/collection/collection.interface";
+import Collection from "../models/collection.model";
 // Instantiate SalesService once
 const salesService = new SalesService();
 
@@ -487,6 +488,56 @@ export class NftManager implements INftManager {
 
     return nftUpdateResults;
   }
+
+  public async updateLaunchapadByAdmin(nft: any): Promise<any> {
+    console.log(nft, "nftaaa");
+    console.log(nft.tokenId.length, "nft.tokenId.length");
+
+    // Fetch NFTs with the specified collection name and empty token ID
+    const nftData = await Nft.find({
+      collectionName: nft.collectionName,
+      tokenId: "",
+    });
+    console.log(nftData, "nftData");
+    console.log(nftData.length, "nftData.length");
+
+
+    //find collection by collectionName
+    const collection: ICollection = await Collection.findOne({ collectionName: nft.collectionName }) as ICollection;
+
+    // Check if there are NFTs to update
+    if (nftData.length === 0) {
+      return { message: "No NFTs found to update" };
+    }
+
+    // Ensure the number of token IDs matches the number of NFTs found
+    console.log(
+      nftData.length < nft.tokenId.length,
+      "nftData.length < nft.tokenId.length"
+    );
+    if (nftData.length < nft.tokenId.length) {
+      return { message: "Too many token IDs provided" };
+    }
+
+    console.log("continue");
+
+    // Update each NFT with the corresponding token ID
+    const updatePromises = nftData.map((item, index) => {
+      console.log(index, "index");
+      console.log(nft.tokenId[index], "nft.tokenId[index]");
+      return Nft.updateOne(
+        { _id: item._id },
+        { $set: { tokenId: nft.tokenId[index], isRevealed: true, collectionId: collection._id } }
+      );
+    });
+
+    // Wait for all updates to complete
+    const nftUpdateResults = await Promise.all(updatePromises);
+    console.log(nftUpdateResults, "nftUpdateResults");
+
+    return nftUpdateResults;
+  }
+
 
   // public async updateRevealedNFTs(nft: any): Promise<any> {
   //   console.log(nft, "nftaaazzzzz");

@@ -399,6 +399,39 @@ export class NftController {
     }
   }
 
+  // updateLaunchapadByAdmin
+  public async updateLaunchapadByAdmin(req: any, res: Response) {
+    try {
+      const body: any = req.body;
+      console.log(body);
+      // {
+      //   collectionName: 'monkeyaz9',
+      //   tokenId: [
+      //     't:6wb9Iw3tS7LDFXq1aOqMJ7L5kBSa58EdnfQG0Dps8Wk',
+      //     't:rrh0qZKVH23Vh3iWPINRo8Jcgp_7ChWgGK1mdhMgbVk'
+      //   ],
+      //   wallet: 'k:d1d47937b0ec42efa859048d0fb5f51707639ddad991e58ae9efcff5f4ff9dbe'
+      // }
+
+      const updatedNft: INft = await nftManager.updateLaunchapadByAdmin(body);
+      const responseData: IResponseHandler = {
+        status: ResponseStatus.SUCCESS,
+        message: ResponseMessage.UPDATED,
+        description: ResponseDescription.UPDATED,
+        data: updatedNft,
+      };
+      return res.status(ResponseCode.SUCCESS).json(responseData);
+    } catch (error) {
+      const responseData: IResponseHandler = {
+        status: ResponseStatus.FAILED,
+        message: ResponseMessage.FAILED,
+        description: ResponseDescription.FAILED,
+        data: null,
+      };
+      return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(responseData);
+    }
+  }
+
   // updateRevealedNFTs
   public async updateRevealedNFTs(req: any, res: Response) {
     try {

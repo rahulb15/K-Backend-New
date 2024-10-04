@@ -23,6 +23,7 @@ router.post("/marketPlaceNfts", nftController.getMarketPlaceNfts);
 
 // updateNFT
 router.put("/update", adminMiddleware, nftController.updateByAdmin);
+router.put("/updateLaunchpad", adminMiddleware, nftController.updateLaunchapadByAdmin);
 router.put("/updatemynft", authMiddleware, nftController.update);
 
 // updateRevealedNFTs

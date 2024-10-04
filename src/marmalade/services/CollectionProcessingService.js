@@ -316,7 +316,7 @@ class CollectionProcessingService {
       // tokenList: collection.tokens,
       // collectionCoverImage: collection?.first_token_data?.thumbnail || "",
       // collectionBannerImage: collection?.first_token_data?.thumbnail || "",
-      reservePrice: collection?.collection_data?.size ? parseInt(collection.collection_data.size) : 0,
+      // reservePrice: collection?.collection_data?.size ? parseInt(collection.collection_data.size) : 0,
       // mintPrice: "0", // Set a default value or fetch from somewhere
       mintPriceCurrency: "KDA", // Set a default value
       createdAt: new Date(),
