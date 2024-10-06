@@ -145,14 +145,14 @@ async function fetchMetadata(uri: string): Promise<any> {
     } else if (contentType && contentType.includes("image/")) {
       // If it's an image, return an object with the image URL
       return {
-        image: uri
+        image: uri,
       };
     } else {
       // For other types, return the raw text
       const text = await response.text();
       return { rawData: text };
     }
-  } catch (error:any) {
+  } catch (error: any) {
     console.error("Error fetching metadata:", error);
     // Instead of throwing, return an object indicating the error
     return { error: error.message };
@@ -240,7 +240,7 @@ export class NftManager implements INftManager {
           royalties: 1,
           properties: 1,
           attributes: 1,
-          owner:1,
+          owner: 1,
           likes: 1,
           createdAt: 1, // Add createdAt here
         },
@@ -337,9 +337,12 @@ export class NftManager implements INftManager {
           recipient: 1,
           escrowAccount: 1,
           currentBuyer: 1,
-          startPrice:1,
-          incrementRatio:1,
-          currentPrice:1,
+          startPrice: 1,
+          endPrice: 1,
+          startTime: 1,
+          endTime: 1,
+          incrementRatio: 1,
+          currentPrice: 1,
           uri: 1,
           supply: 1,
           policies: 1,
@@ -375,10 +378,12 @@ export class NftManager implements INftManager {
 
   //get nft by tokenId
   public async getByTokenId(tokenId: string): Promise<INft> {
-    const nft: INft = (await Nft.findOne({ tokenId: tokenId, onMarketplace: true })) as INft;
+    const nft: INft = (await Nft.findOne({
+      tokenId: tokenId,
+      onMarketplace: true,
+    })) as INft;
     return nft;
   }
-
 
   //updatebytokenid
   public async onSale(nft: any): Promise<any> {
@@ -501,9 +506,10 @@ export class NftManager implements INftManager {
     console.log(nftData, "nftData");
     console.log(nftData.length, "nftData.length");
 
-
     //find collection by collectionName
-    const collection: ICollection = await Collection.findOne({ collectionName: nft.collectionName }) as ICollection;
+    const collection: ICollection = (await Collection.findOne({
+      collectionName: nft.collectionName,
+    })) as ICollection;
 
     // Check if there are NFTs to update
     if (nftData.length === 0) {
@@ -527,7 +533,13 @@ export class NftManager implements INftManager {
       console.log(nft.tokenId[index], "nft.tokenId[index]");
       return Nft.updateOne(
         { _id: item._id },
-        { $set: { tokenId: nft.tokenId[index], isRevealed: true, collectionId: collection._id } }
+        {
+          $set: {
+            tokenId: nft.tokenId[index],
+            isRevealed: true,
+            collectionId: collection._id,
+          },
+        }
       );
     });
 
@@ -537,7 +549,6 @@ export class NftManager implements INftManager {
 
     return nftUpdateResults;
   }
-
 
   // public async updateRevealedNFTs(nft: any): Promise<any> {
   //   console.log(nft, "nftaaazzzzz");
@@ -760,7 +771,11 @@ export class NftManager implements INftManager {
     const updatePromises = nftData.reveledData.map(async (item: any) => {
       const tokenId = item["token-id"];
       const collection = await salesService.getCollectionByTokenId(tokenId);
-      console.log(collection, "collection+++++++++++++++++++++++++++++",tokenId);
+      console.log(
+        collection,
+        "collection+++++++++++++++++++++++++++++",
+        tokenId
+      );
       const uri = item.uri;
 
       let collectionName = "";
@@ -785,8 +800,10 @@ export class NftManager implements INftManager {
           imageUrl = metadata.image.startsWith("ipfs://")
             ? convertToIPFSUrl(metadata.image)
             : metadata.image;
-        }  else if (metadata.error) {
-          console.error(`Error fetching metadata for token ${tokenId}: ${metadata.error}`);
+        } else if (metadata.error) {
+          console.error(
+            `Error fetching metadata for token ${tokenId}: ${metadata.error}`
+          );
           return null; // Return null for failed items
         }
 
@@ -909,9 +926,12 @@ export class NftManager implements INftManager {
           recipient: 1,
           escrowAccount: 1,
           currentBuyer: 1,
-          startPrice:1,
-          incrementRatio:1,
-          currentPrice:1,
+          startPrice: 1,
+          endPrice: 1,
+          startTime: 1,
+          endTime: 1,
+          incrementRatio: 1,
+          currentPrice: 1,
           uri: 1,
           supply: 1,
           policies: 1,
@@ -999,9 +1019,12 @@ export class NftManager implements INftManager {
           recipient: 1,
           escrowAccount: 1,
           currentBuyer: 1,
-          startPrice:1,
-          incrementRatio:1,
-          currentPrice:1,
+          startPrice: 1,
+          endPrice: 1,
+          startTime: 1,
+          endTime: 1,
+          incrementRatio: 1,
+          currentPrice: 1,
           uri: 1,
           supply: 1,
           policies: 1,
@@ -1113,9 +1136,12 @@ export class NftManager implements INftManager {
           recipient: 1,
           escrowAccount: 1,
           currentBuyer: 1,
-          startPrice:1,
-          incrementRatio:1,
-          currentPrice:1,
+          startPrice: 1,
+          endPrice: 1,
+          startTime: 1,
+          endTime: 1,
+          incrementRatio: 1,
+          currentPrice: 1,
           uri: 1,
           supply: 1,
           policies: 1,
@@ -1217,9 +1243,12 @@ export class NftManager implements INftManager {
           recipient: 1,
           escrowAccount: 1,
           currentBuyer: 1,
-          startPrice:1,
-          incrementRatio:1,
-          currentPrice:1,
+          startPrice: 1,
+          endPrice: 1,
+          startTime: 1,
+          endTime: 1,
+          incrementRatio: 1,
+          currentPrice: 1,
           uri: 1,
           supply: 1,
           policies: 1,
@@ -1324,9 +1353,12 @@ export class NftManager implements INftManager {
           recipient: 1,
           escrowAccount: 1,
           currentBuyer: 1,
-          startPrice:1,
-          incrementRatio:1,
-          currentPrice:1,
+          startPrice: 1,
+          endPrice: 1,
+          startTime: 1,
+          endTime: 1,
+          incrementRatio: 1,
+          currentPrice: 1,
           uri: 1,
           supply: 1,
           policies: 1,
@@ -1431,9 +1463,12 @@ export class NftManager implements INftManager {
           recipient: 1,
           escrowAccount: 1,
           currentBuyer: 1,
-          startPrice:1,
-          incrementRatio:1,
-          currentPrice:1,
+          startPrice: 1,
+          endPrice: 1,
+          startTime: 1,
+          endTime: 1,
+          incrementRatio: 1,
+          currentPrice: 1,
           uri: 1,
           supply: 1,
           policies: 1,
@@ -1538,9 +1573,12 @@ export class NftManager implements INftManager {
           recipient: 1,
           escrowAccount: 1,
           currentBuyer: 1,
-          startPrice:1,
-          incrementRatio:1,
-          currentPrice:1,
+          startPrice: 1,
+          endPrice: 1,
+          startTime: 1,
+          endTime: 1,
+          incrementRatio: 1,
+          currentPrice: 1,
           uri: 1,
           supply: 1,
           policies: 1,

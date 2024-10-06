@@ -135,7 +135,7 @@ class SalesProcessingService {
   //   };
   // }
   async mapSaleToNftData(sale) {
-    // console.log('Mapping sale to NFT data:', sale);
+    console.log('Mapping sale to NFT data:', sale);
     
     // Find the user based on the creator field
     const user = await this.User.findOne({ walletAddress: sale.seller});
@@ -158,6 +158,9 @@ class SalesProcessingService {
       baseNftData.onSale = sale.type === 'f';
       baseNftData.onAuction = sale.type === 'a';
       baseNftData.onDutchAuction = sale.type === 'd';
+      baseNftData.endPrice = sale['end-price'];
+      baseNftData.startTime = sale['start-time'];
+      baseNftData.endTime = sale['end-time'];
     }
     if (sale['sale-id']) baseNftData.saleId = sale['sale-id'];
     if (sale.price) {
