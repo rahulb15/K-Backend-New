@@ -28,7 +28,7 @@ export class SingleNftController {
         const singleNft: ISingleNft = {
           user: req.user._id,
           nftName: body.nftName,
-          creator: req.user._id,
+          creator: req.user.walletAddress,
           creatorName: req.user.name,
           onMarketplace: false,
           onSale: false,
@@ -75,13 +75,44 @@ export class SingleNftController {
   public async getAll(req: any, res: Response) {
     try {
       // OPTIONS /api/v1/nft?pageNo=1&limit=10&search= 204 0.166 ms - 0
-      const userId = req?.user?._id || "";
+      const userId = req.user._id;
       const pageNo: number = parseInt(req.body.pageNo as string);
       const limit: number = parseInt(req.body.limit as string);
       const search: string = req.body.search as string;
 
 
       const nfts: any = await singleNftManager.getAll(userId, pageNo, limit, search);
+
+      const responseData: IResponseHandler = {
+        status: ResponseStatus.SUCCESS,
+        message: ResponseMessage.SUCCESS,
+        description: ResponseDescription.SUCCESS,
+        data: nfts,
+      };
+      return res.status(ResponseCode.SUCCESS).json(responseData);
+    } catch (error) {
+      const responseData: IResponseHandler = {
+        status: ResponseStatus.FAILED,
+        message: ResponseMessage.FAILED,
+        description: ResponseDescription.FAILED,
+        data: null,
+      };
+      return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(responseData);
+    }
+  }
+
+
+  public async getAllMarketPlace(req: any, res: Response) {
+    try {
+      // OPTIONS /api/v1/nft?pageNo=1&limit=10&search= 204 0.166 ms - 0
+      const userId = req?.user?._id || "";
+      console.log(userId, "userId");
+      const pageNo: number = parseInt(req.body.pageNo as string);
+      const limit: number = parseInt(req.body.limit as string);
+      const search: string = req.body.search as string;
+
+
+      const nfts: any = await singleNftManager.getAllMarketPlace(userId, pageNo, limit, search);
 
       const responseData: IResponseHandler = {
         status: ResponseStatus.SUCCESS,

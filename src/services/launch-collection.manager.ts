@@ -352,6 +352,40 @@ export class LaunchCollectionManager implements ILaunchCollectionManager {
             { collectionName: { $regex: search, $options: "i" } },
             { creatorName: { $regex: search, $options: "i" } },
           ],
+          user: userId,
+          collectionType: "marketplace",
+        },
+      },
+      {
+        $facet: {
+          metadata: [{ $count: "total" }, { $addFields: { page, limit } }],
+          data: [{ $skip: (page - 1) * limit }, { $limit: limit }],
+        },
+      },
+    ]);
+
+    if (!collections) {
+      throw new Error("Collections not found");
+    }
+
+    return collections;
+  }
+
+
+  public async getCreatedCollectionsMarketPlace(
+    userId: string,
+    page: number,
+    limit: number,
+    search: string
+  ): Promise<ILaunchCollection[]> {
+    //using aggregation to search by collectionName and creatorName at the same time and also to paginate the results and return total count of documents
+    const collections = await LaunchCollection.aggregate([
+      {
+        $match: {
+          $or: [
+            { collectionName: { $regex: search, $options: "i" } },
+            { creatorName: { $regex: search, $options: "i" } },
+          ],
           // user: userId,
           // collectionType: "marketplace",
         },

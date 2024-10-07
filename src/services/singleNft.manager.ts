@@ -31,6 +31,29 @@ export class SingleNftManager implements ISingleNftManager {
   ): Promise<{ singleNfts: ISingleNft[]; total: number; }> {
     //find all if userId matches and search also matches
     const query = {
+      user: new mongoose.Types.ObjectId(userId),
+      nftName: { $regex: search, $options: "i" },
+      isMinted: false
+    };
+
+    const total = await SingleNft.find(query).countDocuments();
+    const singleNfts = await SingleNft.find(query)
+      .skip((pageNo - 1) * limit)
+      .limit(limit)
+      .sort({ lastUpdated: -1 });
+
+    return { singleNfts, total };
+  }
+
+
+  public async getAllMarketPlace(
+    userId: string,
+    pageNo: number,
+    limit: number,
+    search: string
+  ): Promise<{ singleNfts: ISingleNft[]; total: number; }> {
+    //find all if userId matches and search also matches
+    const query = {
       // user: new mongoose.Types.ObjectId(userId),
       nftName: { $regex: search, $options: "i" },
     };

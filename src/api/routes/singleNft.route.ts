@@ -7,7 +7,8 @@ const router = Router();
 
 router.post("/create", adminMiddleware, singleNftController.create);
 router.post("/", authMiddleware, singleNftController.create);
-router.post("/getAll", singleNftController.getAll);
+router.post("/getAll", authMiddleware, singleNftController.getAll);
+router.post("/getAllMarketPlace", singleNftController.getAllMarketPlace);
 router.get("/:id", authMiddleware, singleNftController.getById);
 router.put("/", authMiddleware, singleNftController.update);
 router.post("/top-creators", singleNftController.getTopCreators);

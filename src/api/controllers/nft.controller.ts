@@ -190,7 +190,7 @@ export class NftController {
         user: req.user._id,
         collectionType: "SingleNFT",
         collectionName: body.collectionName,
-        creator: req.user._id,
+        creator: req.user.walletAddress,
         creatorName: body.creatorName,
         onMarketplace: false,
         onSale: false,

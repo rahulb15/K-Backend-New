@@ -755,13 +755,40 @@ export class LaunchCollectionController {
   }
 
   // const response = await collectionService.getCreatedCollections(account.user.walletAddress, pageNo, limit, search); from frontend use this in backend
-  public async getCreatedCollections(req: any, res: Response): Promise<any> {
+  public async getCreatedCollections(req: any, res: Response): Promise<Response> {
+    try {
+      const userId = req.user._id;
+      const { page, limit, search } = req.body;
+      console.log(userId, page, limit, search,"userId, page, limit, searchddddddddddddddddd");
+      const collections = await LaunchCollectionManager.getInstance().getCreatedCollections(
+        userId,
+        parseInt(page as string),
+        parseInt(limit as string),
+        search as string
+      );
+      return res.status(ResponseCode.SUCCESS).json({
+        status: ResponseStatus.SUCCESS,
+        message: ResponseMessage.SUCCESS,
+        description: ResponseDescription.SUCCESS,
+        data: collections,
+      });
+    } catch (error) {
+      return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json({
+        status: ResponseStatus.INTERNAL_SERVER_ERROR,
+        message: ResponseMessage.FAILED,
+        description: ResponseDescription.INTERNAL_SERVER_ERROR,
+        data: null,
+      });
+    }
+  }
+
+  public async getCreatedCollectionsMarketPlace(req: any, res: Response): Promise<any> {
     try {
       console.log( "req.user._id");
       const userId = req?.user?._id || "";
       const { page, limit, search } = req.body;
       console.log(userId, page, limit, search,"userId, page, limit, searchddddddddddddddddd");
-      const collections = await LaunchCollectionManager.getInstance().getCreatedCollections(
+      const collections = await LaunchCollectionManager.getInstance().getCreatedCollectionsMarketPlace(
         userId,
         parseInt(page as string),
         parseInt(limit as string),
