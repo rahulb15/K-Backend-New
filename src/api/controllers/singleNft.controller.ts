@@ -75,7 +75,7 @@ export class SingleNftController {
   public async getAll(req: any, res: Response) {
     try {
       // OPTIONS /api/v1/nft?pageNo=1&limit=10&search= 204 0.166 ms - 0
-      const userId = req.user._id;
+      const userId = req?.user?._id || "";
       const pageNo: number = parseInt(req.body.pageNo as string);
       const limit: number = parseInt(req.body.limit as string);
       const search: string = req.body.search as string;

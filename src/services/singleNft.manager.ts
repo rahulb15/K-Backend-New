@@ -31,7 +31,7 @@ export class SingleNftManager implements ISingleNftManager {
   ): Promise<{ singleNfts: ISingleNft[]; total: number; }> {
     //find all if userId matches and search also matches
     const query = {
-      user: new mongoose.Types.ObjectId(userId),
+      // user: new mongoose.Types.ObjectId(userId),
       nftName: { $regex: search, $options: "i" },
     };
 

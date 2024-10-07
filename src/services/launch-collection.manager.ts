@@ -352,8 +352,8 @@ export class LaunchCollectionManager implements ILaunchCollectionManager {
             { collectionName: { $regex: search, $options: "i" } },
             { creatorName: { $regex: search, $options: "i" } },
           ],
-          user: userId,
-          collectionType: "marketplace",
+          // user: userId,
+          // collectionType: "marketplace",
         },
       },
       {

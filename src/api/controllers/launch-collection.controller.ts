@@ -755,9 +755,10 @@ export class LaunchCollectionController {
   }
 
   // const response = await collectionService.getCreatedCollections(account.user.walletAddress, pageNo, limit, search); from frontend use this in backend
-  public async getCreatedCollections(req: any, res: Response): Promise<Response> {
+  public async getCreatedCollections(req: any, res: Response): Promise<any> {
     try {
-      const userId = req.user._id;
+      console.log( "req.user._id");
+      const userId = req?.user?._id || "";
       const { page, limit, search } = req.body;
       console.log(userId, page, limit, search,"userId, page, limit, searchddddddddddddddddd");
       const collections = await LaunchCollectionManager.getInstance().getCreatedCollections(
@@ -773,11 +774,12 @@ export class LaunchCollectionController {
         data: collections,
       });
     } catch (error) {
+      console.error("Error in getCreatedCollections:", error);
       return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json({
         status: ResponseStatus.INTERNAL_SERVER_ERROR,
         message: ResponseMessage.FAILED,
         description: ResponseDescription.INTERNAL_SERVER_ERROR,
-        data: null,
+        data: error,
       });
     }
   }

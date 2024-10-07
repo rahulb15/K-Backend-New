@@ -90,7 +90,6 @@ router.get("/getById/:id",adminMiddleware, launchCollectionController.getById);
 
 router.post(
   "/getCreatedCollections",
-  authMiddleware,
   launchCollectionController.getCreatedCollections
 );
 
