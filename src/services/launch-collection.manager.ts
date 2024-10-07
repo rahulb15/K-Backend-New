@@ -393,7 +393,7 @@ export class LaunchCollectionManager implements ILaunchCollectionManager {
       {
         $facet: {
           metadata: [{ $count: "total" }, { $addFields: { page, limit } }],
-          data: [{ $skip: (page - 1) * limit }, { $limit: limit }],
+          data: [{ $skip: (page - 1) * limit }, { $limit: limit }, { $sort: { createdAt: 1 } }],
         },
       },
     ]);

@@ -203,7 +203,7 @@ export class SingleNftController {
         status: ResponseStatus.FAILED,
         message: ResponseMessage.FAILED,
         description: ResponseDescription.FAILED,
-        data: null,
+        data: error,
       };
       return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(responseData);
     }

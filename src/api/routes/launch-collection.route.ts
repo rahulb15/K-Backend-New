@@ -95,7 +95,7 @@ router.post(
 );
 
 router.post(
-  "/getCreatedCollectionsss",
+  "/getCreatedCollectionsMarketPlace",
   launchCollectionController.getCreatedCollectionsMarketPlace
 );
 
