@@ -69,7 +69,7 @@ const to_marketplace = ({"marketplace-fee":fee, ...rest}) => ({"marketplace-fee"
 
 //const to_marketplace = x => x
 
-const LOCAL_GAS_LIMIT = 150000
+const LOCAL_GAS_LIMIT = 300000
 
 const MARMALADE_NG_POLICIES = ["adjustable-royalty",
                                "auction-sale",

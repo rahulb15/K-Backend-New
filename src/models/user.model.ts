@@ -90,8 +90,9 @@ async function initSuperAdmin() {
         role: "superadmin",
         verified: true,
         walletName: "Chainweaver",
-        walletAddress:
-          "k:56609bf9d1983f0c13aaf3bd3537fe00db65eb15160463bb641530143d4e9bcf",
+        // walletAddress:
+        //   "k:56609bf9d1983f0c13aaf3bd3537fe00db65eb15160463bb641530143d4e9bcf",
+        walletAddress: process.env.NODE_ENV === "development" ? process.env.DEV_ADMIN_ADDRESS : process.env.PROD_ADMIN_ADDRESS,
       });
       await newSuperAdmin.save();
       console.log("Super admin user created successfully.");

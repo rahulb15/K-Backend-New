@@ -118,3 +118,5 @@ jobs:
             FILEBASE_REGION=${{ secrets.FILEBASE_REGION }}
             TELEGRAM_CHAT_ID=${{ secrets.TELEGRAM_CHAT_ID }}
             TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}
+            PROD_USER_ADDRESS=${{ secrets.PROD_USER_ADDRESS }}
+            PROD_ADMIN_ADDRESS=${{ secrets.PROD_ADMIN_ADDRESS }}

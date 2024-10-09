@@ -178,10 +178,10 @@ class CollectionProcessingService {
       const user = await this.findUser(collectionData.creator);
       if (!user) {
         this.logger.info(`User not found for wallet address: ${collectionData.creator}. Skipping collection update.`);
-        return;
+        // return;
       }
 
-      collectionData.user = user._id;
+      collectionData.user = user?._id || null;
       const updatedCollection = await this.Collection.findOneAndUpdate(filter, update, options);
       
       await this.User.findByIdAndUpdate(user._id, {
@@ -240,13 +240,13 @@ class CollectionProcessingService {
 
   async updateExistingLaunchCollection(collection) {
     const launchCollectionData = this.mapLaunchCollectionData(collection);
-    this.logger.info(`Updating launch collection: ${launchCollectionData.collectionName}`);
+    // this.logger.info(`Updating launch collection: ${launchCollectionData.collectionName}`);
     const filter = { collectionName: launchCollectionData.collectionName };
-    this.logger.info(`filter==============================: ${filter}`);
+    // this.logger.info(`filter==============================: ${filter}`);
 
     try {
       const existingLaunchCollection = await this.LaunchCollection.findOne(filter);
-      this.logger.info(`existingLaunchCollection==============================: ${existingLaunchCollection}`);
+      // this.logger.info(`existingLaunchCollection==============================: ${existingLaunchCollection}`);
 
       if (existingLaunchCollection) {
         // const user = await this.findUser(launchCollectionData.creatorWallet);
@@ -262,15 +262,15 @@ class CollectionProcessingService {
           { new: true }
         );
 
-        this.logger.info(`Updated launch collection: ${launchCollectionData.collectionName}`);
+        // this.logger.info(`Updated launch collection: ${launchCollectionData.collectionName}`);
 
         // await this.User.findByIdAndUpdate(user._id, {
         //   $addToSet: { launchCollections: updatedLaunchCollection._id }
         // });
 
-        this.logger.info(`Updated launch collection: ${launchCollectionData.collectionName}`);
+        // this.logger.info(`Updated launch collection: ${launchCollectionData.collectionName}`);
       } else {
-        this.logger.info(`Launch collection not found, skipping: ${launchCollectionData.collectionName}`);
+        // this.logger.info(`Launch collection not found, skipping: ${launchCollectionData.collectionName}`);
       }
     } catch (error) {
       this.logger.error(`Error updating launch collection ${launchCollectionData.collectionName}:`, error);
