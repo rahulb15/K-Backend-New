@@ -54,6 +54,11 @@ router.post("/collectionNftsMarket", nftController.getCollectionNftsMarket);
 router.post("/place-bid", authMiddleware, nftController.placeBid); // New route for placing a bid
 router.post("/buy", authMiddleware, nftController.buyNft); // New route for buying an NFT
 
+//get all priority pass nfts
+router.post("/priorityPassNfts", adminMiddleware, nftController.getPriorityPassNfts);
+// getPriorityPassNftsTokenIdEmpty
+router.post("/priorityPassNftsTokenIdEmpty", adminMiddleware, nftController.getPriorityPassNftsTokenIdEmpty);
+
 
 
 

@@ -780,9 +780,8 @@ export class NftManager implements INftManager {
 
       let collectionName = "";
       if (collection && collection.c && collection.c.name) {
-
         // if (/^priority_pass_\d+$/.test(collection.c.name)) {
-          if (collection.c.name === "priority_pass") {
+        if (collection.c.name === "priority_pass") {
           //   collectionName = "Priority Pass";
           // }
           collectionName = "Priority Pass";
@@ -1617,6 +1616,222 @@ export class NftManager implements INftManager {
 
   public async updateNft(nft: INft): Promise<INft | null> {
     return Nft.findByIdAndUpdate(nft._id, nft, { new: true });
+  }
+
+  // getPriorityPassNfts
+
+  public async getPriorityPassNfts(
+    pageNo: number,
+    limit: number,
+    search: string
+  ): Promise<{ nfts: INft[]; total: number; currentPage: number }> {
+    // First, get the total count of matching documents
+    const total = await Nft.countDocuments({
+      collectionName: "Priority Pass",
+      onMarketplace: false,
+    });
+
+    const nfts: INft[] = await Nft.aggregate([
+      {
+        $match: {
+          collectionName: "Priority Pass",
+          onMarketplace: false,
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "user",
+          foreignField: "_id",
+          as: "user",
+        },
+      },
+      {
+        $unwind: "$user",
+      },
+      {
+        $project: {
+          user: 1,
+          collectionId: 1,
+          collectionType: 1,
+          collectionName: 1,
+          creator: 1,
+          tokenImage: 1,
+          tokenId: 1,
+          nftPrice: 1,
+          unlockable: 1,
+          isRevealed: 1,
+          digitalCode: 1,
+          onMarketplace: 1,
+          onSale: 1,
+          bidInfo: 1,
+          onAuction: 1,
+          onDutchAuction: 1,
+          sellingType: 1,
+          creatorName: 1,
+          duration: 1,
+          royalties: 1,
+          properties: 1,
+          attributes: 1,
+          rarityScore: 1,
+          rarityRank: 1,
+          likes: 1,
+          createdAt: 1,
+          // New fields
+          isPlatform: 1,
+          saleType: 1,
+          saleId: 1,
+          price: 1,
+          amount: 1,
+          timeout: 1,
+          currency: 1,
+          enabled: 1,
+          seller: 1,
+          recipient: 1,
+          escrowAccount: 1,
+          currentBuyer: 1,
+          startPrice: 1,
+          endPrice: 1,
+          startTime: 1,
+          endTime: 1,
+          incrementRatio: 1,
+          currentPrice: 1,
+          uri: 1,
+          supply: 1,
+          policies: 1,
+          collection: 1,
+          nftData: 1,
+          owner: 1,
+          traitCount: 1,
+          lastUpdated: 1,
+        },
+      },
+
+      {
+        $sort: { createdAt: -1 },
+      },
+      {
+        $skip: (pageNo - 1) * limit,
+      },
+      {
+        $limit: limit,
+      },
+    ]);
+
+    return {
+      nfts,
+      total,
+      currentPage: pageNo,
+    };
+  }
+
+  //get all priority pass whose tokenId is empty
+
+  public async getPriorityPassNftsTokenIdEmpty(
+    pageNo: number,
+    limit: number,
+    search: string
+  ): Promise<{ nfts: INft[]; total: number; currentPage: number }> {
+    // First, get the total count of matching documents
+    const total = await Nft.countDocuments({
+      collectionName: "Priority Pass",
+      onMarketplace: false,
+      tokenId: "",
+    });
+
+    const nfts: INft[] = await Nft.aggregate([
+      {
+        $match: {
+          collectionName: "Priority Pass",
+          onMarketplace: false,
+          tokenId: "",
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "user",
+          foreignField: "_id",
+          as: "user",
+        },
+      },
+      {
+        $unwind: "$user",
+      },
+      {
+        $project: {
+          user: 1,
+          collectionId: 1,
+          collectionType: 1,
+          collectionName: 1,
+          creator: 1,
+          tokenImage: 1,
+          tokenId: 1,
+          nftPrice: 1,
+          unlockable: 1,
+          isRevealed: 1,
+          digitalCode: 1,
+          onMarketplace: 1,
+          onSale: 1,
+          bidInfo: 1,
+          onAuction: 1,
+          onDutchAuction: 1,
+          sellingType: 1,
+          creatorName: 1,
+          duration: 1,
+          royalties: 1,
+          properties: 1,
+          attributes: 1,
+          rarityScore: 1,
+          rarityRank: 1,
+          likes: 1,
+          createdAt: 1,
+          // New fields
+          isPlatform: 1,
+          saleType: 1,
+          saleId: 1,
+          price: 1,
+          amount: 1,
+          timeout: 1,
+          currency: 1,
+          enabled: 1,
+          seller: 1,
+          recipient: 1,
+          escrowAccount: 1,
+          currentBuyer: 1,
+          startPrice: 1,
+          endPrice: 1,
+          startTime: 1,
+          endTime: 1,
+          incrementRatio: 1,
+          currentPrice: 1,
+          uri: 1,
+          supply: 1,
+          policies: 1,
+          collection: 1,
+          nftData: 1,
+          owner: 1,
+          traitCount: 1,
+          lastUpdated: 1,
+        },
+      },
+
+      {
+        $sort: { createdAt: -1 },
+      },
+      {
+        $skip: (pageNo - 1) * limit,
+      },
+      {
+        $limit: limit,
+      },
+    ]);
+
+    return {
+      nfts,
+      total,
+      currentPage: pageNo,
+    };
   }
 }
 
