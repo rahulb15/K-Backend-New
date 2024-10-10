@@ -780,7 +780,11 @@ export class NftManager implements INftManager {
 
       let collectionName = "";
       if (collection && collection.c && collection.c.name) {
-        if (/^priority_pass_\d+$/.test(collection.c.name)) {
+
+        // if (/^priority_pass_\d+$/.test(collection.c.name)) {
+          if (collection.c.name === "priority_pass") {
+          //   collectionName = "Priority Pass";
+          // }
           collectionName = "Priority Pass";
         } else {
           collectionName = collection.c.name;
