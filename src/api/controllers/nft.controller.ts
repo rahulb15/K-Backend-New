@@ -1215,6 +1215,53 @@ export class NftController {
       return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(responseData);
     }
   }
+public async getRandomUris(req: any, res: Response) {
+    try {
+      const body: any = req.body;
+      const nfts: any = await nftManager.getRandomUris(body);
+      const responseData: IResponseHandler = {
+        status: ResponseStatus.SUCCESS,
+        message: ResponseMessage.SUCCESS,
+        description: ResponseDescription.SUCCESS,
+        data: nfts,
+      };
+      return res.status(ResponseCode.SUCCESS).json(responseData);
+    }
+    catch (error) {
+      const responseData: IResponseHandler = {
+        status: ResponseStatus.FAILED,
+        message: ResponseMessage.FAILED,
+        description: ResponseDescription.FAILED,
+        data: error,
+      };
+      return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(responseData);
+    }
+  }
+
+  public async updateNFTWithRandomUri(req: any, res: Response) {
+    try {
+      const body: any = req.body;
+      const nfts: any = await nftManager.updateNFTWithRandomUri(body);
+      const responseData: IResponseHandler = {
+        status: ResponseStatus.SUCCESS,
+        message: ResponseMessage.SUCCESS,
+        description: ResponseDescription.SUCCESS,
+        data: nfts,
+      };
+      return res.status(ResponseCode.SUCCESS).json(responseData);
+    }
+    catch (error) {
+      const responseData: IResponseHandler = {
+        status: ResponseStatus.FAILED,
+        message: ResponseMessage.FAILED,
+        description: ResponseDescription.FAILED,
+        data: error,
+      };
+      return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(responseData);
+    }
+  }
+
+      
   
 
 

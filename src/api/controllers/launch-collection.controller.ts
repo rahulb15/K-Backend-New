@@ -10,6 +10,7 @@ import {
   ILaunchCollection,
   IUpdateLaunchCollection,
 } from "../../interfaces/launch-collection/launch-collection.interface";
+import LaunchCollection from "../../models/launch-collection.model";
 import { LaunchCollectionManager } from "../../services/launch-collection.manager";
 import {
   launchCollectionResponseData,
@@ -21,9 +22,80 @@ import userManager from "../../services/user.manager";
 import cloudinary from "../../config/cloudinary.config";
 // import { newUserEmail } from "../../mail/newUserEmail";
 import { approveLaunchpadEmail } from "../../mail/approveLaunchpadEmail.mail";
-import { S3Client, PutObjectCommand, HeadObjectCommand } from "@aws-sdk/client-s3";
+import {
+  S3Client,
+  PutObjectCommand,
+  HeadObjectCommand,
+} from "@aws-sdk/client-s3";
 import { Readable } from "stream";
 import path from "path";
+import fetch from "node-fetch";
+const IPFS_GATEWAY = "https://ipfs.io/ipfs/";
+
+async function fetchIPFSData(uri: string): Promise<any> {
+  try {
+    // If the URI is an IPFS URI, convert it to an HTTP URL
+    const url = uri.startsWith("ipfs://")
+      ? `${IPFS_GATEWAY}${uri.slice(7)}`
+      : uri;
+
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const contentType = response.headers.get("content-type");
+
+    if (contentType && contentType.includes("application/json")) {
+      // If it's JSON, parse it
+      const data = await response.json();
+      return data;
+    } else if (contentType && contentType.startsWith("image/")) {
+      // If it's an image, return an object with the image URL
+      return {
+        image: url,
+      };
+    } else {
+      // For other types, return the raw text
+      const text = await response.text();
+      return { rawData: text };
+    }
+  } catch (error) {
+    console.error("Error fetching IPFS data:", error);
+    throw error;
+  }
+}
+
+// Helper function to process a list of IPFS URIs
+async function processIPFSList(uriList: string): Promise<any[]> {
+  try {
+    // Fetch the list of URIs
+    const listData = await fetchIPFSData(uriList);
+
+    // Check if the listData is an array
+    if (!Array.isArray(listData)) {
+      throw new Error("The IPFS data is not a list");
+    }
+
+    // Fetch data for each URI in the list
+    const processedData = await Promise.all(
+      listData.map(async (uri: string) => {
+        try {
+          return await fetchIPFSData(uri);
+        } catch (error) {
+          console.error(`Error processing URI ${uri}:`, error);
+          return null;
+        }
+      })
+    );
+
+    return processedData.filter((item) => item !== null);
+  } catch (error) {
+    console.error("Error processing IPFS list:", error);
+    throw error;
+  }
+}
 
 // // Configure AWS SDK v3 for Filebase
 // const s3Client = new S3Client({
@@ -40,11 +112,10 @@ import path from "path";
 
 const s3Client = new S3Client({
   endpoint: "https://s3.filebase.com",
-  region: process.env.FILEBASE_REGION as string || "us-east-1",
+  region: (process.env.FILEBASE_REGION as string) || "us-east-1",
   credentials: {
     accessKeyId: process.env.FILEBASE_ACCESS_KEY_ID as string,
-    secretAccessKey:
-      process.env.FILEBASE_SECRET_ACCESS_KEY as string,
+    secretAccessKey: process.env.FILEBASE_SECRET_ACCESS_KEY as string,
   },
   forcePathStyle: true,
 });
@@ -105,27 +176,189 @@ export class LaunchCollectionController {
     }
   }
 
+  // public async update(req: any, res: Response): Promise<Response> {
+  //   try {
+  //     const collectionName = req.params.collectionName;
+  //     console.log(req.body, "body");
+  //     return res.status(200);
+  //     console.log(collectionName);
+  //     const collection: IUpdateLaunchCollection = req.body;
+  //     // collection.user = req.user._id;
+  //     console.log(collection);
+  //     console.log(req.user._id);
+
+  //     const updatedCollection =
+  //       await LaunchCollectionManager.getInstance().update(
+  //         collectionName,
+  //         collection
+  //       );
+  //     return res.status(ResponseCode.SUCCESS).json({
+  //       status: ResponseStatus.SUCCESS,
+  //       message: ResponseMessage.SUCCESS,
+  //       description: ResponseDescription.SUCCESS,
+  //       data: launchCollectionResponseData(updatedCollection),
+  //     });
+  //   } catch (error) {
+  //     return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json({
+  //       status: ResponseStatus.INTERNAL_SERVER_ERROR,
+  //       message: ResponseMessage.FAILED,
+  //       description: ResponseDescription.INTERNAL_SERVER_ERROR,
+  //       data: null,
+  //     });
+  //   }
+  // }
+
+  // public async update(req: any, res: Response): Promise<Response> {
+  //   try {
+  //     const collectionName = req.params.collectionName;
+  //     console.log(req.body, "body");
+
+  //     if (req.body.uriList) {
+  //       // Handle IPFS URI list
+  //       const ipfsUri = req.body.uriList;
+  //       console.log(`Processing IPFS URI: ${ipfsUri}`);
+
+  //       try {
+  //         // Fetch and process IPFS data
+  //         const ipfsData = await fetchIPFSData(ipfsUri);
+  //         console.log("Extracted IPFS data:", ipfsData);
+
+  //         // TODO: Process the IPFS data as needed
+  //         // For now, we're just logging it
+
+  //         return res.status(ResponseCode.SUCCESS).json({
+  //           status: ResponseStatus.SUCCESS,
+  //           message: ResponseMessage.SUCCESS,
+  //           description: "IPFS data processed successfully",
+  //           data: ipfsData,
+  //         });
+  //       } catch (error) {
+  //         console.error("Error processing IPFS data:", error);
+  //         return res.status(ResponseCode.BAD_REQUEST).json({
+  //           status: ResponseStatus.FAILED,
+  //           message: ResponseMessage.FAILED,
+  //           description: "Failed to process IPFS data",
+  //           data: null,
+  //         });
+  //       }
+  //     } else {
+  //       // Traditional update
+  //       console.log(collectionName);
+  //       const collection: IUpdateLaunchCollection = req.body;
+  //       console.log(collection);
+  //       console.log(req.user._id);
+
+  //       const updatedCollection = await LaunchCollectionManager.getInstance().update(
+  //         collectionName,
+  //         collection
+  //       );
+
+  //       return res.status(ResponseCode.SUCCESS).json({
+  //         status: ResponseStatus.SUCCESS,
+  //         message: ResponseMessage.SUCCESS,
+  //         description: ResponseDescription.SUCCESS,
+  //         data: launchCollectionResponseData(updatedCollection),
+  //       });
+  //     }
+  //   } catch (error) {
+  //     console.error("Error in update function:", error);
+  //     return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json({
+  //       status: ResponseStatus.INTERNAL_SERVER_ERROR,
+  //       message: ResponseMessage.FAILED,
+  //       description: ResponseDescription.INTERNAL_SERVER_ERROR,
+  //       data: null,
+  //     });
+  //   }
+  // }
+
   public async update(req: any, res: Response): Promise<Response> {
     try {
       const collectionName = req.params.collectionName;
-      console.log(collectionName);
-      const collection: IUpdateLaunchCollection = req.body;
-      // collection.user = req.user._id;
-      console.log(collection);
-      console.log(req.user._id);
+      console.log(req.body, "body");
 
-      const updatedCollection =
-        await LaunchCollectionManager.getInstance().update(
-          collectionName,
-          collection
+      if (req.body.uriList) {
+        // Handle IPFS URI list
+        const ipfsUri = req.body.uriList;
+        console.log(`Processing IPFS URI list: ${ipfsUri}`);
+
+        try {
+          // Fetch and process IPFS data
+          const ipfsData = await fetchIPFSData(ipfsUri);
+          console.log("Processed IPFS data:", ipfsData);
+
+          // Update the LaunchCollection document
+          const updatedCollection = await LaunchCollection.findOneAndUpdate(
+            { collectionName: collectionName },
+            {
+              $set: {
+                uriList: ipfsData,
+                updatedAt: new Date(),
+              },
+            },
+            { new: true, runValidators: true }
+          );
+
+          if (!updatedCollection) {
+            return res.status(ResponseCode.NOT_FOUND).json({
+              status: ResponseStatus.FAILED,
+              message: ResponseMessage.FAILED,
+              description: "Collection not found",
+              data: null,
+            });
+          }
+
+          return res.status(ResponseCode.SUCCESS).json({
+            status: ResponseStatus.SUCCESS,
+            message: ResponseMessage.SUCCESS,
+            description:
+              "IPFS data processed and collection updated successfully",
+            data: launchCollectionResponseData(updatedCollection),
+          });
+        } catch (error) {
+          console.error("Error processing IPFS data:", error);
+          return res.status(ResponseCode.BAD_REQUEST).json({
+            status: ResponseStatus.FAILED,
+            message: ResponseMessage.FAILED,
+            description: "Failed to process IPFS data",
+            data: null,
+          });
+        }
+      } else {
+        // Traditional update
+        console.log(collectionName);
+        const collection: IUpdateLaunchCollection = req.body;
+        console.log(collection);
+        console.log(req.user._id);
+
+        const updatedCollection = await LaunchCollection.findOneAndUpdate(
+          { collectionName: collectionName },
+          {
+            $set: {
+              ...collection,
+              updatedAt: new Date(),
+            },
+          },
+          { new: true, runValidators: true }
         );
-      return res.status(ResponseCode.SUCCESS).json({
-        status: ResponseStatus.SUCCESS,
-        message: ResponseMessage.SUCCESS,
-        description: ResponseDescription.SUCCESS,
-        data: launchCollectionResponseData(updatedCollection),
-      });
+
+        if (!updatedCollection) {
+          return res.status(ResponseCode.NOT_FOUND).json({
+            status: ResponseStatus.FAILED,
+            message: ResponseMessage.FAILED,
+            description: "Collection not found",
+            data: null,
+          });
+        }
+
+        return res.status(ResponseCode.SUCCESS).json({
+          status: ResponseStatus.SUCCESS,
+          message: ResponseMessage.SUCCESS,
+          description: ResponseDescription.SUCCESS,
+          data: launchCollectionResponseData(updatedCollection),
+        });
+      }
     } catch (error) {
+      console.error("Error in update function:", error);
       return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json({
         status: ResponseStatus.INTERNAL_SERVER_ERROR,
         message: ResponseMessage.FAILED,
@@ -560,7 +793,6 @@ export class LaunchCollectionController {
     }
   }
 
-
   private async getFileCID(key: string): Promise<string> {
     try {
       const command = new HeadObjectCommand({ Bucket: bucketName, Key: key });
@@ -576,7 +808,10 @@ export class LaunchCollectionController {
     }
   }
 
-  private uploadToFilebase = async (file: Express.Multer.File, folder: string) => {
+  private uploadToFilebase = async (
+    file: Express.Multer.File,
+    folder: string
+  ) => {
     const fileStream = Readable.from(file.buffer);
     const key = `${folder}/${Date.now()}-${path.basename(file.originalname)}`;
     const params = {
@@ -666,7 +901,6 @@ export class LaunchCollectionController {
     }
   };
 
-
   // only upload image to clounary not update collection and find collection by id just take userId based on this upload on cloudnary and give url
   public async uploadImageOnCloudById(req: any, res: Response): Promise<any> {
     try {
@@ -750,22 +984,31 @@ export class LaunchCollectionController {
         description: ResponseDescription.INTERNAL_SERVER_ERROR,
         data: null,
       });
-
     }
   }
 
   // const response = await collectionService.getCreatedCollections(account.user.walletAddress, pageNo, limit, search); from frontend use this in backend
-  public async getCreatedCollections(req: any, res: Response): Promise<Response> {
+  public async getCreatedCollections(
+    req: any,
+    res: Response
+  ): Promise<Response> {
     try {
       const userId = req.user._id;
       const { page, limit, search } = req.body;
-      console.log(userId, page, limit, search,"userId, page, limit, searchddddddddddddddddd");
-      const collections = await LaunchCollectionManager.getInstance().getCreatedCollections(
+      console.log(
         userId,
-        parseInt(page as string),
-        parseInt(limit as string),
-        search as string
+        page,
+        limit,
+        search,
+        "userId, page, limit, searchddddddddddddddddd"
       );
+      const collections =
+        await LaunchCollectionManager.getInstance().getCreatedCollections(
+          userId,
+          parseInt(page as string),
+          parseInt(limit as string),
+          search as string
+        );
       return res.status(ResponseCode.SUCCESS).json({
         status: ResponseStatus.SUCCESS,
         message: ResponseMessage.SUCCESS,
@@ -782,18 +1025,28 @@ export class LaunchCollectionController {
     }
   }
 
-  public async getCreatedCollectionsMarketPlace(req: any, res: Response): Promise<any> {
+  public async getCreatedCollectionsMarketPlace(
+    req: any,
+    res: Response
+  ): Promise<any> {
     try {
-      console.log( "req.user._id");
+      console.log("req.user._id");
       const userId = req?.user?._id || "";
       const { page, limit, search } = req.body;
-      console.log(userId, page, limit, search,"userId, page, limit, searchddddddddddddddddd");
-      const collections = await LaunchCollectionManager.getInstance().getCreatedCollectionsMarketPlace(
+      console.log(
         userId,
-        parseInt(page as string),
-        parseInt(limit as string),
-        search as string
+        page,
+        limit,
+        search,
+        "userId, page, limit, searchddddddddddddddddd"
       );
+      const collections =
+        await LaunchCollectionManager.getInstance().getCreatedCollectionsMarketPlace(
+          userId,
+          parseInt(page as string),
+          parseInt(limit as string),
+          search as string
+        );
       return res.status(ResponseCode.SUCCESS).json({
         status: ResponseStatus.SUCCESS,
         message: ResponseMessage.SUCCESS,
@@ -811,10 +1064,13 @@ export class LaunchCollectionController {
     }
   }
 
-
-  public async getCategoryWiseCollections(req: Request, res: Response): Promise<Response> {
+  public async getCategoryWiseCollections(
+    req: Request,
+    res: Response
+  ): Promise<Response> {
     try {
-      const collections = await LaunchCollectionManager.getInstance().getCategoryWiseCollections();
+      const collections =
+        await LaunchCollectionManager.getInstance().getCategoryWiseCollections();
       return res.status(ResponseCode.SUCCESS).json({
         status: ResponseStatus.SUCCESS,
         message: ResponseMessage.SUCCESS,
@@ -831,14 +1087,6 @@ export class LaunchCollectionController {
       });
     }
   }
-
-
-
-
-
-
-
-
 }
 
 export default LaunchCollectionController.getInstance();

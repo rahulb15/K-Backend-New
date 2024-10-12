@@ -7,6 +7,7 @@ import { IUser } from "../interfaces/user/user.interface";
 const SalesService = require("../marmalade/services/salesService");
 import { ICollection } from "../interfaces/collection/collection.interface";
 import Collection from "../models/collection.model";
+import LaunchCollection from "../models/launch-collection.model";
 // Instantiate SalesService once
 const salesService = new SalesService();
 
@@ -1833,6 +1834,91 @@ export class NftManager implements INftManager {
       currentPage: pageNo,
     };
   }
+
+  // const getRandomUris = async (data: any) => {
+  //     try {
+  //       const token = localStorage.getItem("token");
+  //       const response = await axios.post(`${url}/nft/randomUris`, data, {
+  //         headers: {
+  //           Authorization: `Bearer ${token}`
+  //         }
+  //       });
+  //       return response.data;
+  //     } catch (error) {
+  //       return error.response.data;
+  //     }
+  //   }
+  public async getRandomUris(data: { collectionName: string; count: number }): Promise<string[]> {
+    console.log(data, "data+++++++++++++++++++++++++++++");
+
+    const { collectionName, count } = data;
+
+    try {
+      // Fetch the LaunchCollection document
+      const launchCollection = await LaunchCollection.findOne({ collectionName });
+
+      if (!launchCollection) {
+        throw new Error(`Collection ${collectionName} not found`);
+      }
+
+      const { uriList, mintedUriList = [] } = launchCollection;
+
+      // Filter out already minted URIs
+      const availableUris = uriList.filter(uri => !mintedUriList.includes(uri));
+
+      if (availableUris.length < count) {
+        throw new Error(`Not enough available URIs. Requested: ${count}, Available: ${availableUris.length}`);
+      }
+
+      // Shuffle the available URIs
+      const shuffled = availableUris.sort(() => 0.5 - Math.random());
+
+      // Select the requested number of URIs
+      const selectedUris = shuffled.slice(0, count);
+
+      return selectedUris;
+    } catch (error) {
+      console.error("Error in getRandomUris:", error);
+      throw error;
+    }
+  }
+
+ 
+
+  public async updateNFTWithRandomUri(data: {
+    collectionName: string;
+    randomUris: string[];
+  }): Promise<{ updatedCount: number }> {
+    console.log(data, "data+++++++++++++++++++++++++++++");
+
+    const { collectionName } = data;
+    const mintedUris = data.randomUris;
+    console.log(mintedUris, "mintedUris+++++++++++++++++++++++++++++");
+
+    try {
+      // return { updatedCount: mintedUris.length };
+      // Update the LaunchCollection document
+      const result = await LaunchCollection.updateOne(
+        { collectionName },
+        { 
+          $addToSet: { 
+            mintedUriList: { $each: mintedUris } 
+          }
+        }
+      );
+
+      if (result.matchedCount === 0) {
+        throw new Error(`Collection ${collectionName} not found`);
+      }
+
+      return { updatedCount: result.modifiedCount };
+    } catch (error) {
+      console.error("Error in updateNFTWithRandomUri:", error);
+      throw error;
+    }
+  }
+
+
 }
 
 export default NftManager.getInstance();

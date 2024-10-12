@@ -19,6 +19,8 @@ export interface ILaunchCollection {
   mintPrice: string;
   mintPriceCurrency: string;
   tokenList: string[];
+  uriList: string[];
+  mintedUriList: string[];
   policy: string[];
   collectionCoverImage: string;
   collectionBannerImage: string;
@@ -75,6 +77,8 @@ export interface IUpdateLaunchCollection {
   mintPrice?: string;
   mintPriceCurrency?: string;
   tokenList?: string[];
+  uriList: string[];
+  mintedUriList: string[];
   policy?: string[];
   collectionCoverImage?: string;
   collectionBannerImage?: string;

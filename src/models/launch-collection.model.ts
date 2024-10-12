@@ -21,6 +21,8 @@ const launchCollectionSchema = new Schema({
   mintPrice: { type: String },
   mintPriceCurrency: { type: String },
   tokenList: { type: [String] },
+  uriList: { type: [String] },
+  mintedUriList: { type: [String] },
   policy: { type: [String] },
   collectionCoverImage: { type: String },
   collectionBannerImage: { type: String },

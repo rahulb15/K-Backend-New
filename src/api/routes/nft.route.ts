@@ -59,6 +59,11 @@ router.post("/priorityPassNfts", adminMiddleware, nftController.getPriorityPassN
 // getPriorityPassNftsTokenIdEmpty
 router.post("/priorityPassNftsTokenIdEmpty", adminMiddleware, nftController.getPriorityPassNftsTokenIdEmpty);
 
+router.post("/randomUris", adminMiddleware, nftController.getRandomUris);
+router.put("/updateRandomUri", adminMiddleware, nftController.updateNFTWithRandomUri);
+
+
+
 
 
 
