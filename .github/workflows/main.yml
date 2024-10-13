@@ -120,3 +120,4 @@ jobs:
             TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}
             PROD_USER_ADDRESS=${{ secrets.PROD_USER_ADDRESS }}
             PROD_ADMIN_ADDRESS=${{ secrets.PROD_ADMIN_ADDRESS }}
+            TELEGRAM_GROUP_USERNAME=${{ secrets.TELEGRAM_GROUP_USERNAME }}
