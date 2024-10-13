@@ -176,21 +176,76 @@ export class LaunchCollectionManager implements ILaunchCollectionManager {
     return collection;
   }
 
+  // public async getAll(
+  //   page: number,
+  //   limit: number,
+  //   search: string,
+  //   paymentFilter: string,
+  //   approvalFilter: string,
+  // ): Promise<ILaunchCollection[]> {
+  //   //using aggregation to search by collectionName and creatorName at the same time and also to paginate the results and return total count of documents
+  //   const collections = await LaunchCollection.aggregate([
+  //     {
+  //       $match: {
+  //         $or: [
+  //           { collectionName: { $regex: search, $options: "i" } },
+  //           { creatorName: { $regex: search, $options: "i" } },
+  //         ],
+  //       },
+  //     },
+  //     {
+  //       $facet: {
+  //         metadata: [{ $count: "total" }, { $addFields: { page, limit } }],
+  //         data: [{ $skip: (page - 1) * limit }, { $limit: limit }],
+  //       },
+  //     },
+  //   ]);
+
+  //   if (!collections) {
+  //     throw new Error("Collections not found");
+  //   }
+
+  //   return collections;
+  // }
+
+  // getAllApproved
+  
+  
   public async getAll(
     page: number,
     limit: number,
-    search: string
+    search: string,
+    paymentFilter: string,
+    approvalFilter: string,
   ): Promise<ILaunchCollection[]> {
-    //using aggregation to search by collectionName and creatorName at the same time and also to paginate the results and return total count of documents
+    const matchStage: any = {
+      $or: [
+        { collectionName: { $regex: search, $options: "i" } },
+        { creatorName: { $regex: search, $options: "i" } },
+      ],
+    };
+  
+    // Payment filter
+    if (paymentFilter !== 'all') {
+      matchStage.isPaid = paymentFilter === 'paid';
+    }
+  
+    // Approval filter
+    if (approvalFilter !== 'all') {
+      if (approvalFilter === 'approved') {
+        matchStage.isApproved = true;
+      } else if (approvalFilter === 'requested') {
+        matchStage.$and = [
+          { isApproved: false },
+          { isRejected: false },
+          { isLaunched: false }
+        ];
+      }
+    }
+  
     const collections = await LaunchCollection.aggregate([
-      {
-        $match: {
-          $or: [
-            { collectionName: { $regex: search, $options: "i" } },
-            { creatorName: { $regex: search, $options: "i" } },
-          ],
-        },
-      },
+      { $match: matchStage },
+      { $sort: { createdAt: -1 } },  // Sort by createdAt in descending order
       {
         $facet: {
           metadata: [{ $count: "total" }, { $addFields: { page, limit } }],
@@ -198,15 +253,13 @@ export class LaunchCollectionManager implements ILaunchCollectionManager {
         },
       },
     ]);
-
-    if (!collections) {
+  
+    if (!collections || collections.length === 0) {
       throw new Error("Collections not found");
     }
-
+  
     return collections;
   }
-
-  // getAllApproved
   public async getAllApproved(
     page: number,
     limit: number,

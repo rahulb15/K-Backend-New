@@ -482,11 +482,13 @@ export class LaunchCollectionController {
   //get all collections with pagination search and filter
   public async getAll(req: Request, res: Response): Promise<Response> {
     try {
-      const { page, limit, search } = req.body;
+      const { page, limit, search,paymentFilter, approvalFilter } = req.body;
       const collections = await LaunchCollectionManager.getInstance().getAll(
         parseInt(page as string),
         parseInt(limit as string),
-        search as string
+        search as string,
+        paymentFilter as string,
+        approvalFilter as string
       );
       return res.status(ResponseCode.SUCCESS).json({
         status: ResponseStatus.SUCCESS,

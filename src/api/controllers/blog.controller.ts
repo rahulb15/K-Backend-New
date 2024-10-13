@@ -16,13 +16,14 @@ import userManager from "../../services/user.manager";
 import { blogResponseData } from "../../utils/userResponse/blog-response.utils";
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
+const TELEGRAM_GROUP_USERNAME = process.env.TELEGRAM_GROUP_USERNAME;
 
 
 async function sendTelegramMessage(blogTitle: string, blogUrl: string) {
   const telegramUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
   const message = `New blog post: ${blogTitle}\n${blogUrl}`;
 
-  axios.post(telegramUrl, {
+  await axios.post(telegramUrl, {
     chat_id: TELEGRAM_CHAT_ID,
     text: message,
   })
@@ -32,6 +33,40 @@ async function sendTelegramMessage(blogTitle: string, blogUrl: string) {
     .catch((error) => {
       console.error("Error sharing to Telegram:", error);
     });
+
+    await axios.post(telegramUrl, {
+      chat_id: TELEGRAM_GROUP_USERNAME,
+      text: message,
+    })
+      .then(() => {
+        console.log("Blog shared to Telegram successfully");
+      })
+      .catch((error) => {
+        console.error("Error sharing to Telegram:", error);
+      });
+}
+
+async function sendNewBlogsToTelegram(newsData: any[]) {
+  const lastSentBlogKey = "lastSentBlog";
+  const lastSentBlog = await Redis.get(lastSentBlogKey);
+
+  let newBlogs;
+  if (lastSentBlog) {
+    const lastSentDate = new Date(JSON.parse(lastSentBlog).createdAt);
+    newBlogs = newsData.filter(blog => new Date(blog.createdAt) > lastSentDate);
+  } else {
+    newBlogs = newsData;
+  }
+
+  for (const blog of newBlogs) {
+    await sendTelegramMessage(blog.title, blog.url);
+  }
+
+  if (newBlogs.length > 0) {
+    console.log("Updating last sent blog in Redistttttttttttt");
+    // Update the last sent blog in Redis
+    await Redis.set(lastSentBlogKey, JSON.stringify(newBlogs[0]));
+  }
 }
 
 export class CartController {
@@ -314,11 +349,59 @@ export class CartController {
     }
   }
 
+  // public async getAll(req: Request, res: Response) {
+  //   try {
+  //     const source = req.params.source;
+  //     if (source !== "creator" && source !== "kryptomerch") {
+  //       let newsData;
+
+  //       // Try to get data from Redis
+  //       const redisData = await Redis.get("newsData");
+  //       if (!redisData) {
+  //         // If Redis doesn't have data, fetch it and store in Redis
+  //         newsData = await fetchNewsData();
+  //         console.log("newsData", newsData);
+  //         await Redis.set("newsData", JSON.stringify(newsData));
+  //         await Redis.expire("newsData", 24 * 60 * 60); // Set expiration to 24 hours
+  //       } else {
+  //         // If Redis has data, parse it
+  //         newsData = JSON.parse(redisData);
+  //         console.log("newsData", newsData);
+  //       }
+  //       const response: IResponseHandler = {
+  //         status: ResponseStatus.SUCCESS,
+  //         message: ResponseMessage.SUCCESS,
+  //         description: ResponseDescription.SUCCESS,
+  //         data: newsData,
+  //       };
+  //       return res.status(ResponseCode.SUCCESS).json(response);
+  //     }
+
+  //     const blogs: IBlog[] = await blogManager.getBySource(source);
+  //     const response: IResponseHandler = {
+  //       status: ResponseStatus.SUCCESS,
+  //       message: ResponseMessage.SUCCESS,
+  //       description: ResponseDescription.SUCCESS,
+  //       data: blogs.map((blog) => blogResponseData(blog)),
+  //     };
+  //     res.status(ResponseCode.SUCCESS).json(response);
+  //   } catch (error) {
+  //     return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json({
+  //       status: ResponseStatus.INTERNAL_SERVER_ERROR,
+  //       message: ResponseMessage.FAILED,
+  //       description: ResponseDescription.INTERNAL_SERVER_ERROR,
+  //       data: null,
+  //     });
+  //   }
+  // }
+
+  //getBySlug
+  
   public async getAll(req: Request, res: Response) {
     try {
       const source = req.params.source;
       if (source !== "creator" && source !== "kryptomerch") {
-        let newsData;
+        let newsData : any;
 
         // Try to get data from Redis
         const redisData = await Redis.get("newsData");
@@ -327,9 +410,13 @@ export class CartController {
           newsData = await fetchNewsData();
           await Redis.set("newsData", JSON.stringify(newsData));
           await Redis.expire("newsData", 24 * 60 * 60); // Set expiration to 24 hours
+          
+          // Send new blogs to Telegram
+          await sendNewBlogsToTelegram(newsData);
         } else {
           // If Redis has data, parse it
           newsData = JSON.parse(redisData);
+          await sendNewBlogsToTelegram(newsData);
         }
         const response: IResponseHandler = {
           status: ResponseStatus.SUCCESS,
@@ -358,7 +445,8 @@ export class CartController {
     }
   }
 
-  //getBySlug
+  
+  
   public async getBySlug(req: Request, res: Response) {
     try {
       const slug = req.params.slug;

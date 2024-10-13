@@ -10,7 +10,9 @@ export interface ILaunchCollectionManager {
   getAll(
     page: number,
     limit: number,
-    search: string
+    search: string,
+    paymentFilter: string,
+    approvalFilter: string,
   ): Promise<ILaunchCollection[]>;
   getByName(collectionName: string): Promise<ILaunchCollection>;
 }
