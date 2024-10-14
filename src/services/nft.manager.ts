@@ -814,7 +814,7 @@ export class NftManager implements INftManager {
         console.log(`Processing NFT: TokenID ${tokenId}`);
 
         // Try to find an existing NFT for this user and token
-        let existingNft = await Nft.findOne({
+        let existingNft:any = await Nft.findOne({
           user: userId,
           tokenId: tokenId,
         });
@@ -824,6 +824,7 @@ export class NftManager implements INftManager {
           console.log(`Updating existing NFT: ${tokenId}`);
           existingNft.isRevealed = true;
           existingNft.tokenImage = imageUrl;
+          existingNft.nftData = metadata;
           if (collectionName) {
             existingNft.collectionName = collectionName;
           }
@@ -844,6 +845,7 @@ export class NftManager implements INftManager {
             owner: user.walletAddress,
             uri: uri,
             collection: collection,
+            nftData: metadata,
           };
 
           if (collectionName) {
