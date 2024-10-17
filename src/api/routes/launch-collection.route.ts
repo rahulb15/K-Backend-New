@@ -3,6 +3,7 @@ import { adminMiddleware } from "../../middlewares/admin.auth.middleware";
 import { authMiddleware } from "../../middlewares/auth.middleware";
 import launchCollectionController from "../controllers/launch-collection.controller";
 import upload from "../../middlewares/multer.middleware";
+import fileUpload from 'express-fileupload';
 
 const router = Router();
 
@@ -42,10 +43,22 @@ router.post(
 );
 
 // upload-image
+// router.post(
+//   "/upload-image-data-ipfs",
+//   authMiddleware,
+//   upload,
+//   launchCollectionController.uploadImageOnIpfs
+// );
 router.post(
   "/upload-image-data-ipfs",
   authMiddleware,
-  upload,
+  fileUpload({
+    useTempFiles: true,
+    tempFileDir: '/tmp/',
+    debug: true,
+    abortOnLimit: true,
+    responseOnLimit: "File size limit has been reached",
+  }),
   launchCollectionController.uploadImageOnIpfs
 );
 
@@ -72,6 +85,12 @@ router.post("/getAll",adminMiddleware, launchCollectionController.getAll);
 
 // getAllLaunched
 router.post("/getAllLaunched", launchCollectionController.getAllLaunched);
+
+router.post("/getLiveCollections", launchCollectionController.getLiveCollections);
+router.post("/getUpcomingCollections", launchCollectionController.getUpcomingCollections);
+router.post("/getEndedCollections", launchCollectionController.getEndedCollections);
+
+
 
 //getAllApproved
 router.post("/getAllApproved",adminMiddleware, launchCollectionController.getAllApproved);
@@ -101,6 +120,9 @@ router.post(
 
 
 router.post("/category-wise", launchCollectionController.getCategoryWiseCollections);
+
+router.post("/prioritized", launchCollectionController.getPrioritizedCollections);
+
 
 
 

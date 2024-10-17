@@ -24,6 +24,8 @@ export enum ResponseMessage {
   EMAIL_NOT_SENT = "Email not sent",
   PASSWORD_NOT_MATCH = "Password not match",
   WALLET_ADDRESS_NOT_MATCH = "Wallet address not match",
+  PASSWORD_RESET = "Password reset successfully",
+  PASSWORD_RESET_REQUESTED = "Password reset requested",
 }
 
 export enum ResponseDescription {
@@ -53,6 +55,8 @@ export enum ResponseDescription {
   EMAIL_NOT_SENT = "Email not sent",
   PASSWORD_NOT_MATCH = "Password not match",
   WALLET_ADDRESS_NOT_MATCH = "Wallet address not match",
+  PASSWORD_RESET = "Password reset successfully",
+  PASSWORD_RESET_REQUESTED = "Password reset requested",
 }
 
 export enum ResponseCode {

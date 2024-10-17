@@ -40,6 +40,10 @@ import {
 } from "@aws-sdk/client-s3";
 import fs from "fs";
 import path from "path";
+import { passwordResetEmail } from "../../mail/passwordResetEmail";
+import passwordResetService from "../../services/passwordReset.service";
+import sharp from 'sharp';
+import { v4 as uuidv4 } from 'uuid';
 
 // Configure AWS SDK v3 for Filebase
 const s3Client = new S3Client({
@@ -1060,79 +1064,215 @@ export class UserController {
     }
   }
 
+  // private uploadToFilebase = async (
+  //   file: Express.Multer.File,
+  //   folder: string
+  // ) => {
+  //   const fileStream = Readable.from(file.buffer);
+  //   const key = `${folder}/${Date.now()}-${path.basename(file.originalname)}`;
+  //   const params = {
+  //     Bucket: bucketName,
+  //     Key: key,
+  //     Body: fileStream,
+  //     ContentType: file.mimetype,
+  //   };
+
+  //   const command = new PutObjectCommand(params);
+  //   await s3Client.send(command);
+
+  //   // Retrieve the CID using Filebase's API
+  //   const cid = await this.getFileCID(key);
+
+  //   return {
+  //     cid: cid,
+  //     filebaseUrl: `https://${bucketName}.s3.filebase.com/${key}`,
+  //     ipfsUrl: `https://ipfs.filebase.io/ipfs/${cid}`,
+  //   };
+  // };
+
+  private async compressImage(file: any): Promise<string> {
+    const compressedFilePath = path.join('/tmp', `${uuidv4()}.jpg`);
+    
+    // Determine the image type
+    const metadata = await sharp(file.tempFilePath).metadata();
+    const isJPEG = metadata.format === 'jpeg';
+  
+    let sharpInstance = sharp(file.tempFilePath)
+      .resize({ width: 2560, height: 1440, fit: 'inside', withoutEnlargement: true });
+  
+    if (isJPEG) {
+      sharpInstance = sharpInstance.jpeg({ quality: 90, mozjpeg: true });
+    } else {
+      // For non-JPEG images, convert to high-quality WebP
+      sharpInstance = sharpInstance.webp({ quality: 90 });
+    }
+  
+    await sharpInstance.toFile(compressedFilePath);
+  
+    return compressedFilePath;
+  }
+
   private uploadToFilebase = async (
-    file: Express.Multer.File,
+    file: any,
     folder: string
-  ) => {
-    const fileStream = Readable.from(file.buffer);
-    const key = `${folder}/${Date.now()}-${path.basename(file.originalname)}`;
-    const params = {
-      Bucket: bucketName,
-      Key: key,
-      Body: fileStream,
-      ContentType: file.mimetype,
-    };
-
-    const command = new PutObjectCommand(params);
-    await s3Client.send(command);
-
-    // Retrieve the CID using Filebase's API
-    const cid = await this.getFileCID(key);
-
-    return {
-      cid: cid,
-      filebaseUrl: `https://${bucketName}.s3.filebase.com/${key}`,
-      ipfsUrl: `https://ipfs.filebase.io/ipfs/${cid}`,
-    };
+  ): Promise<{ cid: string; filebaseUrl: string; ipfsUrl: string }> => {
+    try {
+      if (!file || !file.tempFilePath) {
+        throw new Error("Invalid file object");
+      }
+  
+      const compressedFilePath = await this.compressImage(file);
+      const originalName = `${path.parse(file.name).name}.jpg`;
+      const mimeType = 'image/jpeg';
+      const key = `${folder}/${Date.now()}-${originalName}`;
+  
+      const fileContent = await fs.promises.readFile(compressedFilePath);
+  
+      const params = {
+        Bucket: bucketName,
+        Key: key,
+        Body: fileContent,
+        ContentType: mimeType,
+      };
+  
+      const command = new PutObjectCommand(params);
+      
+      await s3Client.send(command);
+  
+      const headCommand = new HeadObjectCommand({ Bucket: bucketName, Key: key });
+      const headResult = await s3Client.send(headCommand);
+  
+      if (headResult.ContentLength !== fileContent.length) {
+        throw new Error(`Upload verification failed. Expected ${fileContent.length} bytes, but uploaded ${headResult.ContentLength} bytes.`);
+      }
+  
+      const cid = await this.getFileCID(key);
+  
+      // Clean up temporary files
+      await fs.promises.unlink(file.tempFilePath);
+      await fs.promises.unlink(compressedFilePath);
+  
+      return {
+        cid: cid,
+        filebaseUrl: `https://${bucketName}.s3.filebase.com/${key}`,
+        ipfsUrl: `https://ipfs.filebase.io/ipfs/${cid}`,
+      };
+    } catch (error) {
+      console.error("Error in uploadToFilebase:", error);
+      throw error;
+    }
   };
 
-  public uploadToFilebaseIPFS = async (
-    req: any,
-    res: Response
-  ): Promise<any> => {
+  // public uploadToFilebaseIPFS = async (
+  //   req: any,
+  //   res: Response
+  // ): Promise<any> => {
+  //   try {
+  //     if (!req.files) {
+  //       const response: IResponseHandler = {
+  //         status: ResponseStatus.FAILED,
+  //         message: ResponseMessage.FAILED,
+  //         description: ResponseDescription.FAILED,
+  //         data: null,
+  //       };
+
+  //       return res.status(ResponseCode.BAD_REQUEST).json(response);
+  //     }
+
+  //     const userId = req.user._id;
+  //     const user: IUser = await userManager.getById(userId);
+  //     if (!user) {
+  //       const response: IResponseHandler = {
+  //         status: ResponseStatus.FAILED,
+  //         message: ResponseMessage.USER_NOT_FOUND,
+  //         description: ResponseDescription.USER_NOT_FOUND,
+  //         data: null,
+  //       };
+
+  //       return res.status(ResponseCode.NOT_FOUND).json(response);
+  //     }
+
+  //     const profileImage = req.files.profileImage?.[0];
+  //     const coverImage = req.files.coverImage?.[0];
+
+  //     let profileResult, coverResult;
+
+  //     if (profileImage) {
+  //       profileResult = await this.uploadToFilebase(profileImage, "profile");
+  //       user.profileImage = profileResult.ipfsUrl;
+  //     }
+
+  //     if (coverImage) {
+  //       coverResult = await this.uploadToFilebase(coverImage, "cover");
+  //       user.coverImage = coverResult.ipfsUrl;
+  //     }
+
+  //     const updated = await userManager.updateById(userId, user);
+
+  //     const response: IResponseHandler = {
+  //       status: ResponseStatus.SUCCESS,
+  //       message: ResponseMessage.SUCCESS,
+  //       description: ResponseDescription.SUCCESS,
+  //       data: {
+  //         user: updated,
+  //         profileImage: profileResult,
+  //         coverImage: coverResult,
+  //       },
+  //     };
+
+  //     res.status(ResponseCode.SUCCESS).json(response);
+  //   } catch (error) {
+  //     console.error("Error in uploadToFilebaseIPFS function:", error);
+  //     return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json({
+  //       status: ResponseStatus.INTERNAL_SERVER_ERROR,
+  //       message: ResponseMessage.FAILED,
+  //       description: ResponseDescription.INTERNAL_SERVER_ERROR,
+  //       data: null,
+  //     });
+  //   }
+  // };
+
+
+  public uploadToFilebaseIPFS = async (req: any, res: Response): Promise<any> => {
     try {
-      if (!req.files) {
-        const response: IResponseHandler = {
+      if (!req.files || Object.keys(req.files).length === 0) {
+        return res.status(ResponseCode.BAD_REQUEST).json({
           status: ResponseStatus.FAILED,
           message: ResponseMessage.FAILED,
-          description: ResponseDescription.FAILED,
+          description: "No files were uploaded.",
           data: null,
-        };
-
-        return res.status(ResponseCode.BAD_REQUEST).json(response);
+        });
       }
 
       const userId = req.user._id;
       const user: IUser = await userManager.getById(userId);
       if (!user) {
-        const response: IResponseHandler = {
+        return res.status(ResponseCode.NOT_FOUND).json({
           status: ResponseStatus.FAILED,
           message: ResponseMessage.USER_NOT_FOUND,
           description: ResponseDescription.USER_NOT_FOUND,
           data: null,
-        };
-
-        return res.status(ResponseCode.NOT_FOUND).json(response);
+        });
       }
 
-      const profileImage = req.files.profileImage?.[0];
-      const coverImage = req.files.coverImage?.[0];
+      const profileImage = req.files.profileImage;
+      const coverImage = req.files.coverImage;
 
       let profileResult, coverResult;
 
       if (profileImage) {
-        profileResult = await this.uploadToFilebase(profileImage, "profile");
+        profileResult = await this.uploadToFilebase(profileImage, "profileImage");
         user.profileImage = profileResult.ipfsUrl;
       }
 
       if (coverImage) {
-        coverResult = await this.uploadToFilebase(coverImage, "cover");
+        coverResult = await this.uploadToFilebase(coverImage, "coverImage");
         user.coverImage = coverResult.ipfsUrl;
       }
 
       const updated = await userManager.updateById(userId, user);
 
-      const response: IResponseHandler = {
+      return res.status(ResponseCode.SUCCESS).json({
         status: ResponseStatus.SUCCESS,
         message: ResponseMessage.SUCCESS,
         description: ResponseDescription.SUCCESS,
@@ -1141,9 +1281,7 @@ export class UserController {
           profileImage: profileResult,
           coverImage: coverResult,
         },
-      };
-
-      res.status(ResponseCode.SUCCESS).json(response);
+      });
     } catch (error) {
       console.error("Error in uploadToFilebaseIPFS function:", error);
       return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json({
@@ -1343,6 +1481,136 @@ export class UserController {
       );
     } catch (error) {
       res.status(ResponseCode.INTERNAL_SERVER_ERROR).json(error);
+    }
+  }
+
+
+  public async requestPasswordReset(req: Request, res: Response) {
+    try {
+      const { email } = req.body;
+
+      // Validate email
+      if (!emailValidator(email)) {
+        const response: IResponseHandler = {
+          status: ResponseStatus.FAILED,
+          message: ResponseMessage.EMAIL_INVALID,
+          description: ResponseDescription.EMAIL_INVALID,
+          data: null,
+        };
+        return res.status(ResponseCode.BAD_REQUEST).json(response);
+      }
+
+      // Find user by email
+      const user: IUser | null = await userManager.getByEmail(email);
+      if (!user) {
+        // For security reasons, we'll still return a success response
+        // even if the email doesn't exist in our database
+        const response: IResponseHandler = {
+          status: ResponseStatus.SUCCESS,
+          message: ResponseMessage.PASSWORD_RESET_REQUESTED,
+          description: ResponseDescription.PASSWORD_RESET_REQUESTED,
+          data: null,
+        };
+        return res.status(ResponseCode.SUCCESS).json(response);
+      }
+
+      // Generate password reset token
+      const resetToken = await passwordResetService.createToken(user._id as string);
+
+      // Create password reset URL
+      const resetUrl = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
+
+      // Send password reset email
+      // await sendPasswordResetEmail(user.email, resetUrl);
+      await passwordResetEmail(user, resetUrl);
+
+      const response: IResponseHandler = {
+        status: ResponseStatus.SUCCESS,
+        message: ResponseMessage.PASSWORD_RESET_REQUESTED,
+        description: ResponseDescription.PASSWORD_RESET_REQUESTED,
+        data: null,
+      };
+      res.status(ResponseCode.SUCCESS).json(response);
+    } catch (error) {
+      console.error("Error in requestPasswordReset:", error);
+      res.status(ResponseCode.INTERNAL_SERVER_ERROR).json({
+        status: ResponseStatus.FAILED,
+        message: ResponseMessage.INTERNAL_SERVER_ERROR,
+        description: ResponseDescription.INTERNAL_SERVER_ERROR,
+        data: null,
+      });
+    }
+  }
+
+  
+
+  public async adminPasswordForget(req: Request, res: Response) {
+    try {
+      const { email } = req.body;
+
+      // Validate email
+      const isEmailValid = emailValidator(email);
+      if (!isEmailValid) {
+        const response: IResponseHandler = {
+          status: ResponseStatus.FAILED,
+          message: ResponseMessage.EMAIL_INVALID,
+          description: ResponseDescription.EMAIL_INVALID,
+          data: null,
+        };
+        return res.status(ResponseCode.BAD_REQUEST).json(response);
+      }
+
+      // Find user by email
+      const user: IUser | null = await userManager.getByEmail(email);
+      if (!user) {
+        const response: IResponseHandler = {
+          status: ResponseStatus.FAILED,
+          message: ResponseMessage.USER_NOT_FOUND,
+          description: ResponseDescription.USER_NOT_FOUND,
+          data: null,
+        };
+        return res.status(ResponseCode.NOT_FOUND).json(response);
+      }
+
+      // Check if user has admin access
+      if (!user.isAdminAccess) {
+        const response: IResponseHandler = {
+          status: ResponseStatus.FAILED,
+          message: ResponseMessage.UNAUTHORIZED,
+          description: ResponseDescription.UNAUTHORIZED,
+          data: null,
+        };
+        return res.status(ResponseCode.UNAUTHORIZED).json(response);
+      }
+
+      // Generate new admin password
+      const newAdminPassword = crypto.randomBytes(8).toString('hex');
+
+      // Hash the new admin password
+      const hashedPassword = await hashPassword(newAdminPassword);
+
+      // Update user with new admin password
+      user.adminPassword = hashedPassword;
+      await userManager.updateById(user._id as string, user);
+
+      // Send email with new admin password
+      // await sendAdminPasswordResetEmail(user, newAdminPassword);
+
+      const response: IResponseHandler = {
+        status: ResponseStatus.SUCCESS,
+        message: ResponseMessage.PASSWORD_RESET,
+        description: ResponseDescription.PASSWORD_RESET,
+        data: null,
+      };
+      res.status(ResponseCode.SUCCESS).json(response);
+    } catch (error) {
+      console.error("Error in adminPasswordForget:", error);
+      res.status(ResponseCode.INTERNAL_SERVER_ERROR).json({
+        status: ResponseStatus.FAILED,
+        message: ResponseMessage.INTERNAL_SERVER_ERROR,
+        description: ResponseDescription.INTERNAL_SERVER_ERROR,
+        data: null,
+      });
     }
   }
 }

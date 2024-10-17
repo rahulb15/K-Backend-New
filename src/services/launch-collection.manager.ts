@@ -327,6 +327,320 @@ export class LaunchCollectionManager implements ILaunchCollectionManager {
     return collections;
   }
 
+
+  public async getLiveCollections(
+    page: number,
+    limit: number,
+    search: string
+  ): Promise<ILaunchCollection[]> {
+    const now = new Date();
+    const collections = await LaunchCollection.aggregate([
+      {
+        $match: {
+          $and: [
+            {
+              $or: [
+                { collectionName: { $regex: search, $options: "i" } },
+                { creatorName: { $regex: search, $options: "i" } },
+              ],
+            },
+            { isLaunched: true },
+            {
+              $or: [
+                {
+                  $and: [
+                    { enablePresale: true },
+                    { presaleStartDateAndTime: { $lte: now } },
+                    { presaleEndDateAndTime: { $gt: now } },
+                  ],
+                },
+                {
+                  $and: [
+                    { enableWhitelist: true },
+                    { whitelistStartDateAndTime: { $lte: now } },
+                    { mintEndDate: { $gt: now } },
+                  ],
+                },
+                {
+                  $and: [
+                    { mintStartDate: { $lte: now } },
+                    { mintEndDate: { $gt: now } },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          collectionName: 1,
+          totalSupply: 1,
+          collectionCoverImage: 1,
+          collectionBannerImage: 1,
+          mintPrice: 1,
+          reservePrice: 1,
+          mintStartDate: 1,
+          mintEndDate: 1,
+          enablePresale: 1,
+          presaleStartDateAndTime: 1,
+          presaleEndDateAndTime: 1,
+          enableWhitelist: 1,
+          whitelistStartDateAndTime: 1,
+          whitelistPrice: 1,
+        },
+      },
+      {
+        $facet: {
+          metadata: [{ $count: "total" }, { $addFields: { page, limit } }],
+          data: [{ $skip: (page - 1) * limit }, { $limit: limit }],
+        },
+      },
+    ]);
+  
+    return collections;
+  }
+  
+  public async getUpcomingCollections(
+    page: number,
+    limit: number,
+    search: string
+  ): Promise<ILaunchCollection[]> {
+    const now = new Date();
+    const collections = await LaunchCollection.aggregate([
+      {
+        $match: {
+          $and: [
+            {
+              $or: [
+                { collectionName: { $regex: search, $options: "i" } },
+                { creatorName: { $regex: search, $options: "i" } },
+              ],
+            },
+            { isLaunched: true },
+            {
+              $or: [
+                {
+                  $and: [
+                    { enablePresale: true },
+                    { presaleStartDateAndTime: { $gt: now } },
+                  ],
+                },
+                {
+                  $and: [
+                    { enableWhitelist: true },
+                    { whitelistStartDateAndTime: { $gt: now } },
+                  ],
+                },
+                { mintStartDate: { $gt: now } },
+              ],
+            },
+          ],
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          collectionName: 1,
+          totalSupply: 1,
+          collectionCoverImage: 1,
+          collectionBannerImage: 1,
+          mintPrice: 1,
+          reservePrice: 1,
+          mintStartDate: 1,
+          mintEndDate: 1,
+          enablePresale: 1,
+          presaleStartDateAndTime: 1,
+          presaleEndDateAndTime: 1,
+          enableWhitelist: 1,
+          whitelistStartDateAndTime: 1,
+          whitelistPrice: 1,
+        },
+      },
+      {
+        $facet: {
+          metadata: [{ $count: "total" }, { $addFields: { page, limit } }],
+          data: [{ $skip: (page - 1) * limit }, { $limit: limit }],
+        },
+      },
+    ]);
+  
+    return collections;
+  }
+  
+  public async getEndedCollections(
+    page: number,
+    limit: number,
+    search: string
+  ): Promise<ILaunchCollection[]> {
+    const now = new Date();
+    const collections = await LaunchCollection.aggregate([
+      {
+        $match: {
+          $or: [
+            { collectionName: { $regex: search, $options: "i" } },
+            { creatorName: { $regex: search, $options: "i" } },
+          ],
+          isLaunched: true,
+          mintEndDate: { $lte: now },
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          collectionName: 1,
+          totalSupply: 1,
+          collectionCoverImage: 1,
+          collectionBannerImage: 1,
+          mintPrice: 1,
+          reservePrice: 1,
+          mintStartDate: 1,
+          mintEndDate: 1,
+        },
+      },
+      {
+        $facet: {
+          metadata: [{ $count: "total" }, { $addFields: { page, limit } }],
+          data: [{ $skip: (page - 1) * limit }, { $limit: limit }],
+        },
+      },
+    ]);
+  
+    return collections;
+  }
+
+  // public async getLiveCollections(
+  //   page: number,
+  //   limit: number,
+  //   search: string
+  // ): Promise<ILaunchCollection[]> {
+  //   const now = new Date();
+  //   const collections = await LaunchCollection.aggregate([
+  //     {
+  //       $match: {
+  //         $and: [
+  //           {
+  //             $or: [
+  //               { collectionName: { $regex: search, $options: "i" } },
+  //               { creatorName: { $regex: search, $options: "i" } },
+  //             ],
+  //           },
+  //           { isLaunched: true },
+  //           {
+  //             $or: [
+  //               {
+  //                 $and: [
+  //                   { enablePresale: true },
+  //                   { presaleStartDateAndTime: { $lte: now } },
+  //                   { presaleEndDateAndTime: { $gt: now } },
+  //                 ],
+  //               },
+  //               {
+  //                 $and: [
+  //                   { enableWhitelist: true },
+  //                   { whitelistStartDateAndTime: { $lte: now } },
+  //                   { mintEndDate: { $gt: now } },
+  //                 ],
+  //               },
+  //               {
+  //                 $and: [
+  //                   { mintStartDate: { $lte: now } },
+  //                   { mintEndDate: { $gt: now } },
+  //                 ],
+  //               },
+  //             ],
+  //           },
+  //         ],
+  //       },
+  //     },
+  //     {
+  //       $facet: {
+  //         metadata: [{ $count: "total" }, { $addFields: { page, limit } }],
+  //         data: [{ $skip: (page - 1) * limit }, { $limit: limit }],
+  //       },
+  //     },
+  //   ]);
+  
+  //   return collections;
+  // }
+
+  // public async getUpcomingCollections(
+  //   page: number,
+  //   limit: number,
+  //   search: string
+  // ): Promise<ILaunchCollection[]> {
+  //   const now = new Date();
+  //   const collections = await LaunchCollection.aggregate([
+  //     {
+  //       $match: {
+  //         $and: [
+  //           {
+  //             $or: [
+  //               { collectionName: { $regex: search, $options: "i" } },
+  //               { creatorName: { $regex: search, $options: "i" } },
+  //             ],
+  //           },
+  //           { isLaunched: true },
+  //           {
+  //             $or: [
+  //               {
+  //                 $and: [
+  //                   { enablePresale: true },
+  //                   { presaleStartDateAndTime: { $gt: now } },
+  //                 ],
+  //               },
+  //               {
+  //                 $and: [
+  //                   { enableWhitelist: true },
+  //                   { whitelistStartDateAndTime: { $gt: now } },
+  //                 ],
+  //               },
+  //               { mintStartDate: { $gt: now } },
+  //             ],
+  //           },
+  //         ],
+  //       },
+  //     },
+  //     {
+  //       $facet: {
+  //         metadata: [{ $count: "total" }, { $addFields: { page, limit } }],
+  //         data: [{ $skip: (page - 1) * limit }, { $limit: limit }],
+  //       },
+  //     },
+  //   ]);
+  
+  //   return collections;
+  // }
+
+  // public async getEndedCollections(
+  //   page: number,
+  //   limit: number,
+  //   search: string
+  // ): Promise<ILaunchCollection[]> {
+  //   const now = new Date();
+  //   const collections = await LaunchCollection.aggregate([
+  //     {
+  //       $match: {
+  //         $or: [
+  //           { collectionName: { $regex: search, $options: "i" } },
+  //           { creatorName: { $regex: search, $options: "i" } },
+  //         ],
+  //         isLaunched: true,
+  //         mintEndDate: { $lte: now },
+  //       },
+  //     },
+  //     {
+  //       $facet: {
+  //         metadata: [{ $count: "total" }, { $addFields: { page, limit } }],
+  //         data: [{ $skip: (page - 1) * limit }, { $limit: limit }],
+  //       },
+  //     },
+  //   ]);
+
+  //   return collections;
+  // }
+
   public async getByName(collectionName: string): Promise<any> {
     const collection = await LaunchCollection.findOne({ collectionName });
     return collection;
@@ -508,4 +822,21 @@ export class LaunchCollectionManager implements ILaunchCollectionManager {
 
     return categoryWiseCollections;
   }
+
+  public async getPrioritizedCollections(limit: number = 5): Promise<ILaunchCollection[]> {
+    const collections = await LaunchCollection.find({
+      isApproved: true,
+      isLaunched: true
+    })
+    .sort({ priority: -1, createdAt: 1 })
+    .limit(limit)
+    .select('collectionName projectDescription collectionBannerImage mintStartDate mintEndDate mintPrice')
+    .lean();
+
+    return collections;
+  }
+
+
+
+
 }

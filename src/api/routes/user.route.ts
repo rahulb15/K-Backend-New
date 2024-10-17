@@ -3,6 +3,7 @@ import { authMiddleware } from "../../middlewares/auth.middleware";
 import { adminMiddleware } from "../../middlewares/admin.auth.middleware";
 import upload from "../../middlewares/multer.middleware";
 import userController from "../controllers/user.controller";
+import fileUpload from 'express-fileupload';
 
 const router = Router();
 
@@ -254,10 +255,23 @@ router.post(
   userController.uploadImage
 );
 
+// router.post(
+//   "/upload-image-user",
+//   authMiddleware,
+//   upload,
+//   userController.uploadToFilebaseIPFS
+// );
+
 router.post(
   "/upload-image-user",
   authMiddleware,
-  upload,
+  fileUpload({
+    useTempFiles: true,
+    tempFileDir: '/tmp/',
+    debug: true,
+    abortOnLimit: true,
+    responseOnLimit: "File size limit has been reached",
+  }),
   userController.uploadToFilebaseIPFS
 );
 
@@ -275,5 +289,6 @@ router.delete('/files/:ipfsHash', userController.deleteFile);
 router.post("/check-auth", userController.checkToken);
 //verify-email
 router.get("/verify/:token", userController.verifyEmail);
+router.post("/request-password-reset", userController.requestPasswordReset);
 
 export default router;

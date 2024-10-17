@@ -22,6 +22,8 @@ import userManager from "../../services/user.manager";
 import cloudinary from "../../config/cloudinary.config";
 // import { newUserEmail } from "../../mail/newUserEmail";
 import { approveLaunchpadEmail } from "../../mail/approveLaunchpadEmail.mail";
+import sharp from 'sharp';
+import { v4 as uuidv4 } from 'uuid';
 import {
   S3Client,
   PutObjectCommand,
@@ -31,6 +33,9 @@ import { Readable } from "stream";
 import path from "path";
 import fetch from "node-fetch";
 const IPFS_GATEWAY = "https://ipfs.io/ipfs/";
+// import fs from 'fs';
+import fs from 'fs/promises';
+
 
 async function fetchIPFSData(uri: string): Promise<any> {
   try {
@@ -97,18 +102,6 @@ async function processIPFSList(uriList: string): Promise<any[]> {
   }
 }
 
-// // Configure AWS SDK v3 for Filebase
-// const s3Client = new S3Client({
-//   endpoint: "https://s3.filebase.com",
-//   region: "us-east-1",
-//   credentials: {
-//     accessKeyId: process.env.FILEBASE_ACCESS_KEY_ID as string,
-//     secretAccessKey: process.env.FILEBASE_SECRET_ACCESS_KEY as string,
-//   },
-//   forcePathStyle: true,
-// });
-
-// const bucketName = process.env.FILEBASE_BUCKET_NAME as string;
 
 const s3Client = new S3Client({
   endpoint: "https://s3.filebase.com",
@@ -176,100 +169,7 @@ export class LaunchCollectionController {
     }
   }
 
-  // public async update(req: any, res: Response): Promise<Response> {
-  //   try {
-  //     const collectionName = req.params.collectionName;
-  //     console.log(req.body, "body");
-  //     return res.status(200);
-  //     console.log(collectionName);
-  //     const collection: IUpdateLaunchCollection = req.body;
-  //     // collection.user = req.user._id;
-  //     console.log(collection);
-  //     console.log(req.user._id);
 
-  //     const updatedCollection =
-  //       await LaunchCollectionManager.getInstance().update(
-  //         collectionName,
-  //         collection
-  //       );
-  //     return res.status(ResponseCode.SUCCESS).json({
-  //       status: ResponseStatus.SUCCESS,
-  //       message: ResponseMessage.SUCCESS,
-  //       description: ResponseDescription.SUCCESS,
-  //       data: launchCollectionResponseData(updatedCollection),
-  //     });
-  //   } catch (error) {
-  //     return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json({
-  //       status: ResponseStatus.INTERNAL_SERVER_ERROR,
-  //       message: ResponseMessage.FAILED,
-  //       description: ResponseDescription.INTERNAL_SERVER_ERROR,
-  //       data: null,
-  //     });
-  //   }
-  // }
-
-  // public async update(req: any, res: Response): Promise<Response> {
-  //   try {
-  //     const collectionName = req.params.collectionName;
-  //     console.log(req.body, "body");
-
-  //     if (req.body.uriList) {
-  //       // Handle IPFS URI list
-  //       const ipfsUri = req.body.uriList;
-  //       console.log(`Processing IPFS URI: ${ipfsUri}`);
-
-  //       try {
-  //         // Fetch and process IPFS data
-  //         const ipfsData = await fetchIPFSData(ipfsUri);
-  //         console.log("Extracted IPFS data:", ipfsData);
-
-  //         // TODO: Process the IPFS data as needed
-  //         // For now, we're just logging it
-
-  //         return res.status(ResponseCode.SUCCESS).json({
-  //           status: ResponseStatus.SUCCESS,
-  //           message: ResponseMessage.SUCCESS,
-  //           description: "IPFS data processed successfully",
-  //           data: ipfsData,
-  //         });
-  //       } catch (error) {
-  //         console.error("Error processing IPFS data:", error);
-  //         return res.status(ResponseCode.BAD_REQUEST).json({
-  //           status: ResponseStatus.FAILED,
-  //           message: ResponseMessage.FAILED,
-  //           description: "Failed to process IPFS data",
-  //           data: null,
-  //         });
-  //       }
-  //     } else {
-  //       // Traditional update
-  //       console.log(collectionName);
-  //       const collection: IUpdateLaunchCollection = req.body;
-  //       console.log(collection);
-  //       console.log(req.user._id);
-
-  //       const updatedCollection = await LaunchCollectionManager.getInstance().update(
-  //         collectionName,
-  //         collection
-  //       );
-
-  //       return res.status(ResponseCode.SUCCESS).json({
-  //         status: ResponseStatus.SUCCESS,
-  //         message: ResponseMessage.SUCCESS,
-  //         description: ResponseDescription.SUCCESS,
-  //         data: launchCollectionResponseData(updatedCollection),
-  //       });
-  //     }
-  //   } catch (error) {
-  //     console.error("Error in update function:", error);
-  //     return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json({
-  //       status: ResponseStatus.INTERNAL_SERVER_ERROR,
-  //       message: ResponseMessage.FAILED,
-  //       description: ResponseDescription.INTERNAL_SERVER_ERROR,
-  //       data: null,
-  //     });
-  //   }
-  // }
 
   public async update(req: any, res: Response): Promise<Response> {
     try {
@@ -563,6 +463,79 @@ export class LaunchCollectionController {
     }
   }
 
+  public async getLiveCollections(req: Request, res: Response): Promise<Response> {
+    try {
+      const { page, limit, search } = req.body;
+      const collections = await LaunchCollectionManager.getInstance().getLiveCollections(
+        parseInt(page as string),
+        parseInt(limit as string),
+        search as string
+      );
+      return res.status(ResponseCode.SUCCESS).json({
+        status: ResponseStatus.SUCCESS,
+        message: ResponseMessage.SUCCESS,
+        description: ResponseDescription.SUCCESS,
+        data: collections,
+      });
+    } catch (error) {
+      return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json({
+        status: ResponseStatus.INTERNAL_SERVER_ERROR,
+        message: ResponseMessage.FAILED,
+        description: ResponseDescription.INTERNAL_SERVER_ERROR,
+        data: null,
+      });
+    }
+  }
+
+  public async getUpcomingCollections(req: Request, res: Response): Promise<Response> {
+    try {
+      const { page, limit, search } = req.body;
+      const collections = await LaunchCollectionManager.getInstance().getUpcomingCollections(
+        parseInt(page as string),
+        parseInt(limit as string),
+        search as string
+      );
+      return res.status(ResponseCode.SUCCESS).json({
+        status: ResponseStatus.SUCCESS,
+        message: ResponseMessage.SUCCESS,
+        description: ResponseDescription.SUCCESS,
+        data: collections,
+      });
+    } catch (error) {
+      return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json({
+        status: ResponseStatus.INTERNAL_SERVER_ERROR,
+        message: ResponseMessage.FAILED,
+        description: ResponseDescription.INTERNAL_SERVER_ERROR,
+        data: null,
+      });
+    }
+  }
+
+  public async getEndedCollections(req: Request, res: Response): Promise<Response> {
+    try {
+      const { page, limit, search } = req.body;
+      const collections = await LaunchCollectionManager.getInstance().getEndedCollections(
+        parseInt(page as string),
+        parseInt(limit as string),
+        search as string
+      );
+      return res.status(ResponseCode.SUCCESS).json({
+        status: ResponseStatus.SUCCESS,
+        message: ResponseMessage.SUCCESS,
+        description: ResponseDescription.SUCCESS,
+        data: collections,
+      });
+    } catch (error) {
+      return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json({
+        status: ResponseStatus.INTERNAL_SERVER_ERROR,
+        message: ResponseMessage.FAILED,
+        description: ResponseDescription.INTERNAL_SERVER_ERROR,
+        data: null,
+      });
+    }
+  }
+
+
   public async approve(req: any, res: Response): Promise<Response> {
     try {
       const id = req.params.id;
@@ -810,82 +783,46 @@ export class LaunchCollectionController {
     }
   }
 
-  private uploadToFilebase = async (
-    file: Express.Multer.File,
-    folder: string
-  ) => {
-    const fileStream = Readable.from(file.buffer);
-    const key = `${folder}/${Date.now()}-${path.basename(file.originalname)}`;
-    const params = {
-      Bucket: bucketName,
-      Key: key,
-      Body: fileStream,
-      ContentType: file.mimetype,
-    };
-
-    const command = new PutObjectCommand(params);
-    await s3Client.send(command);
-
-    // Retrieve the CID using Filebase's API
-    const cid = await this.getFileCID(key);
-
-    return {
-      cid: cid,
-      filebaseUrl: `https://${bucketName}.s3.filebase.com/${key}`,
-      ipfsUrl: `https://ipfs.filebase.io/ipfs/${cid}`,
-    };
-  };
-
   public uploadImageOnIpfs = async (req: any, res: Response): Promise<any> => {
     try {
-      console.log("Hello", req.files);
-      if (!req.files) {
-        const response: IResponseHandler = {
+      if (!req.files || Object.keys(req.files).length === 0) {
+        return res.status(ResponseCode.BAD_REQUEST).json({
           status: ResponseStatus.FAILED,
           message: ResponseMessage.FAILED,
-          description: ResponseDescription.FAILED,
+          description: "No files were uploaded.",
           data: null,
-        };
-
-        return res.status(ResponseCode.BAD_REQUEST).json(response);
+        });
       }
-
+  
       const userId = req.user._id;
       const user: IUser = await userManager.getById(userId);
       if (!user) {
-        const response: IResponseHandler = {
+        return res.status(ResponseCode.NOT_FOUND).json({
           status: ResponseStatus.FAILED,
           message: ResponseMessage.USER_NOT_FOUND,
           description: ResponseDescription.USER_NOT_FOUND,
           data: null,
-        };
-
-        return res.status(ResponseCode.NOT_FOUND).json(response);
+        });
       }
-
+  
       const collection = {
         collectionBannerImage: "",
         collectionCoverImage: "",
       };
-
-      const collectionBannerImage = req.files.profileImage?.[0];
-      const collectionCoverImage = req.files.coverImage?.[0];
-
+  
+      const collectionBannerImage = req.files.profileImage;
+      const collectionCoverImage = req.files.coverImage;
+  
       if (collectionBannerImage) {
-        const bannerResult = await this.uploadToFilebase(
-          collectionBannerImage,
-          "collectionBannerImage"
-        );
+        const bannerResult = await this.uploadToFilebase(collectionBannerImage, "collectionBannerImage");
         collection.collectionBannerImage = bannerResult.ipfsUrl;
       }
+  
       if (collectionCoverImage) {
-        const coverResult = await this.uploadToFilebase(
-          collectionCoverImage,
-          "collectionCoverImage"
-        );
+        const coverResult = await this.uploadToFilebase(collectionCoverImage, "collectionCoverImage");
         collection.collectionCoverImage = coverResult.ipfsUrl;
       }
-
+  
       return res.status(ResponseCode.SUCCESS).json({
         status: ResponseStatus.SUCCESS,
         message: ResponseMessage.SUCCESS,
@@ -893,7 +830,7 @@ export class LaunchCollectionController {
         data: collection,
       });
     } catch (error) {
-      console.error("Error in uploadImageOnCloud function:", error);
+      console.error("Error in uploadImageOnIpfs function:", error);
       return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json({
         status: ResponseStatus.INTERNAL_SERVER_ERROR,
         message: ResponseMessage.FAILED,
@@ -903,7 +840,172 @@ export class LaunchCollectionController {
     }
   };
 
-  // only upload image to clounary not update collection and find collection by id just take userId based on this upload on cloudnary and give url
+  // private async compressImage(file: any): Promise<string> {
+  //   const compressedFilePath = path.join('/tmp', `${uuidv4()}.jpg`);
+    
+  //   // Determine the image type
+  //   const metadata = await sharp(file.tempFilePath).metadata();
+  //   const isJPEG = metadata.format === 'jpeg';
+  
+  //   let sharpInstance = sharp(file.tempFilePath)
+  //     .resize({ width: 2560, height: 1440, fit: 'inside', withoutEnlargement: true });
+  
+  //   if (isJPEG) {
+  //     sharpInstance = sharpInstance.jpeg({ quality: 90, mozjpeg: true });
+  //   } else {
+  //     // For non-JPEG images, convert to high-quality WebP
+  //     sharpInstance = sharpInstance.webp({ quality: 90 });
+  //   }
+  
+  //   await sharpInstance.toFile(compressedFilePath);
+  
+  //   return compressedFilePath;
+  // }
+
+
+  private async compressImage(file: any): Promise<string> {
+    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 20MB in bytes
+    
+    // Check file size
+    const stats = await fs.stat(file.tempFilePath);
+    if (stats.size <= MAX_FILE_SIZE) {
+      // If file is 20MB or smaller, return the original file path
+      return file.tempFilePath;
+    }
+  
+    const compressedFilePath = path.join('/tmp', `${uuidv4()}.jpg`);
+    
+    // Determine the image type
+    const metadata = await sharp(file.tempFilePath).metadata();
+    const isJPEG = metadata.format === 'jpeg';
+  
+    let sharpInstance = sharp(file.tempFilePath)
+      .resize({ width: 2560, height: 1440, fit: 'inside', withoutEnlargement: true });
+  
+    if (isJPEG) {
+      sharpInstance = sharpInstance.jpeg({ quality: 90, mozjpeg: true });
+    } else {
+      // For non-JPEG images, convert to high-quality WebP
+      sharpInstance = sharpInstance.webp({ quality: 90 });
+    }
+  
+    await sharpInstance.toFile(compressedFilePath);
+  
+    return compressedFilePath;
+  }
+
+  
+  // private uploadToFilebase = async (
+  //   file: any,
+  //   folder: string
+  // ): Promise<{ cid: string; filebaseUrl: string; ipfsUrl: string }> => {
+  //   try {
+  //     if (!file || !file.tempFilePath) {
+  //       throw new Error("Invalid file object");
+  //     }
+  
+  //     const compressedFilePath = await this.compressImage(file);
+  //     const originalName = `${path.parse(file.name).name}.jpg`;
+  //     const mimeType = 'image/jpeg';
+  //     const key = `${folder}/${Date.now()}-${originalName}`;
+  
+  //     const fileContent = await fs.promises.readFile(compressedFilePath);
+  
+  //     const params = {
+  //       Bucket: bucketName,
+  //       Key: key,
+  //       Body: fileContent,
+  //       ContentType: mimeType,
+  //     };
+  
+  //     const command = new PutObjectCommand(params);
+      
+  //     await s3Client.send(command);
+  
+  //     const headCommand = new HeadObjectCommand({ Bucket: bucketName, Key: key });
+  //     const headResult = await s3Client.send(headCommand);
+  
+  //     if (headResult.ContentLength !== fileContent.length) {
+  //       throw new Error(`Upload verification failed. Expected ${fileContent.length} bytes, but uploaded ${headResult.ContentLength} bytes.`);
+  //     }
+  
+  //     const cid = await this.getFileCID(key);
+  
+  //     // Clean up temporary files
+  //     await fs.promises.unlink(file.tempFilePath);
+  //     await fs.promises.unlink(compressedFilePath);
+  
+  //     return {
+  //       cid: cid,
+  //       filebaseUrl: `https://${bucketName}.s3.filebase.com/${key}`,
+  //       ipfsUrl: `https://ipfs.filebase.io/ipfs/${cid}`,
+  //     };
+  //   } catch (error) {
+  //     console.error("Error in uploadToFilebase:", error);
+  //     throw error;
+  //   }
+  // };
+
+  private uploadToFilebase = async (
+    file: any,
+    folder: string
+  ): Promise<{ cid: string; filebaseUrl: string; ipfsUrl: string }> => {
+    try {
+      if (!file || !file.tempFilePath) {
+        throw new Error("Invalid file object");
+      }
+  
+      const processedFilePath = await this.compressImage(file);
+      const isCompressed = processedFilePath !== file.tempFilePath;
+  
+      const originalName = isCompressed 
+        ? `${path.parse(file.name).name}.jpg`
+        : file.name;
+      const mimeType = isCompressed 
+        ? 'image/jpeg' 
+        : file.mimetype;
+      const key = `${folder}/${Date.now()}-${originalName}`;
+  
+      const fileContent = await fs.readFile(processedFilePath);
+  
+      const params = {
+        Bucket: bucketName,
+        Key: key,
+        Body: fileContent,
+        ContentType: mimeType,
+      };
+  
+      const command = new PutObjectCommand(params);
+      
+      await s3Client.send(command);
+  
+      const headCommand = new HeadObjectCommand({ Bucket: bucketName, Key: key });
+      const headResult = await s3Client.send(headCommand);
+  
+      if (headResult.ContentLength !== fileContent.length) {
+        throw new Error(`Upload verification failed. Expected ${fileContent.length} bytes, but uploaded ${headResult.ContentLength} bytes.`);
+      }
+  
+      const cid = await this.getFileCID(key);
+  
+      // Clean up temporary files
+      if (isCompressed) {
+        await fs.unlink(processedFilePath);
+      }
+      await fs.unlink(file.tempFilePath);
+  
+      return {
+        cid: cid,
+        filebaseUrl: `https://${bucketName}.s3.filebase.com/${key}`,
+        ipfsUrl: `https://ipfs.filebase.io/ipfs/${cid}`,
+      };
+    } catch (error) {
+      console.error("Error in uploadToFilebase:", error);
+      throw error;
+    }
+  };
+
+  
   public async uploadImageOnCloudById(req: any, res: Response): Promise<any> {
     try {
       console.log("Hello", req.files);
@@ -1089,6 +1191,43 @@ export class LaunchCollectionController {
       });
     }
   }
+
+  public async getPrioritizedCollections(req: Request, res: Response): Promise<Response> {
+    try {
+      const limit = parseInt(req.body.limit as string) || 5;
+      const collections = await LaunchCollectionManager.getInstance().getPrioritizedCollections(limit);
+      
+      const formattedCollections = collections.map(collection => ({
+        id: collection._id,
+        title: collection.collectionName,
+        description: collection.projectDescription,
+        image: { src: collection.collectionBannerImage },
+        buttons: [
+          { id: 1, path: "/connect", content: "Get Started" },
+          { id: 2, path: `/launchpad/kadena/${collection.collectionName}`, color: "primary-alta", content: "Mint" }
+        ],
+        mintStartDate: collection.mintStartDate,
+        mintEndDate: collection.mintEndDate,
+        mintPrice: collection.mintPrice
+      }));
+
+      return res.status(ResponseCode.SUCCESS).json({
+        status: ResponseStatus.SUCCESS,
+        message: ResponseMessage.SUCCESS,
+        description: ResponseDescription.SUCCESS,
+        data: formattedCollections,
+      });
+    } catch (error) {
+      console.error("Error in getPrioritizedCollections:", error);
+      return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json({
+        status: ResponseStatus.INTERNAL_SERVER_ERROR,
+        message: ResponseMessage.FAILED,
+        description: ResponseDescription.INTERNAL_SERVER_ERROR,
+        data: null,
+      });
+    }
+  }
+
 }
 
 export default LaunchCollectionController.getInstance();
