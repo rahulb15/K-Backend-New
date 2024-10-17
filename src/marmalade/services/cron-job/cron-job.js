@@ -12,7 +12,7 @@ cron.schedule('*/1 * * * *', () => {
 });
 
 // Schedule the cron job to run every 5 minutes
-cron.schedule('*/5 * * * *', () => {
+cron.schedule('*/2 * * * *', () => {
   console.log('Running collection processing cron job');
   CollectionProcessingService.processCollections();
 });

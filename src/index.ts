@@ -59,34 +59,34 @@ connectToDatabase()
   .then(() => {
     console.log("Database connected successfully");
     // Start the notification system
-    initializeNotificationSystem()
-      .then(() => {
-        console.log("Notification system initialized successfully");
-      })
-      .catch((error) => {
-        console.error("Error initializing notification system:", error);
-        process.exit(1);
-      });
+    // initializeNotificationSystem()
+    //   .then(() => {
+    //     console.log("Notification system initialized successfully");
+    //   })
+    //   .catch((error) => {
+    //     console.error("Error initializing notification system:", error);
+    //     process.exit(1);
+    //   });
 
     // Start the chat system
-    initializeChatSystem()
-      .then(() => {
-        console.log("Chat system initialized successfully");
-      })
-      .catch((error) => {
-        console.error("Error initializing chat system:", error);
-        process.exit(1);
-      });
+    // initializeChatSystem()
+    //   .then(() => {
+    //     console.log("Chat system initialized successfully");
+    //   })
+    //   .catch((error) => {
+    //     console.error("Error initializing chat system:", error);
+    //     process.exit(1);
+    //   });
 
     // Start the real-time activity service
-    realTimeActivityService.start()
-      .then(() => {
-        console.log("Real-time activity service started successfully");
-      })
-      .catch((error) => {
-        console.error("Error starting real-time activity service:", error);
-        process.exit(1);
-      });
+    // realTimeActivityService.start()
+    //   .then(() => {
+    //     console.log("Real-time activity service started successfully");
+    //   })
+    //   .catch((error) => {
+    //     console.error("Error starting real-time activity service:", error);
+    //     process.exit(1);
+    //   });
       
 
     // Start the server after successful database connection

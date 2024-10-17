@@ -13,13 +13,13 @@
 redis-server --daemonize yes
 
 # Start Zookeeper (required for Kafka)
-/kafka/bin/zookeeper-server-start.sh -daemon /kafka/config/zookeeper.properties
+# /kafka/bin/zookeeper-server-start.sh -daemon /kafka/config/zookeeper.properties
 
 # Start Kafka
-/kafka/bin/kafka-server-start.sh -daemon /kafka/config/server.properties
+# /kafka/bin/kafka-server-start.sh -daemon /kafka/config/server.properties
 
 # Wait for Kafka to start
-sleep 10
+# sleep 10
 
 # Start Node.js application
 # npm run prod
