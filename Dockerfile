@@ -36,12 +36,12 @@ FROM node:20.16.0-alpine3.20
 RUN apk add --no-cache redis openjdk11-jre bash
 
 # Install Kafka
-# ENV KAFKA_VERSION=3.8.0
-# ENV SCALA_VERSION=2.13
-# RUN wget https://downloads.apache.org/kafka/${KAFKA_VERSION}/kafka_${SCALA_VERSION}-${KAFKA_VERSION}.tgz \
-#     && tar -xzf kafka_${SCALA_VERSION}-${KAFKA_VERSION}.tgz \
-#     && mv kafka_${SCALA_VERSION}-${KAFKA_VERSION} /kafka \
-#     && rm kafka_${SCALA_VERSION}-${KAFKA_VERSION}.tgz
+ENV KAFKA_VERSION=3.8.0
+ENV SCALA_VERSION=2.13
+RUN wget https://downloads.apache.org/kafka/${KAFKA_VERSION}/kafka_${SCALA_VERSION}-${KAFKA_VERSION}.tgz \
+    && tar -xzf kafka_${SCALA_VERSION}-${KAFKA_VERSION}.tgz \
+    && mv kafka_${SCALA_VERSION}-${KAFKA_VERSION} /kafka \
+    && rm kafka_${SCALA_VERSION}-${KAFKA_VERSION}.tgz
 
 # Set the working directory
 WORKDIR /app
