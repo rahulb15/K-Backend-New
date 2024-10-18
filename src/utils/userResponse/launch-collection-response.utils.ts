@@ -56,6 +56,63 @@ export const launchCollectionResponseData = (collection: ILaunchCollection) => {
   };
 };
 
+
+export const launchCollectionResponseDataLaunchpad = (collection: ILaunchCollection) => {
+  return {
+    _id: collection._id,
+    collectionName: collection.collectionName,
+    creatorName: collection.creatorName,
+    creatorWallet: collection.creatorWallet,
+    creatorEmail: collection.creatorEmail,
+    collectionType: collection.collectionType,
+    projectDescription: collection.projectDescription,
+    projectCategory: collection.projectCategory,
+    expectedLaunchDate: collection.expectedLaunchDate,
+    twitter: collection.twitter,
+    discord: collection.discord,
+    instagram: collection.instagram,
+    website: collection.website,
+    totalSupply: collection.totalSupply,
+    contractType: collection.contractType,
+    royaltyPercentage: collection.royaltyPercentage,
+    mintPrice: collection.mintPrice,
+    mintPriceCurrency: collection.mintPriceCurrency,
+    tokenList: collection.tokenList,
+    // uriList: collection.uriList,
+    mintedUriList: collection.mintedUriList,
+    // policy: collection.policy,
+    collectionCoverImage: collection.collectionCoverImage,
+    collectionBannerImage: collection.collectionBannerImage,
+    mintStartDate: collection.mintStartDate,
+    mintStartTime: collection.mintStartTime,
+    mintEndDate: collection.mintEndDate,
+    mintEndTime: collection.mintEndTime,
+    allowFreeMints: collection.allowFreeMints,
+    enableWhitelist: collection.enableWhitelist,
+    // whitelistAddresses: collection.whitelistAddresses,
+    whitelistStartDate: collection.whitelistStartDate,
+    whitelistStartTime: collection.whitelistStartTime,
+    whitelistStartDateAndTime: collection.whitelistStartDateAndTime,
+    presaleStartDateAndTime: collection.presaleStartDateAndTime,
+    presaleEndDateAndTime: collection.presaleEndDateAndTime,
+    whitelistPrice: collection.whitelistPrice,
+    reservePrice: collection.reservePrice,
+    enablePresale: collection.enablePresale,
+    presaleStartDate: collection.presaleStartDate,
+    presaleStartTime: collection.presaleStartTime,
+    presaleEndDate: collection.presaleEndDate,
+    presaleEndTime: collection.presaleEndTime,
+    presalePrice: collection.presalePrice,
+    // presaleAddressess: collection.presaleAddressess,
+    enableAirdrop : collection.enableAirdrop,
+    // isApproved: collection.isApproved,
+    // isRejected: collection.isRejected,
+    // isLaunched: collection.isLaunched,
+    createdAt: collection.createdAt,
+    updatedAt: collection.updatedAt,
+  };
+};
+
 export const adminLaunchCollectionResponseData = (
   collection: ILaunchCollection
 ) => {

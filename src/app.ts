@@ -40,7 +40,7 @@ import RarityCalculationService from "./services/rarityCalculationService";
 const rarityService = RarityCalculationService.getInstance();
 rarityService.scheduleRarityCalculation();
 import { setupRealTimeSync } from "./config/elasticsearchSync";
-// setupRealTimeSync();
+setupRealTimeSync();
 
 // Initialize the MarmaladeNGClient Testnet
 // const client = new MarmaladeNGClient(

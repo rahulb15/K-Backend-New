@@ -15,6 +15,7 @@ import { LaunchCollectionManager } from "../../services/launch-collection.manage
 import {
   launchCollectionResponseData,
   adminLaunchCollectionResponseData,
+  launchCollectionResponseDataLaunchpad,
 } from "../../utils/userResponse/launch-collection-response.utils";
 import { IResponseHandler } from "../../interfaces/response-handler.interface";
 import { IUser } from "../../interfaces/user/user.interface";
@@ -649,7 +650,7 @@ export class LaunchCollectionController {
         status: ResponseStatus.SUCCESS,
         message: ResponseMessage.SUCCESS,
         description: ResponseDescription.SUCCESS,
-        data: launchCollectionResponseData(collection),
+        data: launchCollectionResponseDataLaunchpad(collection),
       });
     } catch (error) {
       return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json({
