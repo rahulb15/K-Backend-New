@@ -13,6 +13,7 @@ const launchCollectionSchema = new Schema({
   expectedLaunchDate: { type: String },
   twitter: { type: String },
   discord: { type: String },
+  socialMediaLinks: { type: Schema.Types.Mixed},
   instagram: { type: String },
   website: { type: String },
   totalSupply: { type: String },

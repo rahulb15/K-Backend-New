@@ -11,6 +11,7 @@ export interface ILaunchCollection {
   expectedLaunchDate: string;
   twitter: string;
   discord: string;
+  socialMediaLinks: any
   instagram: string;
   website: string;
   totalSupply: string;
@@ -69,6 +70,7 @@ export interface IUpdateLaunchCollection {
   expectedLaunchDate?: string;
   twitter?: string;
   discord?: string;
+  socialMediaLinks: any;
   instagram?: string;
   website?: string;
   totalSupply?: string;
