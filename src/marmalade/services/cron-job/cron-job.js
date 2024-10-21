@@ -6,13 +6,13 @@ const CollectionProcessingService = require('../CollectionProcessingService');
 // ... your existing code ...
 
 // Schedule the cron job to run every 1 minutes
-cron.schedule('*/1 * * * *', () => {
+cron.schedule('*/2 * * * *', () => {
   console.log('Running sales processing cron job');
   SalesProcessingService.processSales();
 });
 
 // Schedule the cron job to run every 5 minutes
-cron.schedule('*/2 * * * *', () => {
+cron.schedule('*/4 * * * *', () => {
   console.log('Running collection processing cron job');
   CollectionProcessingService.processCollections();
 });

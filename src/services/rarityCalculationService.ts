@@ -433,7 +433,7 @@ class RarityCalculationService {
   }
 
   public scheduleRarityCalculation(): void {
-    cron.schedule("*/5 * * * *", async () => {
+    cron.schedule("*/5 * * * *", async () => { // Run every 5 minutes
       console.log("Starting scheduled rarity calculation...");
       try {
         await this.calculateRarityScores();

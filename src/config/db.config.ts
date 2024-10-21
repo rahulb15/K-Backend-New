@@ -17,6 +17,7 @@ const dbUrl = () => {
   }
 };
 
+
 const connectToDatabase = async (): Promise<void> => {
   const connectionString = dbUrl();
   if (!connectionString) {
@@ -24,16 +25,38 @@ const connectToDatabase = async (): Promise<void> => {
   }
 
   try {
-    await mongoose.connect(connectionString);
+    await mongoose.connect(connectionString, {
+      maxPoolSize: 100, // Adjust this value based on your needs
+      socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
+      family: 4, // Use IPv4, skip trying IPv6
+      serverSelectionTimeoutMS: 5000, // Keep trying to send operations for 5 seconds
+      heartbeatFrequencyMS: 10000, // Heartbeat to check the connection every 10 seconds
+    });
+    
     console.log("Connected to MongoDB");
 
     // Create indexes after successful connection
     await createIndexes();
+
+    // Set up connection error handling
+    mongoose.connection.on('error', err => {
+      console.error('MongoDB connection error:', err);
+    });
+
+    mongoose.connection.on('disconnected', () => {
+      console.warn('MongoDB disconnected. Attempting to reconnect...');
+    });
+
+    mongoose.connection.on('reconnected', () => {
+      console.log('MongoDB reconnected');
+    });
+
   } catch (error) {
     console.error("Failed to connect to MongoDB:", error);
     process.exit(1);
   }
 };
+
 
 const createIndexes = async (): Promise<void> => {
   try {
