@@ -63,7 +63,8 @@ const nftSchema = new mongoose.Schema({
       message: (props: any) => `${props.value} is not a valid Kadena address!`
     }
   },
-  lastUpdated: { type: Date, default: Date.now }
+  lastUpdated: { type: Date, default: Date.now },
+  createdAt: { type: Date, default: Date.now }
 });
 
 // Indexes

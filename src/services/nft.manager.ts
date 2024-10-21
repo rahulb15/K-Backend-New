@@ -355,7 +355,7 @@ export class NftManager implements INftManager {
         },
       },
       {
-        $sort: { createdAt: -1 },
+        $sort: { lastUpdated: -1 },
       },
       {
         $skip: (pageNo - 1) * limit,
