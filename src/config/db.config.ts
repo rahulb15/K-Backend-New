@@ -26,7 +26,7 @@ const connectToDatabase = async (): Promise<void> => {
 
   try {
     await mongoose.connect(connectionString, {
-      maxPoolSize: 100, // Adjust this value based on your needs
+      maxPoolSize: 100,
       socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
       family: 4, // Use IPv4, skip trying IPv6
       serverSelectionTimeoutMS: 5000, // Keep trying to send operations for 5 seconds

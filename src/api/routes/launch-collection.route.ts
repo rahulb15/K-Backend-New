@@ -3,7 +3,7 @@ import { adminMiddleware } from "../../middlewares/admin.auth.middleware";
 import { authMiddleware } from "../../middlewares/auth.middleware";
 import launchCollectionController from "../controllers/launch-collection.controller";
 import upload from "../../middlewares/multer.middleware";
-import fileUpload from 'express-fileupload';
+import fileUpload from "express-fileupload";
 
 const router = Router();
 
@@ -54,7 +54,7 @@ router.post(
   authMiddleware,
   fileUpload({
     useTempFiles: true,
-    tempFileDir: '/tmp/',
+    tempFileDir: "/tmp/",
     debug: true,
     abortOnLimit: true,
     responseOnLimit: "File size limit has been reached",
@@ -70,30 +70,37 @@ router.post(
   launchCollectionController.uploadImageOnCloud
 );
 
-
 router.get("/:name", launchCollectionController.getByName);
-
-
-
 
 router.get(
   "/getByUserId/:userId",
   authMiddleware,
   launchCollectionController.getByUserId
 );
-router.post("/getAll",adminMiddleware, launchCollectionController.getAll);
+router.post("/getAll", adminMiddleware, launchCollectionController.getAll);
 
 // getAllLaunched
 router.post("/getAllLaunched", launchCollectionController.getAllLaunched);
 
-router.post("/getLiveCollections", launchCollectionController.getLiveCollections);
-router.post("/getUpcomingCollections", launchCollectionController.getUpcomingCollections);
-router.post("/getEndedCollections", launchCollectionController.getEndedCollections);
-
-
+router.post(
+  "/getLiveCollections",
+  launchCollectionController.getLiveCollections
+);
+router.post(
+  "/getUpcomingCollections",
+  launchCollectionController.getUpcomingCollections
+);
+router.post(
+  "/getEndedCollections",
+  launchCollectionController.getEndedCollections
+);
 
 //getAllApproved
-router.post("/getAllApproved",adminMiddleware, launchCollectionController.getAllApproved);
+router.post(
+  "/getAllApproved",
+  adminMiddleware,
+  launchCollectionController.getAllApproved
+);
 
 // approve
 router.put("/approve/:id", adminMiddleware, launchCollectionController.approve);
@@ -105,7 +112,7 @@ router.put("/reject/:id", adminMiddleware, launchCollectionController.reject);
 router.put("/launch/:id", adminMiddleware, launchCollectionController.launch);
 
 //getbuId
-router.get("/getById/:id",adminMiddleware, launchCollectionController.getById);
+router.get("/getById/:id", adminMiddleware, launchCollectionController.getById);
 
 router.post(
   "/getCreatedCollections",
@@ -118,12 +125,14 @@ router.post(
   launchCollectionController.getCreatedCollectionsMarketPlace
 );
 
+router.post(
+  "/category-wise",
+  launchCollectionController.getCategoryWiseCollections
+);
 
-router.post("/category-wise", launchCollectionController.getCategoryWiseCollections);
-
-router.post("/prioritized", launchCollectionController.getPrioritizedCollections);
-
-
-
+router.post(
+  "/prioritized",
+  launchCollectionController.getPrioritizedCollections
+);
 
 export default router;
