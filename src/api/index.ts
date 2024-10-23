@@ -15,6 +15,8 @@ import superAdminRouter from "./routes/superadmin.route";
 import elasticRouter from "./routes/elastic.route";
 import singleNftRouter from "./routes/singleNft.route";
 import activityRouter from "./routes/activity.route";
+import stageApplicationRouter from "./routes/stage-application.routes";
+import musicRouter from "./routes/music.routes";
 
 const router = express.Router();
 
@@ -34,5 +36,7 @@ router.use("/blog", blogRouter);
 router.use("/superadmin", superAdminRouter);
 router.use("/elastic", elasticRouter);
 router.use("/activity", activityRouter);
+router.use("/stage-application", stageApplicationRouter);
+router.use("/music", musicRouter);
 
 export default router;

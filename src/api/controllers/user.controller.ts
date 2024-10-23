@@ -164,16 +164,16 @@ export class UserController {
 
       //validate name
       const isNameValid = nameValidator(user.name);
-      if (!isNameValid) {
-        const response: IResponseHandler = {
-          status: ResponseStatus.FAILED,
-          message: ResponseMessage.NAME_INVALID,
-          description: ResponseDescription.NAME_INVALID,
-          data: null,
-        };
+      // if (!isNameValid) {
+      //   const response: IResponseHandler = {
+      //     status: ResponseStatus.FAILED,
+      //     message: ResponseMessage.NAME_INVALID,
+      //     description: ResponseDescription.NAME_INVALID,
+      //     data: null,
+      //   };
 
-        return res.status(ResponseCode.BAD_REQUEST).json(response);
-      }
+      //   return res.status(ResponseCode.BAD_REQUEST).json(response);
+      // }
 
       const existingUser = await userManager.getByEmail(user.email);
       if (existingUser) {
