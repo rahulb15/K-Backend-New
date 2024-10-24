@@ -10,6 +10,7 @@ const launchCollectionSchema = new Schema({
   creatorEmail: { type: String },
   projectDescription: { type: String },
   projectCategory: { type: String, index: true },
+  musicSubCategory: { type: String },
   expectedLaunchDate: { type: String },
   twitter: { type: String },
   discord: { type: String },

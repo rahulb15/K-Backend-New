@@ -8,6 +8,7 @@ export interface ILaunchCollection {
   collectionType : string;
   projectDescription: string;
   projectCategory: string;
+  musicSubCategory: string;
   expectedLaunchDate: string;
   twitter: string;
   discord: string;
@@ -67,6 +68,7 @@ export interface IUpdateLaunchCollection {
   collectionType?: string;
   projectDescription?: string;
   projectCategory?: string;
+  musicSubCategory?: string;
   expectedLaunchDate?: string;
   twitter?: string;
   discord?: string;
