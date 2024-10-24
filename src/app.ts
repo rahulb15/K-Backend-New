@@ -43,27 +43,27 @@ import { setupRealTimeSync } from "./config/elasticsearchSync";
 setupRealTimeSync();
 
 // Initialize the MarmaladeNGClient Testnet
-const client = new MarmaladeNGClient(
-  "Testnet Chain 1",
-  "https://api.testnet.chainweb.com",
-  "testnet04",
-  "1",
-  "n_442d3e11cfe0d39859878e5b1520cd8b8c36e5db",
-  "n_a55cdf159bc9fda0a8af03a71bb046942b1e4faf"
-);
-set_client(client);
+// const client = new MarmaladeNGClient(
+//   "Testnet Chain 1",
+//   "https://api.testnet.chainweb.com",
+//   "testnet04",
+//   "1",
+//   "n_442d3e11cfe0d39859878e5b1520cd8b8c36e5db",
+//   "n_a55cdf159bc9fda0a8af03a71bb046942b1e4faf"
+// );
+// set_client(client);
 
 
 // Initialize the MarmaladeNGClient Mainnet
-// const client = new MarmaladeNGClient(
-//   "Mainnet Chain 8",
-//   "https://api.chainweb.com",
-//   "mainnet01",
-//   "8",
-//   "n_4e470a97222514a8662dd1219000a0431451b0ee",
-//   "n_4e470b4e150fafd1c50d1f016331142b55dd01db"
-// );
-// set_client(client);
+const client = new MarmaladeNGClient(
+  "Mainnet Chain 8",
+  "https://api.chainweb.com",
+  "mainnet01",
+  "8",
+  "n_4e470a97222514a8662dd1219000a0431451b0ee",
+  "n_4e470b4e150fafd1c50d1f016331142b55dd01db"
+);
+set_client(client);
 
 
 
